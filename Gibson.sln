@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gibson.Tests", "src\Gibson.Tests\Gibson.Tests.csproj", "{3A8495AE-E286-44A2-8BBB-EE9911F5BA43}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gibson", "src\Gibson\Gibson.csproj", "{8FF75C8B-2A9E-4D95-91AD-333071813199}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3A8495AE-E286-44A2-8BBB-EE9911F5BA43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A8495AE-E286-44A2-8BBB-EE9911F5BA43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A8495AE-E286-44A2-8BBB-EE9911F5BA43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A8495AE-E286-44A2-8BBB-EE9911F5BA43}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FF75C8B-2A9E-4D95-91AD-333071813199}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FF75C8B-2A9E-4D95-91AD-333071813199}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FF75C8B-2A9E-4D95-91AD-333071813199}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FF75C8B-2A9E-4D95-91AD-333071813199}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
