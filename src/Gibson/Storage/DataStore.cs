@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Gibson.IO;
-using Sitecore.Data;
-using Sitecore.Data.Serialization.ObjectModel;
+using Gibson.Formatting;
+using Gibson.Model;
 using Sitecore.Diagnostics;
 
 namespace Gibson.Storage
@@ -12,36 +12,28 @@ namespace Gibson.Storage
 	{
 		private readonly string _rootPath;
 		private readonly PathProvider _pathProvider;
-		private readonly GibReader _reader;
-		private readonly GibWriter _writer;
-
-		public DataStore(string rootPath, PathProvider pathProvider, GibReader reader, GibWriter writer)
+		private readonly ISerializationFormatter _formatter;
+		public DataStore(string rootPath, PathProvider pathProvider, ISerializationFormatter formatter)
 		{
 			Assert.ArgumentCondition(Directory.Exists(rootPath), "rootPath", "Root path must be a valid directory!");
 			Assert.ArgumentNotNull(pathProvider, "pathProvider");
-			Assert.ArgumentNotNull(reader, "reader");
-			Assert.ArgumentNotNull(writer, "writer");
+			Assert.ArgumentNotNull(formatter, "formatter");
 
 			_rootPath = rootPath;
 			_pathProvider = pathProvider;
-			_reader = reader;
-			_writer = writer;
+			_formatter = formatter;
 		}
 
 		/// <summary>
 		/// Saves an item into the store
 		/// </summary>
-		public virtual void Save(SyncItem item)
+		public virtual void Save(ISerializableItem item)
 		{
-			var path = _pathProvider.GetStoragePath(ID.Parse(item.ID), _rootPath);
+			var path = _pathProvider.GetStoragePath(item.Id, _rootPath);
 
-			// TODO: lock this (stringlock?)
 			using (var writer = File.OpenWrite(path))
 			{
-				using (var textWriter = new StreamWriter(writer))
-				{
-					_writer.WriteGib(item, textWriter);
-				}
+				_formatter.WriteSerializedItem(item, writer);
 			}
 		}
 
@@ -49,7 +41,7 @@ namespace Gibson.Storage
 		/// Loads an item from the store by ID
 		/// </summary>
 		/// <returns>The stored item, or null if it does not exist in the store</returns>
-		public virtual SyncItem Load(ID itemId)
+		public virtual ISerializableItem Load(Guid itemId)
 		{
 			var path = _pathProvider.GetStoragePath(itemId, _rootPath);
 
@@ -61,11 +53,11 @@ namespace Gibson.Storage
 		/// <summary>
 		/// Loads all items in the data store (used for consistency checks)
 		/// </summary>
-		public virtual IEnumerable<SyncItem> LoadAll()
+		public virtual IEnumerable<ISerializableItem> LoadAll()
 		{
 			var items = _pathProvider.GetAllStoredPaths(_rootPath);
 
-			if (items == null) return Enumerable.Empty<SyncItem>();
+			if (items == null) return Enumerable.Empty<ISerializableItem>();
 
 			return items.Select(Load);
 		}
@@ -74,7 +66,7 @@ namespace Gibson.Storage
 		/// Removes an item from the store
 		/// </summary>
 		/// <returns>True if the item existed in the store and was removed, false if it did not exist and the store is unchanged.</returns>
-		public virtual bool Remove(ID itemId)
+		public virtual bool Remove(Guid itemId)
 		{
 			var path = _pathProvider.GetStoragePath(itemId, _rootPath);
 
@@ -85,15 +77,11 @@ namespace Gibson.Storage
 			return true;
 		}
 
-		protected virtual SyncItem Load(string path)
+		protected virtual ISerializableItem Load(string path)
 		{
-			// todo: lock this? stringlock?
 			using (var reader = File.OpenRead(path))
 			{
-				using (var textReader = new StreamReader(reader))
-				{
-					return _reader.ReadGib(textReader);
-				}
+				return _formatter.ReadSerializedItem(reader);
 			}
 		}
 	}

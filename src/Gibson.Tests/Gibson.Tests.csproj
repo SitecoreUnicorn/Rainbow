@@ -45,8 +45,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IO\IndexWriterTests.cs" />
-    <Compile Include="IO\IndexReaderTests.cs" />
+    <Compile Include="Formatting\LineOrientedIndexFormatterWriteTests.cs" />
+    <Compile Include="Formatting\LineOrientedIndexFormatterReadTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Storage\PathProviderTests.cs" />
   </ItemGroup>

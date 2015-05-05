@@ -42,14 +42,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IO\IndexReader.cs" />
-    <Compile Include="IO\IndexWriter.cs" />
+    <Compile Include="Formatting\FieldFormatters\IFieldFormatter.cs" />
+    <Compile Include="Formatting\FieldFormatters\MultilistFormatter.cs" />
+    <Compile Include="Formatting\FieldFormatters\XmlFieldFormatter.cs" />
+    <Compile Include="Formatting\IIndexFormatter.cs" />
+    <Compile Include="Formatting\ISerializationFormatter.cs" />
+    <Compile Include="Formatting\JsonSerializationFormatter.cs" />
+    <Compile Include="Formatting\Json\JsonFieldValue.cs" />
+    <Compile Include="Formatting\Json\JsonItem.cs" />
+    <Compile Include="Formatting\Json\JsonLanguage.cs" />
+    <Compile Include="Formatting\Json\JsonVersion.cs" />
+    <Compile Include="Formatting\LineOrientedIndexFormatter.cs" />
+    <Compile Include="Indexing\IIndex.cs" />
+    <Compile Include="Model\ISerializableFieldValue.cs" />
+    <Compile Include="Model\ISerializableItem.cs" />
+    <Compile Include="Model\ISerializableVersion.cs" />
+    <Compile Include="Model\SerializableItem.cs" />
     <Compile Include="Storage\DataStore.cs" />
-    <Compile Include="IO\IndexEntry.cs" />
-    <Compile Include="Storage\IndexStore.cs" />
+    <Compile Include="Indexing\IndexEntry.cs" />
+    <Compile Include="Indexing\IndexStore.cs" />
     <Compile Include="Storage\PathProvider.cs" />
-    <Compile Include="IO\GibReader.cs" />
-    <Compile Include="IO\GibWriter.cs" />
     <Compile Include="SerializationStore.cs" />
     <Compile Include="HalibutSitecoreSerializationProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

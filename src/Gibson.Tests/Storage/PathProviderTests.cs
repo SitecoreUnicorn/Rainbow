@@ -1,8 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using Gibson.Storage;
 using NUnit.Framework;
-using Sitecore.Data;
 
 namespace Gibson.Tests.Storage
 {
@@ -12,21 +12,21 @@ namespace Gibson.Tests.Storage
 		public void PathProvider_GetStoragePath_ReturnsExpectedPath()
 		{
 			var provider = new PathProvider();
-			var id = new ID("{0DE95AE4-41AB-4D01-9EB0-67441B7C2450}");
+			var id = new Guid("{0DE95AE4-41AB-4D01-9EB0-67441B7C2450}");
 
 			var result = provider.GetStoragePath(id, @"c:\test\path with space");
 
-			Assert.AreEqual(result, @"c:\test\path with space\0D\{0DE95AE4-41AB-4D01-9EB0-67441B7C2450}.gib", "Path was not expected value!");
+			Assert.AreEqual(result, @"c:\test\path with space\0D\0DE95AE4-41AB-4D01-9EB0-67441B7C2450.json", "Path was not expected value!");
 		}
 
 		[Test]
 		public void PathProvider_GetAllStoredPaths_ReturnsExpectedItems_Recursively()
 		{
 			var temp = GetTemporaryDirectory();
-			File.WriteAllText(Path.Combine(temp, "foo.gib"), "gib!");
+			File.WriteAllText(Path.Combine(temp, "foo.json"), "gib!");
 			File.WriteAllText(Path.Combine(temp, "foo.bar"), "not gib!");
 			var subdirectory = Directory.CreateDirectory(Path.Combine(temp, "gib subdirectory"));
-			File.WriteAllText(Path.Combine(subdirectory.FullName, "bar.gib"), "gib!");
+			File.WriteAllText(Path.Combine(subdirectory.FullName, "bar.json"), "gib!");
 
 			var provider = new PathProvider();
 
@@ -35,7 +35,7 @@ namespace Gibson.Tests.Storage
 			try
 			{
 				Assert.AreEqual(result.Length, 2, "More than the 2 expected items found!");
-				Assert.That(result.All(x => x.EndsWith(".gib")), "Found non gib files!");
+				Assert.That(result.All(x => x.EndsWith(".json")), "Found non json files!");
 			}
 			finally
 			{
@@ -47,9 +47,9 @@ namespace Gibson.Tests.Storage
 		public void PathProvider_GetOrphans_FindsEmptyFolder()
 		{
 			var temp = GetTemporaryDirectory();
-			File.WriteAllText(Path.Combine(temp, "foo.gib"), "gib!");
+			File.WriteAllText(Path.Combine(temp, "foo.json"), "gib!");
 			var subdirectory = Directory.CreateDirectory(Path.Combine(temp, "gib subdirectory"));
-			File.WriteAllText(Path.Combine(subdirectory.FullName, "bar.gib"), "gib!");
+			File.WriteAllText(Path.Combine(subdirectory.FullName, "bar.json"), "gib!");
 			Directory.CreateDirectory(Path.Combine(temp, "orphan"));
 
 			var provider = new PathProvider();

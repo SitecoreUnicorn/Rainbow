@@ -1,15 +1,15 @@
-﻿using System.IO;
-using System.Text;
-using Gibson.IO;
+﻿using System;
+using System.IO;
+using Gibson.Formatting;
+using Gibson.Indexing;
 using NUnit.Framework;
-using Sitecore.Data;
 
-namespace Gibson.Tests.IO
+namespace Gibson.Tests.Formatting
 {
-	public class IndexWriterTests
+	public class LineOrientedIndexFormatterWriteTests
 	{
 		[Test]
-		public void IndexWriter_WritesOneItem()
+		public void IndexFormatter_WritesOneItem()
 		{
 			var result = WriteFile(GetTestEntry1());
 
@@ -17,7 +17,7 @@ namespace Gibson.Tests.IO
 		}
 
 		[Test]
-		public void IndexWriter_WritesTwoItems()
+		public void IndexFormatter_WritesTwoItems()
 		{
 			var result = WriteFile(GetTestEntry1(), GetTestEntry2());
 
@@ -25,7 +25,7 @@ namespace Gibson.Tests.IO
 		}
 
 		[Test]
-		public void IndexWriter_WritesTwoItems_InPathOrder()
+		public void IndexFormatter_WritesTwoItems_InPathOrder()
 		{
 			var result = WriteFile(GetTestEntry2(), GetTestEntry1());
 
@@ -36,11 +36,7 @@ namespace Gibson.Tests.IO
 		{
 			using (var ms = new MemoryStream())
 			{
-				using (var sw = new StreamWriter(ms, Encoding.UTF8, 128, true))
-				{
-					new IndexWriter().WriteGibs(entries, sw);
-					sw.Flush();
-				}
+				new LineOrientedIndexFormatter().WriteIndex(entries, ms);
 
 				ms.Position = 0;
 
@@ -55,9 +51,9 @@ namespace Gibson.Tests.IO
 		{
 			return new IndexEntry
 			{
-				Id = new ID("{0DE95AE4-41AB-4D01-9EB0-67441B7C2450}"),
-				ParentId = new ID("{11111111-1111-1111-1111-111111111111}"),
-				TemplateId = new ID("{E3E2D58C-DF95-4230-ADC9-279924CECE84}"),
+				Id = new Guid("{0DE95AE4-41AB-4D01-9EB0-67441B7C2450}"),
+				ParentId = new Guid("{11111111-1111-1111-1111-111111111111}"),
+				TemplateId = new Guid("{E3E2D58C-DF95-4230-ADC9-279924CECE84}"),
 				Path = "/sitecore/content folder"
 			};
 		}
@@ -66,9 +62,9 @@ namespace Gibson.Tests.IO
 		{
 			return @"-- Item --
 PATH /sitecore/content folder
-ID {0DE95AE4-41AB-4D01-9EB0-67441B7C2450}
-TEMPLATE {E3E2D58C-DF95-4230-ADC9-279924CECE84}
-ANCESTOR {11111111-1111-1111-1111-111111111111}
+ID 0DE95AE4-41AB-4D01-9EB0-67441B7C2450
+TEMPLATE E3E2D58C-DF95-4230-ADC9-279924CECE84
+ANCESTOR 11111111-1111-1111-1111-111111111111
 ";
 		}
 
@@ -76,9 +72,9 @@ ANCESTOR {11111111-1111-1111-1111-111111111111}
 		{
 			return new IndexEntry
 			{
-				Id = new ID("{1CE3B36C-9B0C-4EB5-A996-BFCB4EAA5287}"),
-				ParentId = new ID("{EB2E4FFD-2761-4653-B052-26A64D385227}"),
-				TemplateId = new ID("{A87A00B1-E6DB-45AB-8B54-636FEC3B5523}"),
+				Id = new Guid("{1CE3B36C-9B0C-4EB5-A996-BFCB4EAA5287}"),
+				ParentId = new Guid("{EB2E4FFD-2761-4653-B052-26A64D385227}"),
+				TemplateId = new Guid("{A87A00B1-E6DB-45AB-8B54-636FEC3B5523}"),
 				Path = "/sitecore/layout/Placeholder Settings"
 			};
 		}
@@ -87,9 +83,9 @@ ANCESTOR {11111111-1111-1111-1111-111111111111}
 		{
 			return @"-- Item --
 PATH /sitecore/layout/Placeholder Settings
-ID {1CE3B36C-9B0C-4EB5-A996-BFCB4EAA5287}
-TEMPLATE {A87A00B1-E6DB-45AB-8B54-636FEC3B5523}
-ANCESTOR {EB2E4FFD-2761-4653-B052-26A64D385227}
+ID 1CE3B36C-9B0C-4EB5-A996-BFCB4EAA5287
+TEMPLATE A87A00B1-E6DB-45AB-8B54-636FEC3B5523
+ANCESTOR EB2E4FFD-2761-4653-B052-26A64D385227
 ";
 		}
 	}

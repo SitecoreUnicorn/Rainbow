@@ -1,17 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Gibson.IO;
+using Gibson.Formatting;
+using Gibson.Indexing;
 using NUnit.Framework;
-using Sitecore.Data;
 
-namespace Gibson.Tests.IO
+namespace Gibson.Tests.Formatting
 {
-	public class IndexReaderTests
+	public class LineOrientedIndexFormatterReadTests
 	{
 		[Test]
-		public void IndexReader_ReadsOneItem()
+		public void IndexFormatter_ReadsOneItem()
 		{
 			var result = ReadFile(GetTestItem1());
 
@@ -19,7 +20,7 @@ namespace Gibson.Tests.IO
 		}
 
 		[Test]
-		public void IndexReader_ReadsTwoItems()
+		public void IndexFormatter_ReadsTwoItems()
 		{
 			var result = ReadFile(GetTestItem1() + "\r\n" + GetTestItem2());
 
@@ -27,7 +28,7 @@ namespace Gibson.Tests.IO
 		}
 
 		[Test]
-		public void IndexReader_ReadsPath()
+		public void IndexFormatter_ReadsPath()
 		{
 			var result = ReadFile(GetTestItem1());
 
@@ -35,27 +36,27 @@ namespace Gibson.Tests.IO
 		}
 
 		[Test]
-		public void IndexReader_ReadsId()
+		public void IndexFormatter_ReadsId()
 		{
 			var result = ReadFile(GetTestItem1());
 
-			Assert.That(result.First().Id.Equals(new ID("{0DE95AE4-41AB-4D01-9EB0-67441B7C2450}")));
+			Assert.That(result.First().Id.Equals(new Guid("{0DE95AE4-41AB-4D01-9EB0-67441B7C2450}")));
 		}
 
 		[Test]
-		public void IndexReader_ReadsTemplateId()
+		public void IndexFormatter_ReadsTemplateId()
 		{
 			var result = ReadFile(GetTestItem1());
 
-			Assert.That(result.First().TemplateId.Equals(new ID("{E3E2D58C-DF95-4230-ADC9-279924CECE84}")));
+			Assert.That(result.First().TemplateId.Equals(new Guid("{E3E2D58C-DF95-4230-ADC9-279924CECE84}")));
 		}
 
 		[Test]
-		public void IndexReader_ReadsParentId()
+		public void IndexFormatter_ReadsParentId()
 		{
 			var result = ReadFile(GetTestItem1());
 
-			Assert.That(result.First().ParentId.Equals(new ID("{11111111-1111-1111-1111-111111111111}")));
+			Assert.That(result.First().ParentId.Equals(new Guid("{11111111-1111-1111-1111-111111111111}")));
 		}
 
 		private IEnumerable<IndexEntry> ReadFile(string content)
@@ -70,10 +71,7 @@ namespace Gibson.Tests.IO
 
 				ms.Position = 0;
 
-				using (var sr = new StreamReader(ms))
-				{
-					return new IndexReader().ReadGibs(sr);
-				}
+				return new LineOrientedIndexFormatter().ReadIndex(ms);
 			}
 		}
 
