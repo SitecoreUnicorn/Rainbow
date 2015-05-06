@@ -1,10 +1,9 @@
 ﻿using System;
 using System.IO;
-using Gibson.Formatting;
 using Gibson.Indexing;
 using NUnit.Framework;
 
-namespace Gibson.Tests.Formatting
+namespace Gibson.Tests.Indexing
 {
 	public class LineOrientedIndexFormatterWriteTests
 	{

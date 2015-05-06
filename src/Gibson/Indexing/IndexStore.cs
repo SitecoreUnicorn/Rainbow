@@ -1,44 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
-using Gibson.Formatting;
 using Sitecore.Diagnostics;
 
 namespace Gibson.Indexing
 {
 	public class IndexStore
 	{
-		private readonly string _filePath;
-		private readonly IIndexFormatter _formatter;
+		private readonly Dictionary<Guid, IndexEntry> _indexById;
+		private readonly Dictionary<Guid, List<IndexEntry>> _indexByTemplate;
+		private readonly Dictionary<Guid, List<IndexEntry>> _indexByChildren;
+		private readonly Dictionary<string, List<IndexEntry>> _indexByPath;
 
-		private readonly object _syncLock = new object();
-
-		private Dictionary<Guid, IndexEntry> _indexById;
-		private Dictionary<Guid, List<IndexEntry>> _indexByTemplate;
-		private Dictionary<Guid, List<IndexEntry>> _indexByChildren;
-		private Dictionary<string, List<IndexEntry>> _indexByPath;
-
-		private bool _isDirty;
-		private bool _isInitialized = false;
-
-		public IndexStore(string filePath, IIndexFormatter formatter)
+		public IndexStore(IList<IndexEntry> entries)
 		{
-			Assert.ArgumentNotNullOrEmpty(filePath, "filePath");
-			Assert.IsTrue(File.Exists(filePath), "Index file did not exist on disk.");
-			Assert.ArgumentNotNull(formatter, "formatter");
-			
-			_filePath = filePath;
-			_formatter = formatter;
+			_indexById = new Dictionary<Guid, IndexEntry>(entries.Count);
+			_indexByTemplate = new Dictionary<Guid, List<IndexEntry>>(200);
+			_indexByPath = new Dictionary<string, List<IndexEntry>>(entries.Count, StringComparer.OrdinalIgnoreCase);
+			_indexByChildren = new Dictionary<Guid, List<IndexEntry>>(entries.Count);
 
-			// todo: filesystem watcher open on the index file? (need good disposal/finalization)
+			for (var i = 0; i < entries.Count; i++)
+			{
+				AddEntryToIndices(entries[i]);
+			}
 		}
 
 		public virtual IndexEntry GetById(Guid id)
 		{
-			if(!_isInitialized) ReadIndexFile(false);
-
 			IndexEntry result;
 			if(_indexById.TryGetValue(id, out result)) return result;
 
@@ -47,8 +35,6 @@ namespace Gibson.Indexing
 
 		public virtual IReadOnlyCollection<IndexEntry> GetByPath(string path)
 		{
-			if (!_isInitialized) ReadIndexFile(false);
-
 			List<IndexEntry> result;
 			if (_indexByPath.TryGetValue(path, out result)) return result.AsReadOnly();
 
@@ -57,8 +43,6 @@ namespace Gibson.Indexing
 
 		public virtual IReadOnlyCollection<IndexEntry> GetByTemplate(Guid templateId)
 		{
-			if (!_isInitialized) ReadIndexFile(false);
-
 			List<IndexEntry> result;
 			if (_indexByTemplate.TryGetValue(templateId, out result)) return result.AsReadOnly();
 
@@ -67,73 +51,114 @@ namespace Gibson.Indexing
 
 		public virtual IReadOnlyCollection<IndexEntry> GetChildren(Guid parentId)
 		{
-			if (!_isInitialized) ReadIndexFile(false);
-
 			List<IndexEntry> result;
 			if (_indexByChildren.TryGetValue(parentId, out result)) return result.AsReadOnly();
 
 			return new List<IndexEntry>().AsReadOnly();
 		}
 
+		public virtual IEnumerable<IndexEntry> GetDescendants(Guid parentId)
+		{
+			var queue = new Queue<IndexEntry>(GetChildren(parentId));
+
+			while (queue.Count > 0)
+			{
+				var current = queue.Dequeue();
+
+				yield return current;
+
+				var children = GetChildren(current.Id);
+
+				foreach (var child in children)
+				{
+					queue.Enqueue(child);
+				}
+			}
+		} 
+
 		public virtual IReadOnlyCollection<IndexEntry> GetAll()
 		{
-			if (!_isInitialized) ReadIndexFile(false);
-
 			return _indexById.Values.ToList().AsReadOnly();
 		} 
 
-		public virtual void Update(IndexEntry entry, bool commit)
+		public virtual void Update(IndexEntry entry)
 		{
-			_isDirty = true;
-			AddEntryToIndices(entry); // naive, needs fixing. this method probably needs to be multiple because we don't know what to do with it
-			// TODO: moves? renames? w/path and children, and what about jagged children (partially serialized)
-			if(commit) UpdateIndexFile();
-		}
+			bool dirty;
+			var existing = GetById(entry.Id);
 
-		public virtual void Commit()
-		{
-			if(_isDirty) UpdateIndexFile();
-		}
-
-		protected virtual void ReadIndexFile(bool force)
-		{
-			if (!force && _isInitialized) return;
-
-			lock (_syncLock)
+			// brand new entry
+			if (existing == null)
 			{
-				if (!force && _isInitialized) return;
+				AddEntryToIndices(entry);
+				dirty = true;
+			}
+			else if (existing.Path.Equals(entry.Path))
+			{
+				// no path changed means just a data update to an existing entry
+				// if no index data changes, we don't mark it as dirty (saving us a write to disk later)
+				dirty = MergeEntry(entry, existing);
+			}
+			else
+			{
+				// rename or move - path changed. We need to merge and rewrite descendant paths.
+				Assert.AreEqual(existing.ParentPath, entry.ParentPath, "The items' parent IDs matched, but their parent paths did not. This is corrupt data.");
 
-				_isInitialized = false;
+				MoveDescendants(entry, existing);
+				MergeEntry(entry, existing);
 
-				ReadOnlyCollection<IndexEntry> entries;
-				using (var reader = File.OpenRead(_filePath))
-				{
-					entries = _formatter.ReadIndex(reader);
-				}
+				dirty = true;
+			}
 
-				_indexById = new Dictionary<Guid, IndexEntry>(entries.Count);
-				_indexByTemplate = new Dictionary<Guid, List<IndexEntry>>(200);
-				_indexByPath = new Dictionary<string, List<IndexEntry>>(entries.Count, StringComparer.OrdinalIgnoreCase);
-				_indexByChildren = new Dictionary<Guid, List<IndexEntry>>(entries.Count);
+			// note that dirty is only marked if the index has actually changed some values
+			if(dirty)
+				IsDirty = true;
+		}
 
-				for (var i = 0; i < entries.Count; i++)
-				{
-					AddEntryToIndices(entries[i]);
-				}
+		/// <summary>
+		/// True if the index has been changed since loading.
+		/// You may set this to false manually, e.g. after flushing the index to storage successfully.
+		/// </summary>
+		public virtual bool IsDirty { get; set; }
 
-				_isInitialized = true;
+		protected virtual void MoveDescendants(IndexEntry updatedEntry, IndexEntry existingEntry)
+		{
+			if(updatedEntry.Id != existingEntry.Id) throw new ArgumentException("Item IDs did not match on old and new. Go away.");
+
+			var descendants = GetDescendants(existingEntry.Id);
+
+			foreach (var descendant in descendants)
+			{
+				var relativePath = descendant.Path.Substring(existingEntry.Path.Length);
+
+				descendant.Path = string.Concat(updatedEntry.Path, "/", relativePath);
 			}
 		}
 
-		protected virtual void UpdateIndexFile()
+		protected bool MergeEntry(IndexEntry newEntry, IndexEntry entryToMergeTo)
 		{
-			lock (_syncLock)
+			if(newEntry.Id != entryToMergeTo.Id) throw new ArgumentException("Item IDs to merge did not match. Go away.");
+
+			bool changed = false;
+
+			if (entryToMergeTo.ParentId != newEntry.ParentId)
 			{
-				using (var writer = File.OpenWrite(_filePath))
-				{
-					_formatter.WriteIndex(_indexById.Values, writer);
-				}
+				entryToMergeTo.ParentId = newEntry.ParentId;
+				changed = true;
 			}
+
+			if (!entryToMergeTo.Path.Equals(newEntry.Path))
+			{
+				entryToMergeTo.Path = newEntry.Path;
+				changed = true;
+			}
+
+			if (entryToMergeTo.TemplateId != newEntry.TemplateId)
+			{
+				entryToMergeTo.TemplateId = newEntry.TemplateId;
+				changed = true;
+			}
+
+			return changed;
 		}
 
 		protected void AddEntryToIndices(IndexEntry entry)

@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using Gibson.Model;
 
-namespace Gibson.Formatting
+namespace Gibson.Data
 {
 	public interface ISerializationFormatter
 	{

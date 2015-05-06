@@ -4,14 +4,16 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Gibson.Indexing;
+using Sitecore.Diagnostics;
 
-namespace Gibson.Formatting
+namespace Gibson.Indexing
 {
 	public class LineOrientedIndexFormatter : IIndexFormatter
 	{
 		public ReadOnlyCollection<IndexEntry> ReadIndex(Stream sourceStream)
 		{
+			Assert.ArgumentNotNull(sourceStream, "sourceStream");
+			
 			using (var reader = new StreamReader(sourceStream))
 			{
 				var results = new List<IndexEntry>();
@@ -45,6 +47,9 @@ namespace Gibson.Formatting
 
 		public void WriteIndex(IEnumerable<IndexEntry> entries, Stream outputStream)
 		{
+			Assert.ArgumentNotNull(entries, "entries");
+			Assert.ArgumentNotNull(outputStream, "outputStream");
+
 			// NOTE: leaving the output stream open - it's up to the caller to dispose that.
 			using (var writer = new StreamWriter(outputStream, Encoding.UTF8, 1024, true))
 			{

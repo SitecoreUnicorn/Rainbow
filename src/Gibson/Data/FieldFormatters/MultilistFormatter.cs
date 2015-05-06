@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Gibson.Model;
 using Sitecore.Data;
 
-namespace Gibson.Formatting.FieldFormatters
+namespace Gibson.Data.FieldFormatters
 {
 	public class MultilistFormatter : IFieldFormatter
 	{

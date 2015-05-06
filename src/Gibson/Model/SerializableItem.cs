@@ -32,6 +32,11 @@ namespace Gibson.Model
 			get { return _item.ParentID.Guid; }
 		}
 
+		public string Path
+		{
+			get { return _item.Paths.FullPath; }
+		}
+
 		public string Name
 		{
 			get { return _item.Name; }

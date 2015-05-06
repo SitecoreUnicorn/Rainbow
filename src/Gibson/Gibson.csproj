@@ -30,11 +30,19 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AlphaFS">
+      <HintPath>..\..\packages\AlphaFS.2.0.1\lib\net45\AlphaFS.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Sitecore.Kernel">
       <HintPath>..\..\lib\Sitecore\v7\Sitecore.Kernel.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Transactions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -42,23 +50,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Formatting\FieldFormatters\IFieldFormatter.cs" />
-    <Compile Include="Formatting\FieldFormatters\MultilistFormatter.cs" />
-    <Compile Include="Formatting\FieldFormatters\XmlFieldFormatter.cs" />
-    <Compile Include="Formatting\IIndexFormatter.cs" />
-    <Compile Include="Formatting\ISerializationFormatter.cs" />
-    <Compile Include="Formatting\JsonSerializationFormatter.cs" />
-    <Compile Include="Formatting\Json\JsonFieldValue.cs" />
-    <Compile Include="Formatting\Json\JsonItem.cs" />
-    <Compile Include="Formatting\Json\JsonLanguage.cs" />
-    <Compile Include="Formatting\Json\JsonVersion.cs" />
-    <Compile Include="Formatting\LineOrientedIndexFormatter.cs" />
+    <Compile Include="Data\FieldFormatters\IFieldFormatter.cs" />
+    <Compile Include="Data\FieldFormatters\MultilistFormatter.cs" />
+    <Compile Include="Data\FieldFormatters\XmlFieldFormatter.cs" />
+    <Compile Include="Indexing\IIndexFormatter.cs" />
+    <Compile Include="Data\ISerializationFormatter.cs" />
+    <Compile Include="Data\JsonSerializationFormatter.cs" />
+    <Compile Include="Data\Json\JsonFieldValue.cs" />
+    <Compile Include="Data\Json\JsonItem.cs" />
+    <Compile Include="Data\Json\JsonLanguage.cs" />
+    <Compile Include="Data\Json\JsonVersion.cs" />
+    <Compile Include="Indexing\LineOrientedIndexFormatter.cs" />
     <Compile Include="Indexing\IIndex.cs" />
     <Compile Include="Model\ISerializableFieldValue.cs" />
     <Compile Include="Model\ISerializableItem.cs" />
     <Compile Include="Model\ISerializableVersion.cs" />
     <Compile Include="Model\SerializableItem.cs" />
-    <Compile Include="Storage\DataStore.cs" />
+    <Compile Include="Storage\FileSystemDataStore.cs" />
     <Compile Include="Indexing\IndexEntry.cs" />
     <Compile Include="Indexing\IndexStore.cs" />
     <Compile Include="Storage\PathProvider.cs" />
@@ -66,7 +74,10 @@
     <Compile Include="HalibutSitecoreSerializationProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

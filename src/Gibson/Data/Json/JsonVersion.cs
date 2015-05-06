@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Gibson.Data.FieldFormatters;
+using Gibson.Model;
 
-namespace Gibson.Formatting.Json
+namespace Gibson.Data.Json
 {
 	public class JsonVersion : IComparable<JsonVersion>
 	{
@@ -16,6 +18,20 @@ namespace Gibson.Formatting.Json
 		public int CompareTo(JsonVersion other)
 		{
 			return VersionNumber.CompareTo(other.VersionNumber);
+		}
+
+		public void LoadFrom(ISerializableVersion version, IFieldFormatter[] fieldFormatters)
+		{
+			VersionNumber = version.VersionNumber;
+
+			foreach (var field in version.Fields)
+			{
+				var fieldObject = new JsonFieldValue();
+
+				fieldObject.LoadFrom(field, fieldFormatters);
+
+				Fields.Add(fieldObject);
+			}
 		}
 	}
 }

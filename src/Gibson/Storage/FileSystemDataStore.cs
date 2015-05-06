@@ -1,28 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using Gibson.Formatting;
+using Alphaleonis.Win32.Filesystem;
+using Gibson.Data;
+using Gibson.Indexing;
 using Gibson.Model;
 using Sitecore.Diagnostics;
 
 namespace Gibson.Storage
 {
-	public class DataStore
+	public class FileSystemDataStore
 	{
 		private readonly string _rootPath;
 		private readonly PathProvider _pathProvider;
 		private readonly ISerializationFormatter _formatter;
-		public DataStore(string rootPath, PathProvider pathProvider, ISerializationFormatter formatter)
+		private readonly IIndexFormatter _indexFormatter;
+		private readonly IIndex _index;
+
+		public FileSystemDataStore(string rootPath, PathProvider pathProvider, ISerializationFormatter formatter, IIndexFormatter indexFormatter, IIndex index)
 		{
 			Assert.ArgumentCondition(Directory.Exists(rootPath), "rootPath", "Root path must be a valid directory!");
 			Assert.ArgumentNotNull(pathProvider, "pathProvider");
 			Assert.ArgumentNotNull(formatter, "formatter");
+			Assert.ArgumentNotNull(indexFormatter, "indexFormatter");
+			Assert.ArgumentNotNull(index, "index");
 
 			_rootPath = rootPath;
 			_pathProvider = pathProvider;
 			_formatter = formatter;
+			_indexFormatter = indexFormatter;
+			_index = index;
+
+			// TODO: method to read index file, run through formatter, and init the index
 		}
+
+
 
 		/// <summary>
 		/// Saves an item into the store
@@ -31,10 +43,22 @@ namespace Gibson.Storage
 		{
 			var path = _pathProvider.GetStoragePath(item.Id, _rootPath);
 
+			// todo: begin transaction
+
 			using (var writer = File.OpenWrite(path))
 			{
 				_formatter.WriteSerializedItem(item, writer);
 			}
+
+			_index.Update(GetIndexEntry(item));
+			// todo commit transaction
+		}
+
+		protected IndexEntry GetIndexEntry(ISerializableItem item)
+		{
+			var entry = new IndexEntry();
+			entry.LoadFrom(item);
+			return entry;
 		}
 
 		/// <summary>

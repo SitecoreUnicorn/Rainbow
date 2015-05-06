@@ -45,12 +45,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Formatting\LineOrientedIndexFormatterWriteTests.cs" />
-    <Compile Include="Formatting\LineOrientedIndexFormatterReadTests.cs" />
+    <Compile Include="Indexing\LineOrientedIndexFormatterWriteTests.cs" />
+    <Compile Include="Indexing\LineOrientedIndexFormatterReadTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Storage\IndexEntryTests.cs" />
     <Compile Include="Storage\PathProviderTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

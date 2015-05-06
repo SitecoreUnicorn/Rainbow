@@ -8,6 +8,7 @@ namespace Gibson.Model
 		Guid Id { get; }
 		string DatabaseName { get; }
 		Guid ParentId { get; }
+		string Path { get; }
 		string Name { get; }
 		Guid BranchId { get; }
 		Guid TemplateId { get; }

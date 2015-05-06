@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Gibson.Formatting;
 using Gibson.Indexing;
 using NUnit.Framework;
 
-namespace Gibson.Tests.Formatting
+namespace Gibson.Tests.Indexing
 {
 	public class LineOrientedIndexFormatterReadTests
 	{

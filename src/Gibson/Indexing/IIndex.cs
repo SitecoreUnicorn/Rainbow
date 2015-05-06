@@ -8,5 +8,6 @@ namespace Gibson.Indexing
 {
 	public interface IIndex
 	{
+		void Update(IndexEntry indexEntry);
 	}
 }

@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using Gibson.Indexing;
 
-namespace Gibson.Formatting
+namespace Gibson.Indexing
 {
 	public interface IIndexFormatter
 	{
