@@ -1,15 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using Alphaleonis.Win32.Filesystem;
-using Gibson.Data;
 using Gibson.Indexing;
 using Gibson.Model;
-using Gibson.Storage;
-using Sitecore.Data;
 using Sitecore.Diagnostics;
-using Sitecore.StringExtensions;
 
 namespace Gibson
 {
@@ -23,7 +17,6 @@ namespace Gibson
 
 			_index = index;
 		}
-
 
 		/// <summary>
 		/// Saves an item into the store

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using Gibson.Storage;
 using NUnit.Framework;
 
 namespace Gibson.Tests.Storage

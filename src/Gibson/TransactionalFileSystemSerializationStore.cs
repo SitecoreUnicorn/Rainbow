@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using Alphaleonis.Win32.Filesystem;
 using Gibson.Data;
 using Gibson.Indexing;
 using Gibson.Model;
-using Gibson.Storage;
 using Sitecore.Diagnostics;
 using Sitecore.StringExtensions;
 
@@ -109,14 +106,14 @@ namespace Gibson
 		/// <returns>True if the item existed in the store and was removed, false if it did not exist and the store is unchanged.</returns>
 		public override bool Remove(Guid itemId)
 		{
+			var path = _pathProvider.GetStoragePath(itemId, _rootPath);
+
 			lock (UpdateLock)
 			{
 				using (var transaction = new KernelTransaction())
 				{
 					try
 					{
-						var path = _pathProvider.GetStoragePath(itemId, _rootPath);
-
 						if (path == null || !File.Exists(transaction, path)) return false;
 						if (!_index.Remove(itemId)) return false;
 
