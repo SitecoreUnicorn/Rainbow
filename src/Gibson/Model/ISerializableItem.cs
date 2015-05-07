@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Gibson.Indexing;
 
 namespace Gibson.Model
 {
@@ -13,6 +14,8 @@ namespace Gibson.Model
 		Guid BranchId { get; }
 		Guid TemplateId { get; }
 		IEnumerable<ISerializableFieldValue> SharedFields { get; }
-		IEnumerable<ISerializableVersion> Versions { get; } 
+		IEnumerable<ISerializableVersion> Versions { get; }
+
+		void AddIndexData(IndexEntry indexEntry);
 	}
 }

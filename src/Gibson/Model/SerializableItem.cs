@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Gibson.Indexing;
 using Sitecore.Data.Fields;
 using Sitecore.Data.Items;
 
@@ -77,6 +78,11 @@ namespace Gibson.Model
 					yield return new ItemVersionValue(versions[i]);
 				}
 			}
+		}
+
+		public void AddIndexData(IndexEntry indexEntry)
+		{
+			throw new NotImplementedException("You cannot merge a Sitecore Item-based serializable with the index, as it is already a complete data set.");
 		}
 
 		protected void EnsureFields()

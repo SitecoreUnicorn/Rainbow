@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Gibson.Data.FieldFormatters;
 using Gibson.Data.Json;
+using Gibson.Indexing;
 using Gibson.Model;
 using Newtonsoft.Json;
 using Sitecore.Diagnostics;
@@ -75,15 +76,9 @@ namespace Gibson.Data
 				get { return _item.DatabaseName; }
 			}
 
-			public Guid ParentId
-			{
-				get { throw new NotImplementedException(); }
-			}
+			public Guid ParentId { get; protected set; }
 
-			public string Path
-			{
-				get { throw new NotImplementedException(); }
-			}
+			public string Path { get; protected set; }
 
 			public string Name
 			{
@@ -95,10 +90,7 @@ namespace Gibson.Data
 				get { return _item.BranchId; }
 			}
 
-			public Guid TemplateId
-			{
-				get { throw new NotImplementedException(); }
-			}
+			public Guid TemplateId { get; protected set; }
 
 			public IEnumerable<ISerializableFieldValue> SharedFields
 			{
@@ -120,6 +112,16 @@ namespace Gibson.Data
 						}
 					}
 				}
+			}
+
+			public void AddIndexData(IndexEntry indexEntry)
+			{
+				Assert.ArgumentNotNull(indexEntry, "indexEntry");
+				Assert.ArgumentCondition(indexEntry.Id == Id, "indexEntry", "The index entry to merge must have the same ID as the item being merged to.");
+
+				ParentId = indexEntry.ParentId;
+				Path = indexEntry.Path;
+				TemplateId = indexEntry.TemplateId;
 			}
 		}
 

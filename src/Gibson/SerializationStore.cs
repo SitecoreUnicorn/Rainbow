@@ -1,99 +1,83 @@
-﻿using Sitecore.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using Alphaleonis.Win32.Filesystem;
+using Gibson.Data;
+using Gibson.Indexing;
+using Gibson.Model;
+using Gibson.Storage;
+using Sitecore.Data;
+using Sitecore.Diagnostics;
+using Sitecore.StringExtensions;
 
 namespace Gibson
 {
-	public class SerializationStore
+	public abstract class SerializationStore
 	{
-		private readonly string _rootPath;
-		private readonly string _databaseName;
+		private readonly IIndex _index;
 
-		public SerializationStore(string rootPath, string databaseName)
+		protected SerializationStore(IIndex index)
 		{
-			_rootPath = rootPath;
-			_databaseName = databaseName;
+			Assert.ArgumentNotNull(index, "index");
+
+			_index = index;
 		}
 
-		public void SerializeItem(object item)
+
+		/// <summary>
+		/// Saves an item into the store
+		/// </summary>
+		public abstract void Save(ISerializableItem item);
+
+		/// <summary>
+		/// Loads an item from the store by ID
+		/// </summary>
+		/// <returns>The stored item, or null if it does not exist in the store</returns>
+		public virtual ISerializableItem GetById(Guid itemId)
 		{
-			// takes a source item and adds it to the store
-			// PIPELINE?
+			return Load(itemId, false);
 		}
 
-		public void SerializeTree(object root)
+		public virtual IEnumerable<ISerializableItem> GetByPath(string path)
 		{
-			// takes a source item and recursively adds it to the store
+			var itemsOnPath = _index.GetByPath(path);
+
+			return itemsOnPath.Select(x => Load(x.Id, true));
 		}
 
-		public object Deserialize(object serialized)
+		public virtual IEnumerable<ISerializableItem> GetByTemplate(Guid templateId)
 		{
-			// deserializes a serialized item into sitecore and returns it
-			// note: set last mod date to now, last mod user to sitecore\unicorn, and revisions to a new random guid
-			// PIPELINE?
-			return null;
+			var itemsOfTemplate = _index.GetByTemplate(templateId);
+
+			return itemsOfTemplate.Select(x => Load(x.Id, true));
 		}
 
-		public object GetItemByPath(string path)
+		public virtual IEnumerable<ISerializableItem> GetChildren(Guid parentId)
 		{
-			// gets a serialized item by path
-			//Get by Path: simple - index entry
+			var childItems = _index.GetChildren(parentId);
 
-			// TODO; handling of multiple items with identical path?
-			return null;
+			return childItems.Select(x => Load(x.Id, true));
 		}
 
-		public object GetItemById(ID id)
+		public virtual IEnumerable<ISerializableItem> GetDescendants(Guid parentId)
 		{
-			// gets a serialized item by ID
-			//Get By ID: simple - by physical path
-			return null;
+			var descendants = _index.GetDescendants(parentId);
+
+			return descendants.Select(x => Load(x.Id, true));
 		}
 
-		public object[] GetChildren(ID parent)
-		{
-			// gets serialized children of a serialized item
-			//Get children - index query by parentid
+		/// <summary>
+		/// Loads all items in the data store
+		/// </summary>
+		public abstract void CheckConsistency(bool fixErrors, Action<string> logMessageReceiver);
 
-			return null;
-		}
+		/// <summary>
+		/// Removes an item from the store
+		/// </summary>
+		/// <returns>True if the item existed in the store and was removed, false if it did not exist and the store is unchanged.</returns>
+		public abstract bool Remove(Guid itemId);
 
-		public void MoveItem(ID item, ID newParent)
-		{
-			// PIPELINE
-
-			// moves a serialized item, given a source item and a source new parent
-			//Move: write new paths to all descendants in index, and each file thereof
-			// if item is a template field, find all items of that template AND the old template in index and re-serialize (todo: cross database?)
-		}
-
-		public void RenameItem(ID itemId, string newName, string oldName)
-		{
-			// PIPELINE
-
-			// renames a serialized item
-			//Rename: write new name to item file, update path in index, update children paths in index
-			// if item is a template field, find all items of that template in index and re-serialize (todo: cross database?)
-		}
-
-		public void DeleteItem(ID id)
-		{
-			// PIPELINE
-
-			// deletes a serialized item (and any children)
-			//Delete w/children: get all descendants by path in index, delete each file entry + cleanup empty hash bucket folders
-			// if item is a template field, find all items of that template in index and re-serialize (todo: cross database?)
-		}
-
-		public object[] CheckIntegrity()
-		{
-			// PIPELINE
-			// FSCK: check that all IDs in index have targets, verify that all files have index entries, check paths/IDs/TIDs match in files, check parent IDs in serialized
-
-			return null;
-		}
-
-		protected virtual object[] GetItemsByTemplateId(ID templateId)
-		{
-			return null;
-		}
+		protected abstract ISerializableItem Load(Guid itemId, bool assertExists);
 	}
 }

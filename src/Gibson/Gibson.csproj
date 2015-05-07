@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataConsistencyException.cs" />
     <Compile Include="Data\FieldFormatters\IFieldFormatter.cs" />
     <Compile Include="Data\FieldFormatters\MultilistFormatter.cs" />
     <Compile Include="Data\FieldFormatters\XmlFieldFormatter.cs" />
@@ -66,12 +67,11 @@
     <Compile Include="Model\ISerializableItem.cs" />
     <Compile Include="Model\ISerializableVersion.cs" />
     <Compile Include="Model\SerializableItem.cs" />
-    <Compile Include="Storage\FileSystemDataStore.cs" />
+    <Compile Include="TransactionalFileSystemSerializationStore.cs" />
     <Compile Include="Indexing\IndexEntry.cs" />
     <Compile Include="Indexing\IndexStore.cs" />
-    <Compile Include="Storage\PathProvider.cs" />
+    <Compile Include="PathProvider.cs" />
     <Compile Include="SerializationStore.cs" />
-    <Compile Include="HalibutSitecoreSerializationProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
