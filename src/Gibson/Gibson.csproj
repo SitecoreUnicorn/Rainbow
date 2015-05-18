@@ -69,7 +69,7 @@
     <Compile Include="Model\SerializableItem.cs" />
     <Compile Include="TransactionalFileSystemSerializationStore.cs" />
     <Compile Include="Indexing\IndexEntry.cs" />
-    <Compile Include="Indexing\IndexStore.cs" />
+    <Compile Include="Indexing\Index.cs" />
     <Compile Include="PathProvider.cs" />
     <Compile Include="SerializationStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -50,5 +50,10 @@ namespace Gibson.Indexing
 			ParentId = item.ParentId;
 			TemplateId = item.TemplateId;
 		}
+
+		public IndexEntry Clone()
+		{
+			return new IndexEntry { Path = Path, Id = Id, ParentId = ParentId, TemplateId = TemplateId };
+		}
 	}
 }

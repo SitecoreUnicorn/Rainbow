@@ -66,6 +66,8 @@ namespace Gibson
 					{
 						var path = _pathProvider.GetStoragePath(item.Id, _rootPath);
 
+						Directory.CreateDirectory(transaction, Path.GetDirectoryName(path));
+
 						using (var writer = File.OpenWrite(transaction, path))
 						{
 							_formatter.WriteSerializedItem(item, writer);

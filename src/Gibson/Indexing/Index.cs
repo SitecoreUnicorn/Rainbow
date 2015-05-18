@@ -2,12 +2,10 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using Sitecore.Diagnostics;
-using Sitecore.StringExtensions;
 
 namespace Gibson.Indexing
 {
-	public class IndexStore : IIndex
+	public class Index : IIndex
 	{
 		private ConcurrentDictionary<Guid, IndexEntry> _indexById;
 		private ConcurrentDictionary<Guid, List<IndexEntry>> _indexByTemplate;
@@ -130,8 +128,6 @@ namespace Gibson.Indexing
 				else
 				{
 					// rename or move - path changed. We need to merge and rewrite descendant paths.
-					Assert.AreEqual(existing.ParentPath, entry.ParentPath, "The items' parent IDs matched, but their parent paths did not. This is corrupt data.");
-
 					MoveDescendants(entry, existing);
 					MergeEntry(entry, existing);
 
@@ -146,40 +142,51 @@ namespace Gibson.Indexing
 
 		public virtual bool Remove(Guid itemId)
 		{
-			var item = GetById(itemId);
-
-			if (item == null) return false;
-
-			var itemsToDelete = GetDescendants(itemId);
-
-			var removalQueue = new Queue<IndexEntry>(itemsToDelete);
-			removalQueue.Enqueue(GetById(itemId));
-
-			while (removalQueue.Count > 0)
+			lock (SyncRoot)
 			{
-				IndexEntry itemToRemove = removalQueue.Dequeue();
+				var item = GetById(itemId);
 
-				// remove from item ID index
-				IndexEntry value;
-				_indexById.TryRemove(itemToRemove.Id, out value);
+				if (item == null) return false;
 
-				// remove from template ID index
-				List<IndexEntry> templateEntries;
-				if (_indexByTemplate.TryGetValue(itemToRemove.TemplateId, out templateEntries))
+				var itemsToDelete = GetDescendants(itemId);
+
+				var removalQueue = new Queue<IndexEntry>(itemsToDelete);
+				removalQueue.Enqueue(GetById(itemId));
+
+				while (removalQueue.Count > 0)
 				{
-					templateEntries.RemoveAll(x => x.Id == itemToRemove.Id);
-				}
+					IndexEntry itemToRemove = removalQueue.Dequeue();
 
-				// remove from path index
-				List<IndexEntry> pathEntries;
-				if (_indexByPath.TryGetValue(itemToRemove.Path, out pathEntries))
-				{
-					pathEntries.RemoveAll(x => x.Id == itemToRemove.Id);
-				}
+					// remove from item ID index
+					IndexEntry value;
+					_indexById.TryRemove(itemToRemove.Id, out value);
 
-				// remove from children index
-				List<IndexEntry> childValue;
-				_indexByChildren.TryRemove(itemToRemove.Id, out childValue);
+					// remove from template ID index
+					List<IndexEntry> templateEntries;
+					if (_indexByTemplate.TryGetValue(itemToRemove.TemplateId, out templateEntries))
+					{
+						templateEntries.RemoveAll(x => x.Id == itemToRemove.Id);
+					}
+
+					// remove from path index
+					List<IndexEntry> pathEntries;
+					if (_indexByPath.TryGetValue(itemToRemove.Path, out pathEntries))
+					{
+						pathEntries.RemoveAll(x => x.Id == itemToRemove.Id);
+					}
+
+					// remove from children index
+					List<IndexEntry> childValue;
+					_indexByChildren.TryRemove(itemToRemove.Id, out childValue);
+
+
+					// remove from its parent item's children index
+					List<IndexEntry> parentChildValue;
+					if (_indexByChildren.TryGetValue(itemToRemove.ParentId, out parentChildValue))
+					{
+						parentChildValue.RemoveAll(x => x.Id == itemToRemove.Id);
+					}
+				}
 			}
 
 			return true;
@@ -200,8 +207,20 @@ namespace Gibson.Indexing
 			foreach (var descendant in descendants)
 			{
 				var relativePath = descendant.Path.Substring(existingEntry.Path.Length);
+				var originalPath = descendant.Path;
 
-				descendant.Path = string.Concat(updatedEntry.Path, "/", relativePath);
+				descendant.Path = string.Concat(updatedEntry.Path, relativePath);
+
+				// remove old path from path index
+				List<IndexEntry> pathEntries;
+				if (_indexByPath.TryGetValue(originalPath, out pathEntries))
+				{
+					pathEntries.RemoveAll(x => x.Id == descendant.Id);
+				}
+
+				// re-add to path index under new path
+				var path = EnsureCollectionKey(_indexByPath, descendant.Path);
+				path.Add(descendant);
 			}
 		}
 
@@ -213,19 +232,58 @@ namespace Gibson.Indexing
 
 			if (entryToMergeTo.ParentId != newEntry.ParentId)
 			{
+				// remove from children index
+				List<IndexEntry> childValue;
+				if (_indexByChildren.TryGetValue(entryToMergeTo.ParentId, out childValue))
+				{
+					childValue.Remove(entryToMergeTo);
+				}
+
+				// change value in entry
 				entryToMergeTo.ParentId = newEntry.ParentId;
+
+				// re-add to children index under new parent ID
+				var children = EnsureCollectionKey(_indexByChildren, entryToMergeTo.ParentId);
+				children.Add(entryToMergeTo);
+
 				changed = true;
 			}
 
 			if (!entryToMergeTo.Path.Equals(newEntry.Path))
 			{
+				// remove from path index
+				List<IndexEntry> pathEntries;
+				if (_indexByPath.TryGetValue(entryToMergeTo.Path, out pathEntries))
+				{
+					pathEntries.RemoveAll(x => x.Id == entryToMergeTo.Id);
+				}
+
+				// change value in entry
 				entryToMergeTo.Path = newEntry.Path;
+				
+				// re-add to path index under new path
+				var path = EnsureCollectionKey(_indexByPath, entryToMergeTo.Path);
+				path.Add(entryToMergeTo);
+
 				changed = true;
 			}
 
 			if (entryToMergeTo.TemplateId != newEntry.TemplateId)
 			{
+				// remove from template ID index
+				List<IndexEntry> templateEntries;
+				if (_indexByTemplate.TryGetValue(entryToMergeTo.TemplateId, out templateEntries))
+				{
+					templateEntries.RemoveAll(x => x.Id == entryToMergeTo.Id);
+				}
+
+				// change value in entry
 				entryToMergeTo.TemplateId = newEntry.TemplateId;
+
+				// re-add to template index under new ID
+				var template = EnsureCollectionKey(_indexByTemplate, entryToMergeTo.TemplateId);
+				template.Add(entryToMergeTo);
+
 				changed = true;
 			}
 
@@ -234,6 +292,9 @@ namespace Gibson.Indexing
 
 		protected void AddEntryToIndices(IndexEntry entry)
 		{
+			// clone the entry to prevent possible index poisoning by later manipulation of values on an IndexEntry instance we 'added'
+			entry = entry.Clone();
+
 			// this is always invoked from within a critical section (as are other modifications to the indexes)
 			// and thus TryAdd() should ALWAYS be an add as the previous check on existence will have failed
 			bool add = _indexById.TryAdd(entry.Id, entry);

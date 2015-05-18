@@ -11,7 +11,7 @@ namespace Gibson
 		{
 			var paths = new Stack<string>(3);
 			paths.Push(id.ToString("D").ToUpperInvariant() + ".json");
-			paths.Push(id.ToString("N").Substring(0, 2).ToUpperInvariant());
+			paths.Push(id.ToString("N").Substring(0, 1).ToUpperInvariant());
 			paths.Push(rootPath);
 
 			return Path.Combine(paths.ToArray());
