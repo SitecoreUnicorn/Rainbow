@@ -1,7 +1,7 @@
 ﻿using Gibson.Indexing;
 using NUnit.Framework;
 
-namespace Gibson.Tests.Storage
+namespace Gibson.Tests.Indexing
 {
 	public class IndexEntryTests
 	{

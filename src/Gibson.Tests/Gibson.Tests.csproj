@@ -48,11 +48,12 @@
     <Compile Include="Data\FieldFormatters\FakeSerializableFieldValue.cs" />
     <Compile Include="Data\FieldFormatters\MultilistFormatterTests.cs" />
     <Compile Include="Data\FieldFormatters\XmlFieldFormatterTests.cs" />
+    <Compile Include="Indexing\IndexTests.cs" />
     <Compile Include="Indexing\LineOrientedIndexFormatterWriteTests.cs" />
     <Compile Include="Indexing\LineOrientedIndexFormatterReadTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Storage\IndexEntryTests.cs" />
-    <Compile Include="Storage\PathProviderTests.cs" />
+    <Compile Include="Indexing\IndexEntryTests.cs" />
+    <Compile Include="PathProviderTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

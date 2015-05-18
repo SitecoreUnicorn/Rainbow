@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using NUnit.Framework;
 
-namespace Gibson.Tests.Storage
+namespace Gibson.Tests
 {
 	public class PathProviderTests
 	{
@@ -15,7 +15,7 @@ namespace Gibson.Tests.Storage
 
 			var result = provider.GetStoragePath(id, @"c:\test\path with space");
 
-			Assert.AreEqual(result, @"c:\test\path with space\0D\0DE95AE4-41AB-4D01-9EB0-67441B7C2450.json", "Path was not expected value!");
+			Assert.AreEqual(result, @"c:\test\path with space\0\0DE95AE4-41AB-4D01-9EB0-67441B7C2450.json", "Path was not expected value!");
 		}
 
 		[Test]
