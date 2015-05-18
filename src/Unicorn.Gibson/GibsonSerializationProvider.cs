@@ -28,6 +28,14 @@ namespace Unicorn.Gibson
 			// TODO: reconcile deserializer with main project and formatters in unicorn - incl logging TODOs
 			// TODO: non-transactional provider for writing? with index flushing?
 			// TODO: field predicate-like functionality - maybe in SerializableItem as a dependency you can inject? (note: revision and such are being serialized now)
+			// TODO: of note: merging the json is nice except the lack of field names adds additional complexity that is not required
+			// TODO: blob storage?
+			// TODO: evaluate reducing verbosity of emitted JSON, with shorter identifiers?
+			// TODO: evaluate reducing index verbosity with single letter prefixes?
+			// TODO: formatting of security field values?
+			// TODO: having field type on all the JSON field values is real verbose. maybe omit if it wasnt formatted?
+			// TODO: extend unicorn data provider model to allow optional dp features like consistency checks, updating items with a field when deleting a t-field
+
 
 			_store = new TransactionalFileSystemSerializationStore(rootPath, new PathProvider(), new JsonSerializationFormatter(), new LineOrientedIndexFormatter(), new Index());
 			_deserializer = deserializer;
