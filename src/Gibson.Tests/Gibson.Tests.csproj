@@ -45,6 +45,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\FieldFormatters\FakeSerializableFieldValue.cs" />
+    <Compile Include="Data\FieldFormatters\MultilistFormatterTests.cs" />
+    <Compile Include="Data\FieldFormatters\XmlFieldFormatterTests.cs" />
     <Compile Include="Indexing\LineOrientedIndexFormatterWriteTests.cs" />
     <Compile Include="Indexing\LineOrientedIndexFormatterReadTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
