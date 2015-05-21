@@ -5,13 +5,13 @@ using Gibson.Indexing;
 using Gibson.Model;
 using Sitecore.Diagnostics;
 
-namespace Gibson
+namespace Gibson.Storage
 {
-	public abstract class SerializationStore
+	public abstract class IndexedSerializationStore : ISerializationStore
 	{
 		private readonly IIndex _index;
 
-		protected SerializationStore(IIndex index)
+		protected IndexedSerializationStore(IIndex index)
 		{
 			Assert.ArgumentNotNull(index, "index");
 
@@ -29,35 +29,36 @@ namespace Gibson
 		/// <returns>The stored item, or null if it does not exist in the store</returns>
 		public virtual ISerializableItem GetById(Guid itemId)
 		{
-			return Load(itemId, false);
+			var itemById = _index.GetById(itemId);
+			return Load(itemById, false);
 		}
 
 		public virtual IEnumerable<ISerializableItem> GetByPath(string path)
 		{
 			var itemsOnPath = _index.GetByPath(path);
 
-			return itemsOnPath.Select(x => Load(x.Id, true));
+			return itemsOnPath.Select(x => Load(x, true));
 		}
 
 		public virtual IEnumerable<ISerializableItem> GetByTemplate(Guid templateId)
 		{
 			var itemsOfTemplate = _index.GetByTemplate(templateId);
 
-			return itemsOfTemplate.Select(x => Load(x.Id, true));
+			return itemsOfTemplate.Select(x => Load(x, true));
 		}
 
 		public virtual IEnumerable<ISerializableItem> GetChildren(Guid parentId)
 		{
 			var childItems = _index.GetChildren(parentId);
 
-			return childItems.Select(x => Load(x.Id, true));
+			return childItems.Select(x => Load(x, true));
 		}
 
 		public virtual IEnumerable<ISerializableItem> GetDescendants(Guid parentId)
 		{
 			var descendants = _index.GetDescendants(parentId);
 
-			return descendants.Select(x => Load(x.Id, true));
+			return descendants.Select(x => Load(x, true));
 		}
 
 		/// <summary>
@@ -71,6 +72,6 @@ namespace Gibson
 		/// <returns>True if the item existed in the store and was removed, false if it did not exist and the store is unchanged.</returns>
 		public abstract bool Remove(Guid itemId);
 
-		protected abstract ISerializableItem Load(Guid itemId, bool assertExists);
+		protected abstract ISerializableItem Load(IndexEntry indexData, bool assertExists);
 	}
 }

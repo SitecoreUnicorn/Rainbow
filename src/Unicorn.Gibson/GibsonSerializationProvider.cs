@@ -4,6 +4,7 @@ using Gibson;
 using Gibson.Data;
 using Gibson.Indexing;
 using Gibson.Model;
+using Gibson.Storage.Pathing;
 using Sitecore.Configuration;
 using Sitecore.Diagnostics;
 using Unicorn.Data;
@@ -35,7 +36,7 @@ namespace Unicorn.Gibson
 			// TODO: formatting of security field values?
 			// TODO: having field type on all the JSON field values is real verbose. maybe omit if it wasnt formatted?
 			// TODO: extend unicorn data provider model to allow optional dp features like consistency checks, updating items with a field when deleting a t-field
-
+			// TODO: roles support
 
 			_store = new TransactionalFileSystemSerializationStore(rootPath, new PathProvider(), new JsonSerializationFormatter(), new LineOrientedIndexFormatter(), new Index());
 			_deserializer = deserializer;

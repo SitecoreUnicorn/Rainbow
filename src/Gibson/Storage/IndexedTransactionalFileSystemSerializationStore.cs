@@ -4,21 +4,23 @@ using Alphaleonis.Win32.Filesystem;
 using Gibson.Data;
 using Gibson.Indexing;
 using Gibson.Model;
+using Gibson.Storage.Pathing;
 using Sitecore.Diagnostics;
 using Sitecore.StringExtensions;
 
-namespace Gibson
+namespace Gibson.Storage
 {
-	public class TransactionalFileSystemSerializationStore : SerializationStore
+	public class IndexedTransactionalFileSystemSerializationStore : IndexedSerializationStore
 	{
 		private readonly string _rootPath;
-		private readonly PathProvider _pathProvider;
+		private readonly IFileSystemPathProvider _pathProvider;
 		private readonly ISerializationFormatter _formatter;
 		private readonly IIndexFormatter _indexFormatter;
 		private readonly IIndex _index;
 		protected object UpdateLock = new object();
 
-		public TransactionalFileSystemSerializationStore(string rootPath, PathProvider pathProvider, ISerializationFormatter formatter, IIndexFormatter indexFormatter, IIndex index) : base(index)
+		public IndexedTransactionalFileSystemSerializationStore(string rootPath, IFileSystemPathProvider pathProvider, ISerializationFormatter formatter, IIndexFormatter indexFormatter, IIndex index)
+			: base(index)
 		{
 			Assert.ArgumentCondition(Directory.Exists(rootPath), "rootPath", "Root path must be a valid directory!");
 			Assert.ArgumentNotNull(pathProvider, "pathProvider");
@@ -64,7 +66,7 @@ namespace Gibson
 				{
 					try
 					{
-						var path = _pathProvider.GetStoragePath(item.Id, _rootPath);
+						var path = _pathProvider.GetStoragePath(new IndexEntry().LoadFrom(item), _rootPath);
 
 						Directory.CreateDirectory(transaction, Path.GetDirectoryName(path));
 
@@ -100,6 +102,7 @@ namespace Gibson
 			// TODO: find items in either files or index but not both
 			// TODO: for index orphans, remove them from the index if "fix" enabled
 			// TODO: for filesystem orphans, remove from disk if "fix" enabled
+			var orphans = _pathProvider.GetOrphans(_rootPath);
 		}
 
 		/// <summary>
@@ -108,7 +111,11 @@ namespace Gibson
 		/// <returns>True if the item existed in the store and was removed, false if it did not exist and the store is unchanged.</returns>
 		public override bool Remove(Guid itemId)
 		{
-			var path = _pathProvider.GetStoragePath(itemId, _rootPath);
+			var existingItem = GetById(itemId);
+
+			if(existingItem == null) throw new InvalidOperationException("ID to delete did not exist in the store.");
+
+			var path = _pathProvider.GetStoragePath(new IndexEntry().LoadFrom(existingItem), _rootPath);
 
 			lock (UpdateLock)
 			{
@@ -150,20 +157,18 @@ namespace Gibson
 
 		protected IndexEntry GetIndexEntry(ISerializableItem item)
 		{
-			var entry = new IndexEntry();
-			entry.LoadFrom(item);
-			return entry;
+			return new IndexEntry().LoadFrom(item);
 		}
 
-		protected override ISerializableItem Load(Guid itemId, bool assertExists)
+		protected override ISerializableItem Load(IndexEntry indexData, bool assertExists)
 		{
-			var path = _pathProvider.GetStoragePath(itemId, _rootPath);
+			var path = _pathProvider.GetStoragePath(indexData, _rootPath);
 
 			if (path == null || !File.Exists(path))
 			{
 				if (!assertExists) return null;
 
-				throw new DataConsistencyException("The item {0} was present in the index but no file existed for it on disk. This indicates corruption in the index or data store. Run fsck.".FormatWith(itemId));
+				throw new DataConsistencyException("The item {0} was present in the index but no file existed for it on disk. This indicates corruption in the index or data store. Run fsck.".FormatWith(indexData));
 			}
 
 			return Load(path);

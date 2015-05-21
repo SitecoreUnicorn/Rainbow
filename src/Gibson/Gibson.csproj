@@ -63,15 +63,17 @@
     <Compile Include="Data\Json\JsonVersion.cs" />
     <Compile Include="Indexing\LineOrientedIndexFormatter.cs" />
     <Compile Include="Indexing\IIndex.cs" />
+    <Compile Include="Storage\ISerializationStore.cs" />
     <Compile Include="Model\ISerializableFieldValue.cs" />
     <Compile Include="Model\ISerializableItem.cs" />
     <Compile Include="Model\ISerializableVersion.cs" />
     <Compile Include="Model\SerializableItem.cs" />
-    <Compile Include="TransactionalFileSystemSerializationStore.cs" />
+    <Compile Include="Storage\IndexedTransactionalFileSystemSerializationStore.cs" />
     <Compile Include="Indexing\IndexEntry.cs" />
     <Compile Include="Indexing\Index.cs" />
-    <Compile Include="PathProvider.cs" />
-    <Compile Include="SerializationStore.cs" />
+    <Compile Include="Storage\Pathing\IFileSystemPathProvider.cs" />
+    <Compile Include="Storage\Pathing\IdBasedJsonPathProvider.cs" />
+    <Compile Include="Storage\IndexedSerializationStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

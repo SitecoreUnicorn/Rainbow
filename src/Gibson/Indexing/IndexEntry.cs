@@ -43,12 +43,14 @@ namespace Gibson.Indexing
 			}
 		}
 
-		public void LoadFrom(ISerializableItem item)
+		public IndexEntry LoadFrom(ISerializableItem item)
 		{
 			Path = item.Path;
 			Id = item.Id;
 			ParentId = item.ParentId;
 			TemplateId = item.TemplateId;
+
+			return this;
 		}
 
 		public IndexEntry Clone()

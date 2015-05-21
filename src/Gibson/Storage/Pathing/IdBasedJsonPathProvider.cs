@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Gibson.Indexing;
 
-namespace Gibson
+namespace Gibson.Storage.Pathing
 {
-	public class PathProvider
+	public class IdBasedJsonPathProvider : IFileSystemPathProvider
 	{
-		public string GetStoragePath(Guid id, string rootPath)
+		public string GetStoragePath(IndexEntry indexData, string rootPath)
 		{
 			var paths = new Stack<string>(3);
-			paths.Push(id.ToString("D").ToUpperInvariant() + ".json");
-			paths.Push(id.ToString("N").Substring(0, 1).ToUpperInvariant());
+			paths.Push(indexData.Id.ToString("D").ToUpperInvariant() + ".json");
+			paths.Push(indexData.Id.ToString("N").Substring(0, 1).ToUpperInvariant());
 			paths.Push(rootPath);
 
 			return Path.Combine(paths.ToArray());
