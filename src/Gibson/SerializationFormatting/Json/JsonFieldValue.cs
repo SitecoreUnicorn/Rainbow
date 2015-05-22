@@ -1,12 +1,14 @@
 ﻿using System;
 using Gibson.Model;
 using Gibson.SerializationFormatting.FieldFormatters;
+using Newtonsoft.Json;
 
 namespace Gibson.SerializationFormatting.Json
 {
 	public class JsonFieldValue : IComparable<JsonFieldValue>
 	{
 		public Guid Id { get; set; }
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string Type { get; set; }
 		public string Value { get; set; }
 
@@ -18,8 +20,7 @@ namespace Gibson.SerializationFormatting.Json
 		public void LoadFrom(ISerializableFieldValue field, IFieldFormatter[] formatters)
 		{
 			Id = field.FieldId;
-			Type = field.FieldType;
-
+			
 			string value = field.Value;
 
 			foreach(var formatter in formatters)
@@ -27,6 +28,8 @@ namespace Gibson.SerializationFormatting.Json
 				if (formatter.CanFormat(field))
 				{
 					value = formatter.Format(field);
+					Type = field.FieldType;
+
 					break;
 				}
 			}

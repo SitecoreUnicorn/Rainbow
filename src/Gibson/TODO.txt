@@ -1,4 +1,6 @@
-﻿// TODO: need a way to ignore moving descendants of moves to ignored paths in the predicate
+﻿// TODO: moving items changes the parent ID in teh index but not the path
+// TODO: moving stuff around seems to occasionally delete items
+// TODO: need a way to ignore moving descendants of moves to ignored paths in the predicate
 	e.g. you move /foo/bar to /foot/bar. but /foot/bar/baz is on ignore list. the moved baz item should be deleted instead of moved. see movedescendants in the old serialization provider.
 // TODO: 'default' root path semantic not supported
 // TODO: unicorn reserialize does not delete existing gib folders
@@ -8,6 +10,7 @@
 // TODO: of note: merging the json is nice except the lack of field names adds additional complexity that is not required
 // TODO: blob storage?
 // TODO: evaluate reducing verbosity of emitted JSON, with shorter identifiers?
+// TODO: don't emit fields with null or empty values
 // TODO: evaluate reducing index verbosity with single letter prefixes?
 // TODO: formatting of security field values?
 // TODO: having field type on all the JSON field values is real verbose. maybe omit if it wasnt formatted?

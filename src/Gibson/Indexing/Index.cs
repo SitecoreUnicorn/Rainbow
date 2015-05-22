@@ -274,7 +274,7 @@ namespace Gibson.Indexing
 			// this is always invoked from within a critical section (as are other modifications to the indexes)
 			// and thus TryAdd() should ALWAYS be an add as the previous check on existence will have failed
 			bool add = _indexById.TryAdd(entry.Id, entry);
-			if (!add) throw new InvalidOperationException("Key was already in the dictionary. This should never occur.");
+			if (!add) throw new InvalidOperationException("Item with ID " + entry.Id + " was already in the dictionary. This occurs if an item is listed twice in the index - remove the duplicate.");
 
 			var template = EnsureCollectionKey(_indexByTemplate, entry.TemplateId);
 			template.Add(entry);

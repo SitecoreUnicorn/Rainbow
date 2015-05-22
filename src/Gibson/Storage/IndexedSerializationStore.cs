@@ -33,6 +33,9 @@ namespace Gibson.Storage
 		public virtual ISerializableItem GetById(Guid itemId, string database)
 		{
 			var itemById = GetIndexForDatabase(database).GetById(itemId);
+
+			if (itemById == null) return null;
+
 			return Load(itemById, database, false);
 		}
 

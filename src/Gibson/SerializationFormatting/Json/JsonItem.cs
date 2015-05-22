@@ -30,6 +30,8 @@ namespace Gibson.SerializationFormatting.Json
 
 			foreach (var field in item.SharedFields)
 			{
+				if(string.IsNullOrWhiteSpace(field.Value)) continue;
+
 				var fieldObject = new JsonFieldValue();
 				fieldObject.LoadFrom(field, fieldFormatters);
 

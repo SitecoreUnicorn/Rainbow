@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Alphaleonis.Win32.Filesystem;
 using Gibson.Indexing;
 using Gibson.Model;
@@ -104,9 +105,9 @@ namespace Gibson.Storage
 		{
 			var existingItem = GetById(itemId, database);
 
-			if(existingItem == null) throw new InvalidOperationException("ID to delete did not exist in the store.");
+			if (existingItem == null) return false;
 
-			var path = _pathProvider.GetStoragePath(new IndexEntry().LoadFrom(existingItem), database, _rootPath);
+			var descendants = GetDescendants(itemId, database);
 
 			lock (UpdateLock)
 			{
@@ -114,11 +115,16 @@ namespace Gibson.Storage
 				{
 					try
 					{
-						if (path == null || !File.Exists(transaction, path)) return false;
-						if (!GetIndexForDatabase(database).Remove(itemId)) return false;
+						foreach (var item in descendants.Concat(new[] { existingItem }))
+						{
+							var path = _pathProvider.GetStoragePath(new IndexEntry().LoadFrom(item), database, _rootPath);
 
-						File.Delete(transaction, path);
+							if (path == null || !File.Exists(transaction, path)) return false;
+							if (!GetIndexForDatabase(database).Remove(item.Id)) return false;
 
+							File.Delete(transaction, path);
+						}
+						
 						WriteIndexFile(database, transaction);
 					}
 					catch
@@ -129,9 +135,9 @@ namespace Gibson.Storage
 
 					transaction.Commit();
 				}
-
-				return true;
 			}
+
+			return true;
 		}
 
 		/// <summary>
@@ -209,7 +215,7 @@ namespace Gibson.Storage
 
 					return new Index(entries);
 				}
-					
+
 				return new Index(new IndexEntry[0]);
 			}
 		}

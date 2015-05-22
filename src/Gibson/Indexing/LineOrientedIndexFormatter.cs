@@ -23,17 +23,39 @@ namespace Gibson.Indexing
 
 				while (line != null)
 				{
+					if (line.Length < 1)
+					{
+						line = reader.ReadLine();
+						continue;
+					}
+
 					if (line[0] == '-' || currentItem == null)
 					{
 						if (currentItem != null) results.Add(currentItem);
 
 						currentItem = new IndexEntry();
+
+						line = reader.ReadLine();
+						continue;
 					}
 
-					if (line[0] == 'P') currentItem.Path = line.Substring(5);
-					if (line[0] == 'I') currentItem.Id = new Guid(line.Substring(3));
-					if (line[0] == 'T') currentItem.TemplateId = new Guid(line.Substring(9));
-					if (line[0] == 'A') currentItem.ParentId = new Guid(line.Substring(9));
+					switch (line[0])
+					{
+						case '/':
+							currentItem.Path = line;
+							break;
+						case 'T':
+							currentItem.TemplateId = new Guid(line.Substring(3));
+							break;
+						case 'P':
+							currentItem.ParentId = new Guid(line.Substring(3));
+							break;
+						default:
+							if(line.Length == 36)
+								currentItem.Id = new Guid(line);
+
+							break;
+					}
 
 					line = reader.ReadLine();
 				}
@@ -56,10 +78,10 @@ namespace Gibson.Indexing
 				foreach (var item in entries.OrderBy(x => x.Path))
 				{
 					writer.WriteLine("-- Item --");
-					writer.WriteLine("PATH " + item.Path);
-					writer.WriteLine("ID " + item.Id.ToString("D").ToUpperInvariant());
-					writer.WriteLine("TEMPLATE " + item.TemplateId.ToString("D").ToUpperInvariant());
-					writer.WriteLine("ANCESTOR " + item.ParentId.ToString("D").ToUpperInvariant());
+					writer.WriteLine(item.Id.ToString("D").ToUpperInvariant());
+					writer.WriteLine(item.Path);
+					writer.WriteLine("TPL " + item.TemplateId.ToString("D").ToUpperInvariant());
+					writer.WriteLine("PID " + item.ParentId.ToString("D").ToUpperInvariant());
 				}
 			}
 		}

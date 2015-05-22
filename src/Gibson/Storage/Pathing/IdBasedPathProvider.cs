@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Gibson.Indexing;
+using Sitecore.Diagnostics;
 
 namespace Gibson.Storage.Pathing
 {
@@ -28,11 +29,18 @@ namespace Gibson.Storage.Pathing
 
 		public string GetIndexStoragePath(string database, string rootPath)
 		{
+			Assert.ArgumentNotNullOrEmpty(database, "database");
+			Assert.ArgumentNotNullOrEmpty(rootPath, "rootPath");
+
 			return Path.Combine(rootPath, database, IndexFileName);
 		}
 
 		public string GetStoragePath(IndexEntry indexData, string database, string rootPath)
 		{
+			Assert.ArgumentNotNull(indexData, "indexData");
+			Assert.ArgumentNotNullOrEmpty(database, "database");
+			Assert.ArgumentNotNullOrEmpty(rootPath, "rootPath");
+
 			var paths = new Stack<string>(4);
 			paths.Push(indexData.Id.ToString("D").ToUpperInvariant() + FileExtension);
 			paths.Push(indexData.Id.ToString("N").Substring(0, 1).ToUpperInvariant());
@@ -44,12 +52,18 @@ namespace Gibson.Storage.Pathing
 
 		public IEnumerable<string> GetAllStoredPaths(string rootPath, string database)
 		{
+			Assert.ArgumentNotNullOrEmpty(database, "database");
+			Assert.ArgumentNotNullOrEmpty(rootPath, "rootPath");
+
 			var dbPath = GetDatabasePath(database, rootPath);
 			return Directory.GetFiles(dbPath, "*" + FileExtension, SearchOption.AllDirectories);
 		}
 
 		public IEnumerable<string> GetOrphans(string rootPath, string database)
 		{
+			Assert.ArgumentNotNullOrEmpty(database, "database");
+			Assert.ArgumentNotNullOrEmpty(rootPath, "rootPath");
+
 			var dbPath = GetDatabasePath(database, rootPath);
 
 			var children = Directory.EnumerateDirectories(dbPath);
@@ -59,11 +73,16 @@ namespace Gibson.Storage.Pathing
 
 		public IEnumerable<string> GetAllStoredDatabaseNames(string rootPath)
 		{
+			Assert.ArgumentNotNullOrEmpty(rootPath, "rootPath");
+
 			return Directory.GetDirectories(rootPath).Select(Path.GetDirectoryName);
 		}
 
 		protected string GetDatabasePath(string database, string rootPath)
 		{
+			Assert.ArgumentNotNullOrEmpty(database, "database");
+			Assert.ArgumentNotNullOrEmpty(rootPath, "rootPath");
+
 			return Path.Combine(rootPath, database);
 		}
 	}
