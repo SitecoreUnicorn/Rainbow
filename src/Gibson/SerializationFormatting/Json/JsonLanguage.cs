@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Gibson.Data.FieldFormatters;
 using Gibson.Model;
+using Gibson.SerializationFormatting.FieldFormatters;
 
-namespace Gibson.Data.Json
+namespace Gibson.SerializationFormatting.Json
 {
 	public class JsonLanguage : IComparable<JsonLanguage>
 	{

@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 using System.Linq;
 using Gibson.Model;
+using Gibson.Predicates;
 using Sitecore;
 using Sitecore.Configuration;
 using Sitecore.Data;
@@ -15,27 +16,22 @@ using Sitecore.Data.Templates;
 using Sitecore.Diagnostics;
 using Sitecore.Globalization;
 using Sitecore.StringExtensions;
-using Unicorn.Data;
-using Unicorn.Predicates;
-using Unicorn.Serialization.Sitecore.Formatting;
 using Convert = System.Convert;
 using Version = Sitecore.Data.Version;
 
-namespace Unicorn.Gibson
+namespace Gibson.Deserialization
 {
 	/// <summary>
 	/// This is a re-implementation of the way Sitecore does deserialization. Unlike the stock deserializer,
 	/// this exposes much richer logging and only sets field values if they have changed (which is faster).
 	/// It also enables FieldPredicate support, which allows ignoring deserialization of certain fields.
-	/// 
-	/// The FiatSitecoreSerializationProvider makes use of this for its deserialization routines.
 	/// </summary>
-	public class GibsonDeserializer
+	public class DefaultDeserializer : IDeserializer
 	{
-		private readonly IFiatFormatterLogger _logger;
+		private readonly IDefaultDeserializerLogger _logger;
 		private readonly IFieldPredicate _fieldPredicate;
 
-		public GibsonDeserializer(IFiatFormatterLogger logger, IFieldPredicate fieldPredicate)
+		public DefaultDeserializer(IDefaultDeserializerLogger logger, IFieldPredicate fieldPredicate)
 		{
 			Assert.ArgumentNotNull(logger, "logger");
 			Assert.ArgumentNotNull(fieldPredicate, "fieldPredicate");
@@ -44,7 +40,7 @@ namespace Unicorn.Gibson
 			_fieldPredicate = fieldPredicate;
 		}
 
-		public ISourceItem Deserialize(ISerializableItem serializedItem, bool ignoreMissingTemplateFields)
+		public ISerializableItem Deserialize(ISerializableItem serializedItem, bool ignoreMissingTemplateFields)
 		{
 			Assert.ArgumentNotNull(serializedItem, "serializedItem");
 
@@ -140,7 +136,7 @@ namespace Unicorn.Gibson
 
 				ClearCaches(targetItem.Database, targetItem.ID);
 
-				return new SitecoreSourceItem(targetItem);
+				return new SerializableItem(targetItem);
 			}
 			catch (ParentForMovedItemNotFoundException)
 			{
@@ -326,7 +322,7 @@ namespace Unicorn.Gibson
 		/// <exception cref="T:Sitecore.Data.Serialization.Exceptions.FieldIsMissingFromTemplateException"/>
 		protected virtual void PasteSyncField(Item item, ISerializableFieldValue field, bool ignoreMissingTemplateFields, bool creatingNewItem)
 		{
-			if (!_fieldPredicate.Includes(new ID(field.FieldId)).IsIncluded)
+			if (!_fieldPredicate.Includes(field.FieldId).IsIncluded)
 			{
 				//TODO _logger.SkippedPastingIgnoredField(item, field);
 				return;
@@ -350,7 +346,7 @@ namespace Unicorn.Gibson
 #endif
 				}
 
-				//TODO _logger.SkippedMissingTemplateField(item, field);
+				_logger.SkippedMissingTemplateField(item, field);
 				return;
 			}
 
@@ -367,8 +363,8 @@ namespace Unicorn.Gibson
 			{
 				var oldValue = itemField.Value;
 				itemField.SetValue(field.Value, true);
-				////TODO if (!creatingNewItem)
-					//_logger.UpdatedChangedFieldValue(item, field, oldValue);
+				if (!creatingNewItem)
+					_logger.UpdatedChangedFieldValue(item, field, oldValue);
 			}
 		}
 

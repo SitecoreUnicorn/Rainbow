@@ -4,7 +4,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Gibson.Model;
 
-namespace Gibson.Data.FieldFormatters
+namespace Gibson.SerializationFormatting.FieldFormatters
 {
 	public class XmlFieldFormatter : IFieldFormatter
 	{

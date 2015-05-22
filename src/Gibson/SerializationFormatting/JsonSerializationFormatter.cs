@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using Gibson.Data.FieldFormatters;
-using Gibson.Data.Json;
 using Gibson.Indexing;
 using Gibson.Model;
+using Gibson.SerializationFormatting.FieldFormatters;
+using Gibson.SerializationFormatting.Json;
 using Newtonsoft.Json;
 using Sitecore.Diagnostics;
 
-namespace Gibson.Data
+namespace Gibson.SerializationFormatting
 {
 	public class JsonSerializationFormatter : ISerializationFormatter
 	{
@@ -24,7 +25,7 @@ namespace Gibson.Data
 		}
 
 
-		public ISerializableItem ReadSerializedItem(Stream dataStream)
+		public ISerializableItem ReadSerializedItem(Stream dataStream, string serializedItemId)
 		{
 			Assert.ArgumentNotNull(dataStream, "dataStream");
 
@@ -35,7 +36,7 @@ namespace Gibson.Data
 			{
 				JsonItem itemResult = serializer.Deserialize<JsonItem>(jsonTextReader);
 
-				return new JsonSerializableItem(itemResult);
+				return new JsonSerializableItem(itemResult, serializedItemId);
 			}
 		}
 
@@ -57,13 +58,16 @@ namespace Gibson.Data
 			}
 		}
 
+		[DebuggerDisplay("{Name} ({DatabaseName}::{Id}) [JSON - {SerializedItemId}]")]
 		protected class JsonSerializableItem : ISerializableItem
 		{
 			private readonly JsonItem _item;
+			private readonly string _serializedItemId;
 
-			public JsonSerializableItem(JsonItem item)
+			public JsonSerializableItem(JsonItem item, string serializedItemId)
 			{
 				_item = item;
+				_serializedItemId = serializedItemId;
 			}
 
 			public Guid Id
@@ -112,6 +116,11 @@ namespace Gibson.Data
 						}
 					}
 				}
+			}
+
+			public string SerializedItemId
+			{
+				get { return _serializedItemId; }
 			}
 
 			public void AddIndexData(IndexEntry indexEntry)

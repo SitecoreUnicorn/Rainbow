@@ -9,14 +9,17 @@ namespace Gibson.Storage
 {
 	public abstract class IndexedSerializationStore : ISerializationStore
 	{
-		private readonly IIndex _index;
+		private readonly IIndexFactory _indexFactory;
+		private readonly Dictionary<string, IIndex> _indices = new Dictionary<string, IIndex>(); 
 
-		protected IndexedSerializationStore(IIndex index)
+		protected IndexedSerializationStore(IIndexFactory indexFactory)
 		{
-			Assert.ArgumentNotNull(index, "index");
+			Assert.ArgumentNotNull(indexFactory, "index");
 
-			_index = index;
+			_indexFactory = indexFactory;
 		}
+
+		public abstract IEnumerable<string> GetDatabaseNames();
 
 		/// <summary>
 		/// Saves an item into the store
@@ -27,51 +30,67 @@ namespace Gibson.Storage
 		/// Loads an item from the store by ID
 		/// </summary>
 		/// <returns>The stored item, or null if it does not exist in the store</returns>
-		public virtual ISerializableItem GetById(Guid itemId)
+		public virtual ISerializableItem GetById(Guid itemId, string database)
 		{
-			var itemById = _index.GetById(itemId);
-			return Load(itemById, false);
+			var itemById = GetIndexForDatabase(database).GetById(itemId);
+			return Load(itemById, database, false);
 		}
 
-		public virtual IEnumerable<ISerializableItem> GetByPath(string path)
+		public virtual IEnumerable<ISerializableItem> GetByPath(string path, string database)
 		{
-			var itemsOnPath = _index.GetByPath(path);
+			var itemsOnPath = GetIndexForDatabase(database).GetByPath(path);
 
-			return itemsOnPath.Select(x => Load(x, true));
+			return itemsOnPath.Select(x => Load(x, database, true));
 		}
 
-		public virtual IEnumerable<ISerializableItem> GetByTemplate(Guid templateId)
+		public virtual IEnumerable<ISerializableItem> GetByTemplate(Guid templateId, string database)
 		{
-			var itemsOfTemplate = _index.GetByTemplate(templateId);
+			var itemsOfTemplate = GetIndexForDatabase(database).GetByTemplate(templateId);
 
-			return itemsOfTemplate.Select(x => Load(x, true));
+			return itemsOfTemplate.Select(x => Load(x, database, true));
 		}
 
-		public virtual IEnumerable<ISerializableItem> GetChildren(Guid parentId)
+		public virtual IEnumerable<ISerializableItem> GetChildren(Guid parentId, string database)
 		{
-			var childItems = _index.GetChildren(parentId);
+			var childItems = GetIndexForDatabase(database).GetChildren(parentId);
 
-			return childItems.Select(x => Load(x, true));
+			return childItems.Select(x => Load(x, database, true));
 		}
 
-		public virtual IEnumerable<ISerializableItem> GetDescendants(Guid parentId)
+		public virtual IEnumerable<ISerializableItem> GetDescendants(Guid parentId, string database)
 		{
-			var descendants = _index.GetDescendants(parentId);
+			var descendants = GetIndexForDatabase(database).GetDescendants(parentId);
 
-			return descendants.Select(x => Load(x, true));
+			return descendants.Select(x => Load(x, database, true));
 		}
 
 		/// <summary>
 		/// Loads all items in the data store
 		/// </summary>
-		public abstract void CheckConsistency(bool fixErrors, Action<string> logMessageReceiver);
+		public abstract void CheckConsistency(string database, bool fixErrors, Action<string> logMessageReceiver);
 
 		/// <summary>
 		/// Removes an item from the store
 		/// </summary>
 		/// <returns>True if the item existed in the store and was removed, false if it did not exist and the store is unchanged.</returns>
-		public abstract bool Remove(Guid itemId);
+		public abstract bool Remove(Guid itemId, string database);
 
-		protected abstract ISerializableItem Load(IndexEntry indexData, bool assertExists);
+		protected abstract ISerializableItem Load(IndexEntry indexData, string database, bool assertExists);
+
+		protected virtual IIndex GetIndexForDatabase(string database)
+		{
+			IIndex result;
+			if (_indices.TryGetValue(database, out result)) return result;
+			
+			lock (_indices)
+			{
+				if (_indices.TryGetValue(database, out result)) return result;
+
+				var index = _indexFactory.CreateIndex(database);
+				_indices.Add(database, index);
+
+				return index;
+			}
+		}
 	}
 }

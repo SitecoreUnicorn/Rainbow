@@ -1,8 +1,8 @@
 ﻿using System;
-using Gibson.Data.FieldFormatters;
 using Gibson.Model;
+using Gibson.SerializationFormatting.FieldFormatters;
 
-namespace Gibson.Data.Json
+namespace Gibson.SerializationFormatting.Json
 {
 	public class JsonFieldValue : IComparable<JsonFieldValue>
 	{

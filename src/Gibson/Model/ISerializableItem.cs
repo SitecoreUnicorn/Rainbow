@@ -16,6 +16,11 @@ namespace Gibson.Model
 		IEnumerable<ISerializableFieldValue> SharedFields { get; }
 		IEnumerable<ISerializableVersion> Versions { get; }
 
+		/// <summary>
+		/// Provider-specific identifier for a serialized item (e.g. path on disk, row identifier, etc)
+		/// </summary>
+		string SerializedItemId { get; }
+
 		void AddIndexData(IndexEntry indexEntry);
 	}
 }

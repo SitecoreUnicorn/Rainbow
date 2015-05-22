@@ -1,6 +1,6 @@
 ﻿using Gibson.Model;
 
-namespace Gibson.Data.FieldFormatters
+namespace Gibson.SerializationFormatting.FieldFormatters
 {
 	public interface IFieldFormatter
 	{

@@ -1,7 +1,7 @@
-﻿using Gibson.Data.FieldFormatters;
+﻿using Gibson.SerializationFormatting.FieldFormatters;
 using NUnit.Framework;
 
-namespace Gibson.Tests.Data.FieldFormatters
+namespace Gibson.Tests.SerializationFormatting.FieldFormatters
 {
 	public class XmlFieldFormatterTests
 	{

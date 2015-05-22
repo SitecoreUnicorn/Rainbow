@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using Gibson.Indexing;
 using Sitecore.Data.Fields;
@@ -7,6 +8,7 @@ using Sitecore.Data.Items;
 
 namespace Gibson.Model
 {
+	[DebuggerDisplay("{Name} ({DatabaseName}::{Id}) [DB ITEM]")]
 	public class SerializableItem : ISerializableItem
 	{
 		private readonly Item _item;
@@ -78,6 +80,11 @@ namespace Gibson.Model
 					yield return new ItemVersionValue(versions[i]);
 				}
 			}
+		}
+
+		public string SerializedItemId
+		{
+			get { return "(from Sitecore database)"; }
 		}
 
 		public void AddIndexData(IndexEntry indexEntry)

@@ -7,39 +7,27 @@ namespace Gibson.Indexing
 {
 	public class Index : IIndex
 	{
-		private ConcurrentDictionary<Guid, IndexEntry> _indexById;
-		private ConcurrentDictionary<Guid, List<IndexEntry>> _indexByTemplate;
-		private ConcurrentDictionary<Guid, List<IndexEntry>> _indexByChildren;
-		private ConcurrentDictionary<string, List<IndexEntry>> _indexByPath;
-		private bool _isInitialized = false;
+		private readonly ConcurrentDictionary<Guid, IndexEntry> _indexById;
+		private readonly ConcurrentDictionary<Guid, List<IndexEntry>> _indexByTemplate;
+		private readonly ConcurrentDictionary<Guid, List<IndexEntry>> _indexByChildren;
+		private readonly ConcurrentDictionary<string, List<IndexEntry>> _indexByPath;
 		protected readonly object SyncRoot = new object();
 
-		public void Initialize(IList<IndexEntry> entries)
+		public Index(IList<IndexEntry> entries)
 		{
-			if (_isInitialized) return;
+			_indexById = new ConcurrentDictionary<Guid, IndexEntry>();
+			_indexByTemplate = new ConcurrentDictionary<Guid, List<IndexEntry>>();
+			_indexByPath = new ConcurrentDictionary<string, List<IndexEntry>>(StringComparer.OrdinalIgnoreCase);
+			_indexByChildren = new ConcurrentDictionary<Guid, List<IndexEntry>>();
 
-			lock (SyncRoot)
+			for (var i = 0; i < entries.Count; i++)
 			{
-				if (_isInitialized) return;
-
-				_indexById = new ConcurrentDictionary<Guid, IndexEntry>();
-				_indexByTemplate = new ConcurrentDictionary<Guid, List<IndexEntry>>();
-				_indexByPath = new ConcurrentDictionary<string, List<IndexEntry>>(StringComparer.OrdinalIgnoreCase);
-				_indexByChildren = new ConcurrentDictionary<Guid, List<IndexEntry>>();
-
-				for (var i = 0; i < entries.Count; i++)
-				{
-					AddEntryToIndices(entries[i]);
-				}
-
-				_isInitialized = true;
+				AddEntryToIndices(entries[i]);
 			}
 		}
 
 		public virtual IndexEntry GetById(Guid itemId)
 		{
-			if (!_isInitialized) throw new InvalidOperationException("Index has not been initialized. Call Initialize() first.");
-
 			IndexEntry result;
 			if (_indexById.TryGetValue(itemId, out result)) return result;
 
@@ -48,8 +36,6 @@ namespace Gibson.Indexing
 
 		public virtual IReadOnlyCollection<IndexEntry> GetByPath(string path)
 		{
-			if (!_isInitialized) throw new InvalidOperationException("Index has not been initialized. Call Initialize() first.");
-
 			List<IndexEntry> result;
 			if (_indexByPath.TryGetValue(path, out result)) return result.AsReadOnly();
 
@@ -58,8 +44,6 @@ namespace Gibson.Indexing
 
 		public virtual IReadOnlyCollection<IndexEntry> GetByTemplate(Guid templateId)
 		{
-			if (!_isInitialized) throw new InvalidOperationException("Index has not been initialized. Call Initialize() first.");
-
 			List<IndexEntry> result;
 			if (_indexByTemplate.TryGetValue(templateId, out result)) return result.AsReadOnly();
 
@@ -68,8 +52,6 @@ namespace Gibson.Indexing
 
 		public virtual IReadOnlyCollection<IndexEntry> GetChildren(Guid parentId)
 		{
-			if (!_isInitialized) throw new InvalidOperationException("Index has not been initialized. Call Initialize() first.");
-
 			List<IndexEntry> result;
 			if (_indexByChildren.TryGetValue(parentId, out result)) return result.AsReadOnly();
 
@@ -78,8 +60,6 @@ namespace Gibson.Indexing
 
 		public virtual IEnumerable<IndexEntry> GetDescendants(Guid parentId)
 		{
-			if (!_isInitialized) throw new InvalidOperationException("Index has not been initialized. Call Initialize() first.");
-
 			var queue = new Queue<IndexEntry>(GetChildren(parentId));
 
 			while (queue.Count > 0)
@@ -99,15 +79,11 @@ namespace Gibson.Indexing
 
 		public virtual IReadOnlyCollection<IndexEntry> GetAll()
 		{
-			if (!_isInitialized) throw new InvalidOperationException("Index has not been initialized. Call Initialize() first.");
-
 			return _indexById.Values.ToList().AsReadOnly();
 		}
 
 		public virtual void Update(IndexEntry entry)
 		{
-			if (!_isInitialized) throw new InvalidOperationException("Index has not been initialized. Call Initialize() first.");
-
 			lock (SyncRoot)
 			{
 				bool dirty;
@@ -260,7 +236,7 @@ namespace Gibson.Indexing
 
 				// change value in entry
 				entryToMergeTo.Path = newEntry.Path;
-				
+
 				// re-add to path index under new path
 				var path = EnsureCollectionKey(_indexByPath, entryToMergeTo.Path);
 				path.Add(entryToMergeTo);

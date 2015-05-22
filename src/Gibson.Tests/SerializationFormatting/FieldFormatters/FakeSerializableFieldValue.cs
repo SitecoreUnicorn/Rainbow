@@ -1,7 +1,7 @@
 ﻿using System;
 using Gibson.Model;
 
-namespace Gibson.Tests.Data.FieldFormatters
+namespace Gibson.Tests.SerializationFormatting.FieldFormatters
 {
 	public class FakeSerializableFieldValue : ISerializableFieldValue
 	{

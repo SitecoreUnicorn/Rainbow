@@ -10,10 +10,9 @@ namespace Gibson.Tests.Indexing
 		[Test]
 		public void Index_RetrievesEntry_ById()
 		{
-			var index = new Index();
 			var id = Guid.NewGuid();
 			const string path = "/test/item";
-			index.Initialize(new[] { new IndexEntry { Id = id, Path = path, ParentId = Guid.Empty } });
+			var index = new Index(new[] { new IndexEntry { Id = id, Path = path, ParentId = Guid.Empty } });
 
 			var result = index.GetById(id);
 
@@ -24,9 +23,8 @@ namespace Gibson.Tests.Indexing
 		[Test]
 		public void Index_RetrievesEntry_ByPath()
 		{
-			var index = new Index();
 			const string path = "/test/item";
-			index.Initialize(new[] { new IndexEntry { Id = Guid.NewGuid(), Path = path, ParentId = Guid.Empty } });
+			var index = new Index(new[] { new IndexEntry { Id = Guid.NewGuid(), Path = path, ParentId = Guid.Empty } });
 
 			var result = index.GetByPath(path);
 
@@ -38,9 +36,8 @@ namespace Gibson.Tests.Indexing
 		[Test]
 		public void Index_RetrievesMultipleEntry_ByPath()
 		{
-			var index = new Index();
 			const string path = "/test/item";
-			index.Initialize(new[] { new IndexEntry { Id = Guid.NewGuid(), Path = path, ParentId = Guid.Empty }, new IndexEntry { Id = Guid.NewGuid(), Path = path, ParentId = Guid.Empty } });
+			var index = new Index(new[] { new IndexEntry { Id = Guid.NewGuid(), Path = path, ParentId = Guid.Empty }, new IndexEntry { Id = Guid.NewGuid(), Path = path, ParentId = Guid.Empty } });
 
 			var result = index.GetByPath(path);
 
@@ -52,10 +49,9 @@ namespace Gibson.Tests.Indexing
 		[Test]
 		public void Index_RetrievesEntry_ByTemplateId()
 		{
-			var index = new Index();
 			var tid = Guid.NewGuid();
 			const string path = "/test/item";
-			index.Initialize(new[] { new IndexEntry { TemplateId = tid, Path = path, ParentId = Guid.Empty, Id = Guid.NewGuid() } });
+			var index = new Index(new[] { new IndexEntry { TemplateId = tid, Path = path, ParentId = Guid.Empty, Id = Guid.NewGuid() } });
 
 			var result = index.GetByTemplate(tid);
 
@@ -67,9 +63,8 @@ namespace Gibson.Tests.Indexing
 		[Test]
 		public void Index_RetrievesChildren_ByParentId()
 		{
-			var index = new Index();
 			var parentId = Guid.NewGuid();
-			index.Initialize(new[] { new IndexEntry { Id = Guid.NewGuid(), Path = string.Empty, ParentId = parentId }, new IndexEntry { Id = Guid.NewGuid(), Path = string.Empty, ParentId = parentId } });
+			var index = new Index(new[] { new IndexEntry { Id = Guid.NewGuid(), Path = string.Empty, ParentId = parentId }, new IndexEntry { Id = Guid.NewGuid(), Path = string.Empty, ParentId = parentId } });
 
 			var result = index.GetChildren(parentId);
 
@@ -81,10 +76,9 @@ namespace Gibson.Tests.Indexing
 		[Test]
 		public void Index_RetrievesDescendants_ByParentId()
 		{
-			var index = new Index();
 			var parentId = Guid.NewGuid();
 			var childId = Guid.NewGuid();
-			index.Initialize(new[] { new IndexEntry { Id = childId, Path = string.Empty, ParentId = parentId }, new IndexEntry { Id = Guid.NewGuid(), Path = string.Empty, ParentId = childId } });
+			var index = new Index(new[] { new IndexEntry { Id = childId, Path = string.Empty, ParentId = parentId }, new IndexEntry { Id = Guid.NewGuid(), Path = string.Empty, ParentId = childId } });
 
 			var result = index.GetDescendants(parentId);
 
@@ -95,11 +89,10 @@ namespace Gibson.Tests.Indexing
 		[Test]
 		public void Index_UpdatesEntry_WhenRenamed()
 		{
-			var index = new Index();
 			var testEntry = new IndexEntry { Id = Guid.NewGuid(), Path = "/test/entry", ParentId = Guid.Empty };
 			var testEntryChild = new IndexEntry { Id = Guid.NewGuid(), Path = "/test/entry/child", ParentId = testEntry.Id };
 
-			index.Initialize(new[] { testEntry, testEntryChild });
+			var index = new Index(new[] { testEntry, testEntryChild });
 
 			var editedEntry = testEntry.Clone();
 
@@ -119,12 +112,11 @@ namespace Gibson.Tests.Indexing
 		[Test]
 		public void Index_UpdatesEntry_WhenMoved()
 		{
-			var index = new Index();
 			var testEntry = new IndexEntry { Id = Guid.NewGuid(), Path = "/test/entry", ParentId = Guid.Empty };
 			var testEntryChild = new IndexEntry { Id = Guid.NewGuid(), Path = "/test/entry/child", ParentId = testEntry.Id };
 			var testEntryGrandchild = new IndexEntry { Id = Guid.NewGuid(), Path = "/test/entry/child/grandchild", ParentId = testEntryChild.Id };
 
-			index.Initialize(new[] { testEntry, testEntryChild, testEntryGrandchild });
+			var index = new Index(new[] { testEntry, testEntryChild, testEntryGrandchild });
 
 			var editedEntry = testEntry.Clone();
 
@@ -151,10 +143,9 @@ namespace Gibson.Tests.Indexing
 		[Test]
 		public void Index_UpdatesEntry_WhenTemplateChanged()
 		{
-			var index = new Index();
 			var testEntry = new IndexEntry { Id = Guid.NewGuid(), Path = "/test/entry", TemplateId = Guid.Empty };
 
-			index.Initialize(new[] { testEntry });
+			var index = new Index(new[] { testEntry });
 
 			var editedEntry = testEntry.Clone();
 
@@ -170,12 +161,11 @@ namespace Gibson.Tests.Indexing
 		[Test]
 		public void Index_RemovesEntry()
 		{
-			var index = new Index();
 			var testEntry = new IndexEntry { Id = Guid.NewGuid(), Path = "/test/entry", TemplateId = Guid.Empty };
 			var testEntryChild = new IndexEntry { Id = Guid.NewGuid(), Path = "/test/entry/child", ParentId = testEntry.Id };
 			var testEntryGrandchild = new IndexEntry { Id = Guid.NewGuid(), Path = "/test/entry/child/grandchild", ParentId = testEntryChild.Id };
 
-			index.Initialize(new[] { testEntry, testEntryChild, testEntryGrandchild });
+			var index = new Index(new[] { testEntry, testEntryChild, testEntryGrandchild });
 
 			index.Remove(testEntryChild.Id);
 

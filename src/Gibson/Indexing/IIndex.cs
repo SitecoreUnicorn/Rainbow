@@ -5,7 +5,6 @@ namespace Gibson.Indexing
 {
 	public interface IIndex
 	{
-		void Initialize(IList<IndexEntry> entries);
 		void Update(IndexEntry indexEntry);
 		IReadOnlyCollection<IndexEntry> GetAll();
 		IndexEntry GetById(Guid itemId);

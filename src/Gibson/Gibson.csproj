@@ -41,6 +41,7 @@
       <HintPath>..\..\lib\Sitecore\v7\Sitecore.Kernel.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Xml.Linq" />
@@ -51,16 +52,24 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataConsistencyException.cs" />
-    <Compile Include="Data\FieldFormatters\IFieldFormatter.cs" />
-    <Compile Include="Data\FieldFormatters\MultilistFormatter.cs" />
-    <Compile Include="Data\FieldFormatters\XmlFieldFormatter.cs" />
+    <Compile Include="Deserialization\DeserializationException.cs" />
+    <Compile Include="Deserialization\DefaultDeserializer.cs" />
+    <Compile Include="Deserialization\IDefaultDeserializerLogger.cs" />
+    <Compile Include="Deserialization\IDeserializer.cs" />
+    <Compile Include="Predicates\ConfigurationFieldPredicate.cs" />
+    <Compile Include="Predicates\IFieldPredicate.cs" />
+    <Compile Include="Predicates\PredicateResult.cs" />
+    <Compile Include="SerializationFormatting\FieldFormatters\IFieldFormatter.cs" />
+    <Compile Include="SerializationFormatting\FieldFormatters\MultilistFormatter.cs" />
+    <Compile Include="SerializationFormatting\FieldFormatters\XmlFieldFormatter.cs" />
+    <Compile Include="Indexing\IIndexFactory.cs" />
     <Compile Include="Indexing\IIndexFormatter.cs" />
-    <Compile Include="Data\ISerializationFormatter.cs" />
-    <Compile Include="Data\JsonSerializationFormatter.cs" />
-    <Compile Include="Data\Json\JsonFieldValue.cs" />
-    <Compile Include="Data\Json\JsonItem.cs" />
-    <Compile Include="Data\Json\JsonLanguage.cs" />
-    <Compile Include="Data\Json\JsonVersion.cs" />
+    <Compile Include="SerializationFormatting\ISerializationFormatter.cs" />
+    <Compile Include="SerializationFormatting\JsonSerializationFormatter.cs" />
+    <Compile Include="SerializationFormatting\Json\JsonFieldValue.cs" />
+    <Compile Include="SerializationFormatting\Json\JsonItem.cs" />
+    <Compile Include="SerializationFormatting\Json\JsonLanguage.cs" />
+    <Compile Include="SerializationFormatting\Json\JsonVersion.cs" />
     <Compile Include="Indexing\LineOrientedIndexFormatter.cs" />
     <Compile Include="Indexing\IIndex.cs" />
     <Compile Include="Storage\ISerializationStore.cs" />
@@ -72,13 +81,15 @@
     <Compile Include="Indexing\IndexEntry.cs" />
     <Compile Include="Indexing\Index.cs" />
     <Compile Include="Storage\Pathing\IFileSystemPathProvider.cs" />
-    <Compile Include="Storage\Pathing\IdBasedJsonPathProvider.cs" />
+    <Compile Include="Storage\Pathing\IdBasedPathProvider.cs" />
     <Compile Include="Storage\IndexedSerializationStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="TODO.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
