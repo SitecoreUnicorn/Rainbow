@@ -25,7 +25,7 @@ namespace Gibson.SerializationFormatting
 		}
 
 
-		public ISerializableItem ReadSerializedItem(Stream dataStream, string serializedItemId)
+		public virtual ISerializableItem ReadSerializedItem(Stream dataStream, string serializedItemId)
 		{
 			Assert.ArgumentNotNull(dataStream, "dataStream");
 
@@ -40,7 +40,7 @@ namespace Gibson.SerializationFormatting
 			}
 		}
 
-		public void WriteSerializedItem(ISerializableItem item, Stream outputStream)
+		public virtual void WriteSerializedItem(ISerializableItem item, Stream outputStream)
 		{
 			Assert.ArgumentNotNull(item, "item");
 			Assert.ArgumentNotNull(outputStream, "outputStream");

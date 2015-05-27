@@ -64,6 +64,7 @@
     <Compile Include="SerializationFormatting\FieldFormatters\XmlFieldFormatter.cs" />
     <Compile Include="Indexing\IIndexFactory.cs" />
     <Compile Include="Indexing\IIndexFormatter.cs" />
+    <Compile Include="SerializationFormatting\FrontMatterIndexJsonSerializationFormatter.cs" />
     <Compile Include="SerializationFormatting\ISerializationFormatter.cs" />
     <Compile Include="SerializationFormatting\JsonSerializationFormatter.cs" />
     <Compile Include="SerializationFormatting\Json\JsonFieldValue.cs" />
@@ -72,6 +73,7 @@
     <Compile Include="SerializationFormatting\Json\JsonVersion.cs" />
     <Compile Include="Indexing\LineOrientedIndexFormatter.cs" />
     <Compile Include="Indexing\IIndex.cs" />
+    <Compile Include="Storage\FrontMatterSerializationStore.cs" />
     <Compile Include="Storage\ISerializationStore.cs" />
     <Compile Include="Model\ISerializableFieldValue.cs" />
     <Compile Include="Model\ISerializableItem.cs" />

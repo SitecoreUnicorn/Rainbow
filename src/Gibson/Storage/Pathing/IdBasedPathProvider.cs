@@ -56,6 +56,9 @@ namespace Gibson.Storage.Pathing
 			Assert.ArgumentNotNullOrEmpty(rootPath, "rootPath");
 
 			var dbPath = GetDatabasePath(database, rootPath);
+
+			if (!Directory.Exists(dbPath)) return Enumerable.Empty<string>();
+
 			return Directory.GetFiles(dbPath, "*" + FileExtension, SearchOption.AllDirectories);
 		}
 
@@ -65,6 +68,8 @@ namespace Gibson.Storage.Pathing
 			Assert.ArgumentNotNullOrEmpty(rootPath, "rootPath");
 
 			var dbPath = GetDatabasePath(database, rootPath);
+
+			if (!Directory.Exists(dbPath)) return Enumerable.Empty<string>();
 
 			var children = Directory.EnumerateDirectories(dbPath);
 
