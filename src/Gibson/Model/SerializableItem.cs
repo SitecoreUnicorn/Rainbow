@@ -125,7 +125,21 @@ namespace Gibson.Model
 
 			public string Value
 			{
-				get { return _field.Value; }
+				get
+				{
+					if (_field.IsBlobField)
+					{
+						using (var stream = _field.GetBlobStream())
+						{
+							var buf = new byte[stream.Length];
+							
+							stream.Read(buf, 0, (int)stream.Length);
+
+							return Convert.ToBase64String(buf);
+						}
+					}
+					return _field.Value;
+				}
 			}
 
 			public string FieldType
