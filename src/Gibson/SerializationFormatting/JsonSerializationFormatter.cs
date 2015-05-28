@@ -184,6 +184,11 @@ namespace Gibson.SerializationFormatting
 			{
 				get { return _field.Type; }
 			}
+
+			public string NameHint
+			{
+				get { return _field.NameHint; }
+			}
 		}
 	}
 }

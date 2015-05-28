@@ -8,6 +8,7 @@ namespace Gibson.SerializationFormatting.Json
 	public class JsonFieldValue : IComparable<JsonFieldValue>
 	{
 		public Guid Id { get; set; }
+		public string NameHint { get; set; }
 		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string Type { get; set; }
 		public string Value { get; set; }
@@ -20,6 +21,7 @@ namespace Gibson.SerializationFormatting.Json
 		public void LoadFrom(ISerializableFieldValue field, IFieldFormatter[] formatters)
 		{
 			Id = field.FieldId;
+			NameHint = field.NameHint;
 			
 			string value = field.Value;
 

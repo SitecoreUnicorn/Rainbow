@@ -132,6 +132,11 @@ namespace Gibson.Model
 			{
 				get { return _field.Type; }
 			}
+
+			public string NameHint
+			{
+				get { return _field.Name; }
+			}
 		}
 
 		protected class ItemVersionValue : ISerializableVersion
