@@ -324,7 +324,7 @@ namespace Gibson.Deserialization
 		{
 			if (!_fieldPredicate.Includes(field.FieldId).IsIncluded)
 			{
-				//TODO _logger.SkippedPastingIgnoredField(item, field);
+				_logger.SkippedPastingIgnoredField(item, field);
 				return;
 			}
 
@@ -356,8 +356,8 @@ namespace Gibson.Deserialization
 				byte[] buffer = Convert.FromBase64String(field.Value);
 				itemField.SetBlobStream(new MemoryStream(buffer, false));
 
-				//if (!creatingNewItem)
-					//_logger.WroteBlobStream(item, field);
+				if (!creatingNewItem)
+					_logger.WroteBlobStream(item, field);
 			}
 			else if (!field.Value.Equals(itemField.Value))
 			{
