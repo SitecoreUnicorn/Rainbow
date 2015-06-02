@@ -1,14 +1,25 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using System.Xml;
 using Gibson.Indexing;
 using Gibson.Model;
 using Sitecore.Diagnostics;
 
 namespace Gibson.SerializationFormatting
 {
-	public class FrontMatterIndexJsonSerializationFormatter : JsonSerializationFormatter
+	public class FrontMatterIndexJsonSerializationFormatter : YamlSerializationFormatter
 	{
+		public FrontMatterIndexJsonSerializationFormatter()
+		{
+			
+		}
+
+		public FrontMatterIndexJsonSerializationFormatter(XmlNode configNode) : base(configNode)
+		{
+			
+		}
+
 		public override ISerializableItem ReadSerializedItem(Stream dataStream, string serializedItemId)
 		{
 			Assert.ArgumentNotNull(dataStream, "dataStream");
@@ -34,42 +45,47 @@ namespace Gibson.SerializationFormatting
 		 * PID $guid\r\n
 		 * TID $guid\r\n
 		 * PATH $path\r\n
-		 * # begin JSON matter
+		 * # begin regular matter
 		 */
 		public IndexEntry ReadFrontMatter(Stream inputStream)
 		{
 			const int guidLength = 36;
-
-			char[] idBuffer = new char[guidLength + 6];
+			// TODO: use a YAML reader.
+			char[] idBuffer = new char[guidLength + 12];
 			IndexEntry entry = new IndexEntry();
+			
+			const int idHeaderLength = 4;
+			const int pidHeaderLength = 10;
+			const int templateHeaderLength = 12;
+			const int pathHeaderLength = 6;
 
 			using (var streamReader = new StreamReader(inputStream, Encoding.UTF8, false, 300, true))
 			{
 				Guid temp;
 
 				// read ID
-				streamReader.ReadBlock(idBuffer, 0, guidLength + 3); // 3 = "ID "
-				if (!Guid.TryParse(new string(idBuffer, 3, guidLength), out temp)) throw new InvalidOperationException("The item ID GUID was not readable.");
+				streamReader.ReadBlock(idBuffer, 0, guidLength + idHeaderLength); // 4 = "ID: "
+				if (!Guid.TryParse(new string(idBuffer, idHeaderLength, guidLength), out temp)) throw new InvalidOperationException("The item ID GUID was not readable.");
 				entry.Id = temp;
 
 				// read PID
-				streamReader.ReadBlock(idBuffer, 0, guidLength + 6); // 6 = "\r\nPID "
-				if (!Guid.TryParse(new string(idBuffer, 6, guidLength), out temp)) throw new InvalidOperationException("The parent ID GUID was not readable.");
+				streamReader.ReadBlock(idBuffer, 0, guidLength + pidHeaderLength); // 10 = "\r\nParent: "
+				if (!Guid.TryParse(new string(idBuffer, pidHeaderLength, guidLength), out temp)) throw new InvalidOperationException("The parent ID GUID was not readable.");
 				entry.ParentId = temp;
 
 				// read TID
-				streamReader.ReadBlock(idBuffer, 0, guidLength + 6); // 6 = "\r\nTID"
-				if (!Guid.TryParse(new string(idBuffer, 6, guidLength), out temp)) throw new InvalidOperationException("The template ID GUID was not readable.");
+				streamReader.ReadBlock(idBuffer, 0, guidLength + templateHeaderLength); // 12 = "\r\nTemplate: "
+				if (!Guid.TryParse(new string(idBuffer, templateHeaderLength, guidLength), out temp)) throw new InvalidOperationException("The template ID GUID was not readable.");
 				entry.TemplateId = temp;
 
 				// read PATH
 				streamReader.ReadBlock(idBuffer, 0, 2); // skip \r\n at end of TID line
-				entry.Path = streamReader.ReadLine().Substring(5);
+				entry.Path = streamReader.ReadLine().Substring(pathHeaderLength); // 6 = "Path: "
 			}
 
 			// reset stream location to total read length, because StreamReader reads in buffer blocks
 			// (idLen) + (pidlen) + (tidlen) + (pathlen) + (pathwrapperlen)
-			inputStream.Seek(41 + 42 + 42 + entry.Path.Length + 7, SeekOrigin.Begin);
+			inputStream.Seek((guidLength * 3) + idHeaderLength + pidHeaderLength +  42 + 42 + entry.Path.Length + 7, SeekOrigin.Begin);
 
 			return entry;
 		}

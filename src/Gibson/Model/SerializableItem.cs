@@ -109,6 +109,7 @@ namespace Gibson.Model
 			return _itemVersions;
 		}
 
+		[DebuggerDisplay("{NameHint} ({FieldType})")]
 		protected class ItemFieldValue : ISerializableFieldValue
 		{
 			private readonly Field _field;
@@ -153,6 +154,7 @@ namespace Gibson.Model
 			}
 		}
 
+		[DebuggerDisplay("{Language} #{VersionNumber}")]
 		protected class ItemVersionValue : ISerializableVersion
 		{
 			private readonly Item _version;

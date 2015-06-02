@@ -33,10 +33,6 @@
     <Reference Include="AlphaFS">
       <HintPath>..\..\packages\AlphaFS.2.0.1\lib\net45\AlphaFS.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="Sitecore.Kernel">
       <HintPath>..\..\lib\Sitecore\v7\Sitecore.Kernel.dll</HintPath>
     </Reference>
@@ -49,6 +45,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="YamlDotNet">
+      <HintPath>..\..\packages\YamlDotNet.3.6.0\lib\net35\YamlDotNet.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataConsistencyException.cs" />
@@ -66,13 +65,14 @@
     <Compile Include="Indexing\IIndexFormatter.cs" />
     <Compile Include="SerializationFormatting\FrontMatterIndexJsonSerializationFormatter.cs" />
     <Compile Include="SerializationFormatting\ISerializationFormatter.cs" />
-    <Compile Include="SerializationFormatting\JsonSerializationFormatter.cs" />
-    <Compile Include="SerializationFormatting\Json\JsonFieldValue.cs" />
-    <Compile Include="SerializationFormatting\Json\JsonItem.cs" />
-    <Compile Include="SerializationFormatting\Json\JsonLanguage.cs" />
-    <Compile Include="SerializationFormatting\Json\JsonVersion.cs" />
+    <Compile Include="SerializationFormatting\YamlSerializationFormatter.cs" />
+    <Compile Include="SerializationFormatting\Yaml\YamlFieldValue.cs" />
+    <Compile Include="SerializationFormatting\Yaml\YamlItem.cs" />
+    <Compile Include="SerializationFormatting\Yaml\YamlLanguage.cs" />
+    <Compile Include="SerializationFormatting\Yaml\YamlVersion.cs" />
     <Compile Include="Indexing\LineOrientedIndexFormatter.cs" />
     <Compile Include="Indexing\IIndex.cs" />
+    <Compile Include="SerializationFormatting\Yaml\YamlWriter.cs" />
     <Compile Include="Storage\FrontMatterSerializationStore.cs" />
     <Compile Include="Storage\ISerializationStore.cs" />
     <Compile Include="Model\ISerializableFieldValue.cs" />

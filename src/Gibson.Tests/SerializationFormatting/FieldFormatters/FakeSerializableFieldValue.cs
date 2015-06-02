@@ -14,6 +14,11 @@ namespace Gibson.Tests.SerializationFormatting.FieldFormatters
 
 		public Guid FieldId { get; private set; }
 
+		public string NameHint
+		{
+			get { return "Fake test field"; }
+		}
+
 		public string Value { get; private set; }
 
 		public string FieldType { get; private set; }

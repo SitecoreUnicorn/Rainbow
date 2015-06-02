@@ -7,25 +7,28 @@ namespace Gibson.SerializationFormatting.FieldFormatters
 {
 	public class MultilistFormatter : IFieldFormatter
 	{
-		public bool CanFormat(ISerializableFieldValue field)
+		public virtual bool CanFormat(ISerializableFieldValue field)
 		{
-			return field.FieldType.Equals("Checklist") ||
-				   field.FieldType.Equals("Multilist") ||
-				   field.FieldType.Equals("Multilist with Search") ||
-				   field.FieldType.Equals("Treelist") ||
-				   field.FieldType.Equals("Treelist with Search") ||
-				   field.FieldType.Equals("TreelistEx");
+			if (field.FieldType == null) return false;
+
+			return field.FieldType.Equals("Checklist", StringComparison.OrdinalIgnoreCase) ||
+				   field.FieldType.Equals("Multilist", StringComparison.OrdinalIgnoreCase) ||
+				   field.FieldType.Equals("Multilist with Search", StringComparison.OrdinalIgnoreCase) ||
+				   field.FieldType.Equals("Treelist", StringComparison.OrdinalIgnoreCase) ||
+				   field.FieldType.Equals("Treelist with Search", StringComparison.OrdinalIgnoreCase) ||
+				   field.FieldType.Equals("TreelistEx", StringComparison.OrdinalIgnoreCase);
 		}
 
-		public string Format(ISerializableFieldValue field)
+		public virtual string Format(ISerializableFieldValue field)
 		{
 			var values = ID.ParseArray(field.Value);
 
 			return string.Join(Environment.NewLine, (IEnumerable<ID>)values);
 		}
 
-		public string Unformat(string value)
+		public virtual string Unformat(string value)
 		{
+			if (value == null) return null;
 			return value.Trim().Replace(Environment.NewLine, "|");
 		}
 	}

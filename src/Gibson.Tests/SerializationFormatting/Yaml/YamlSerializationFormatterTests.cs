@@ -1,0 +1,176 @@
+﻿using System;
+using System.IO;
+using Gibson.SerializationFormatting.Yaml;
+using NUnit.Framework;
+
+namespace Gibson.Tests.SerializationFormatting.Yaml
+{
+	public class YamlSerializationFormatterTests
+	{
+		[Test]
+		public void YamlFormatter_EmitsRootFormats()
+		{
+			var testItem = CreateBaseTestItem();
+
+			ExecuteYamlWriter(writer =>
+			{
+				testItem.WriteYaml(writer);
+			}, BaseTestExpected, "YAML did not match.");
+		}
+
+		[Test]
+		public void YamlFormatter_EmitsSharedFields()
+		{
+			var testItem = CreateBaseTestItem();
+			DecorateSharedFieldsTestData(testItem);
+
+			ExecuteYamlWriter(writer =>
+			{
+				testItem.WriteYaml(writer);
+			}, SharedFieldsExpected, "YAML did not match.");
+		}
+
+		[Test]
+		public void YamlFormatter_EmitsVersions()
+		{
+			var testItem = CreateBaseTestItem();
+			DecorateVersionsTestData(testItem);
+
+			ExecuteYamlWriter(writer =>
+			{
+				testItem.WriteYaml(writer);
+			}, VersionsExpected, "YAML did not match.");
+		}
+
+		private void ExecuteYamlWriter(Action<YamlWriter> actions, string expectedOutput, string errorMessage)
+		{
+			using (var ms = new MemoryStream())
+			{
+				using (var writer = new YamlWriter(ms, 4096, true))
+				{
+					actions(writer);
+				}
+
+				ms.Position = 0;
+
+				using (var sr = new StreamReader(ms))
+				{
+					string result = sr.ReadToEnd();
+					Assert.AreEqual(expectedOutput, result, errorMessage);
+				}
+			}
+		}
+
+		private YamlItem CreateBaseTestItem()
+		{
+			var testItem = new YamlItem();
+			testItem.Id = new Guid("a4f985d9-98b3-4b52-aaaf-4344f6e747c6");
+			testItem.ParentId = new Guid("001dd393-96c5-490b-924a-b0f25cd9efd8");
+			testItem.TemplateId = new Guid("007a464d-5b09-4d0e-8481-cb6a604a5948");
+			testItem.Path = "/sitecore/content/test";
+
+			return testItem;
+		}
+		
+		const string BaseTestExpected = @"---
+ID: a4f985d9-98b3-4b52-aaaf-4344f6e747c6
+Parent: 001dd393-96c5-490b-924a-b0f25cd9efd8
+Template: 007a464d-5b09-4d0e-8481-cb6a604a5948
+Path: /sitecore/content/test
+";
+
+		private void DecorateSharedFieldsTestData(YamlItem item)
+		{
+			var field = new YamlFieldValue();
+			field.Id = new Guid("9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf");
+			field.Value = "Hello world.";
+
+			var field2 = new YamlFieldValue();
+			field2.Id = new Guid("badd9cf9-53e0-4d0c-bcc0-2d784c282f6a");
+			field2.NameHint = "Test Field";
+			field2.Value = @"Lorem thine ipsum
+<p>forsooth thy sit amet</p>
+<div class=""simian"">Chimpanzee.</div>";
+
+			item.SharedFields.Add(field);
+			item.SharedFields.Add(field2);
+		}
+
+		private const string SharedFieldsExpected = BaseTestExpected + @"SharedFields:
+- ID: 9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf
+  Value: Hello world.
+- ID: badd9cf9-53e0-4d0c-bcc0-2d784c282f6a
+  # Test Field
+  Value: |
+    Lorem thine ipsum
+    <p>forsooth thy sit amet</p>
+    <div class=""simian"">Chimpanzee.</div>
+";
+
+		private void DecorateVersionsTestData(YamlItem item)
+		{
+			var field = new YamlFieldValue();
+			field.Id = new Guid("9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf");
+			field.Value = "Hello \"silly\" world.";
+
+			var field2 = new YamlFieldValue();
+			field2.Id = new Guid("badd9cf9-53e0-4d0c-bcc0-2d784c282f6a");
+			field2.NameHint = "Test Field";
+			field2.Value = @"Lorem thine ipsum
+<p>forsooth thy sit amet</p>
+<div class=""simian"">Chimpanzee.</div>";
+
+			var testVersion1 = new YamlVersion();
+			testVersion1.VersionNumber = 1;
+			testVersion1.Fields.Add(field);
+			testVersion1.Fields.Add(field2);
+
+			var testVersion2 = new YamlVersion();
+			testVersion2.VersionNumber = 2;
+			testVersion2.Fields.Add(field);
+
+			var testLanguage = new YamlLanguage();
+			testLanguage.Language = "en-US";
+			testLanguage.Versions.Add(testVersion1);
+
+			var testLanguage2 = new YamlLanguage();
+			testLanguage2.Language = "da-DK";
+			testLanguage2.Versions.Add(testVersion1);
+			testLanguage2.Versions.Add(testVersion2);
+
+			item.Languages.Add(testLanguage);
+			item.Languages.Add(testLanguage2);
+		}
+
+		private const string VersionsExpected = BaseTestExpected + @"Languages:
+  - Language: da-DK
+    Versions:
+    - Version: 1
+      Fields:
+      - ID: 9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf
+        Value: ""Hello \""silly\"" world.""
+      - ID: badd9cf9-53e0-4d0c-bcc0-2d784c282f6a
+        # Test Field
+        Value: |
+          Lorem thine ipsum
+          <p>forsooth thy sit amet</p>
+          <div class=""simian"">Chimpanzee.</div>
+    - Version: 2
+      Fields:
+      - ID: 9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf
+        Value: ""Hello \""silly\"" world.""
+  - Language: en-US
+    Versions:
+    - Version: 1
+      Fields:
+      - ID: 9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf
+        Value: ""Hello \""silly\"" world.""
+      - ID: badd9cf9-53e0-4d0c-bcc0-2d784c282f6a
+        # Test Field
+        Value: |
+          Lorem thine ipsum
+          <p>forsooth thy sit amet</p>
+          <div class=""simian"">Chimpanzee.</div>
+";
+	}
+}

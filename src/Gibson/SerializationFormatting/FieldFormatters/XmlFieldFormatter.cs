@@ -8,12 +8,14 @@ namespace Gibson.SerializationFormatting.FieldFormatters
 {
 	public class XmlFieldFormatter : IFieldFormatter
 	{
-		public bool CanFormat(ISerializableFieldValue field)
+		public virtual bool CanFormat(ISerializableFieldValue field)
 		{
-			return field.FieldType.Equals("Layout");
+			if (field.FieldType == null) return false;
+
+			return field.FieldType.Equals("Layout", StringComparison.OrdinalIgnoreCase);
 		}
 
-		public string Format(ISerializableFieldValue field)
+		public virtual string Format(ISerializableFieldValue field)
 		{
 			try
 			{
@@ -26,8 +28,10 @@ namespace Gibson.SerializationFormatting.FieldFormatters
 			}
 		}
 
-		public string Unformat(string value)
+		public virtual string Unformat(string value)
 		{
+			if (value == null) return null;
+
 			var stringBuilder = new StringBuilder();
 
 			var element = XElement.Parse(value);
