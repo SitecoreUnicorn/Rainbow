@@ -54,5 +54,27 @@ namespace Gibson.SerializationFormatting.Yaml
 				writer.DecreaseIndent();
 			}
 		}
+
+		public virtual bool ReadYaml(YamlReader reader)
+		{
+			var version = reader.PeekMap();
+			if (!version.Key.Equals("Version", StringComparison.Ordinal)) return false;
+
+			VersionNumber = int.Parse(reader.ReadExpectedMap("Version"));
+
+			var sharedFields = reader.PeekMap();
+			if (sharedFields.Key.Equals("Fields", StringComparison.Ordinal))
+			{
+				reader.ReadMap();
+				while (true)
+				{
+					var field = new YamlFieldValue();
+					if (field.ReadYaml(reader)) Fields.Add(field);
+					else break;
+				}
+			}
+
+			return true;
+		}
 	}
 }

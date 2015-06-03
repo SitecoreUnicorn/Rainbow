@@ -51,5 +51,24 @@ namespace Gibson.SerializationFormatting.Yaml
 			
 			writer.WriteMap("Value", Value);
 		}
+
+		public bool ReadYaml(YamlReader reader)
+		{
+			var id = reader.PeekMap();
+			if (!id.Key.Equals("ID", StringComparison.Ordinal)) return false;
+
+			Id = reader.ReadExpectedGuidMap("ID");
+
+			var type = reader.PeekMap();
+			if (type.Key.Equals("Type"))
+			{
+				reader.ReadMap();
+				Type = type.Value;
+			}
+
+			Value = reader.ReadExpectedMap("Value");
+
+			return true;
+		}
 	}
 }

@@ -70,7 +70,7 @@ namespace Gibson.SerializationFormatting.Yaml
 
 		protected virtual string Encode(string value)
 		{
-			return string.Format("\"{0}\"", value.Replace("\"", "\\\""));
+			return string.Format("\"{0}\"", value.Replace("\"", @"\"""));
 		}
 
 		protected virtual string IndentMultilineString(int indent, string value)

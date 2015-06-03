@@ -40,19 +40,35 @@ namespace Gibson.SerializationFormatting.Yaml
 
 		public void WriteYaml(YamlWriter writer)
 		{
+			writer.WriteBeginListItem("Language", Language);
+			writer.WriteMap("Versions");
+
 			writer.IncreaseIndent();
-				writer.WriteBeginListItem("Language", Language);
-				writer.WriteMap("Versions");
 
-				writer.IncreaseIndent();
+			foreach (var version in Versions)
+			{
+				version.WriteYaml(writer);
+			}
 
-					foreach (var version in Versions)
-					{
-						version.WriteYaml(writer);
-					}
-
-				writer.DecreaseIndent();
 			writer.DecreaseIndent();
+		}
+
+		public bool ReadYaml(YamlReader reader)
+		{
+			var language = reader.PeekMap();
+			if (!language.Key.Equals("Language", StringComparison.Ordinal)) return false;
+
+			Language = reader.ReadExpectedMap("Language");
+			reader.ReadExpectedMap("Versions");
+
+			while (true)
+			{
+				var version = new YamlVersion();
+				if (version.ReadYaml(reader)) Versions.Add(version);
+				else break;
+			}
+
+			return true;
 		}
 	}
 }

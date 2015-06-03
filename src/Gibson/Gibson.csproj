@@ -69,6 +69,7 @@
     <Compile Include="SerializationFormatting\Yaml\YamlFieldValue.cs" />
     <Compile Include="SerializationFormatting\Yaml\YamlItem.cs" />
     <Compile Include="SerializationFormatting\Yaml\YamlLanguage.cs" />
+    <Compile Include="SerializationFormatting\Yaml\YamlReader.cs" />
     <Compile Include="SerializationFormatting\Yaml\YamlVersion.cs" />
     <Compile Include="Indexing\LineOrientedIndexFormatter.cs" />
     <Compile Include="Indexing\IIndex.cs" />

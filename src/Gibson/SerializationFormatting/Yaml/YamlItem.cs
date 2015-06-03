@@ -89,5 +89,37 @@ namespace Gibson.SerializationFormatting.Yaml
 				writer.DecreaseIndent();
 			}
 		}
+
+		public virtual void ReadYaml(YamlReader reader)
+		{
+			Id = reader.ReadExpectedGuidMap("ID");
+			ParentId = reader.ReadExpectedGuidMap("Parent");
+			TemplateId = reader.ReadExpectedGuidMap("Template");
+			Path = reader.ReadExpectedMap("Path");
+
+			var sharedFields = reader.PeekMap();
+			if (sharedFields.Key.Equals("SharedFields"))
+			{
+				reader.ReadMap();
+				while (true)
+				{
+					var field = new YamlFieldValue();
+					if (field.ReadYaml(reader)) SharedFields.Add(field);
+					else break;
+				}
+			}
+
+			var languages = reader.PeekMap();
+			if (languages.Key.Equals("Languages"))
+			{
+				reader.ReadMap();
+				while (true)
+				{
+					var language = new YamlLanguage();
+					if (language.ReadYaml(reader)) Languages.Add(language);
+					else break;
+				}
+			}
+		}
 	}
 }
