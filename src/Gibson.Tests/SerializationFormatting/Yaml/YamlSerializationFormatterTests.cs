@@ -143,34 +143,34 @@ Path: /sitecore/content/test
 		}
 
 		private const string VersionsExpected = BaseTestExpected + @"Languages:
-  - Language: da-DK
-    Versions:
-    - Version: 1
-      Fields:
-      - ID: 9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf
-        Value: ""Hello \""silly\"" world.""
-      - ID: badd9cf9-53e0-4d0c-bcc0-2d784c282f6a
-        # Test Field
-        Value: |
-          Lorem thine ipsum
-          <p>forsooth thy sit amet</p>
-          <div class=""simian"">Chimpanzee.</div>
-    - Version: 2
-      Fields:
-      - ID: 9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf
-        Value: ""Hello \""silly\"" world.""
-  - Language: en-US
-    Versions:
-    - Version: 1
-      Fields:
-      - ID: 9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf
-        Value: ""Hello \""silly\"" world.""
-      - ID: badd9cf9-53e0-4d0c-bcc0-2d784c282f6a
-        # Test Field
-        Value: |
-          Lorem thine ipsum
-          <p>forsooth thy sit amet</p>
-          <div class=""simian"">Chimpanzee.</div>
+- Language: da-DK
+  Versions:
+  - Version: 1
+    Fields:
+    - ID: 9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf
+      Value: ""Hello \""silly\"" world.""
+    - ID: badd9cf9-53e0-4d0c-bcc0-2d784c282f6a
+      # Test Field
+      Value: |
+        Lorem thine ipsum
+        <p>forsooth thy sit amet</p>
+        <div class=""simian"">Chimpanzee.</div>
+  - Version: 2
+    Fields:
+    - ID: 9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf
+      Value: ""Hello \""silly\"" world.""
+- Language: en-US
+  Versions:
+  - Version: 1
+    Fields:
+    - ID: 9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf
+      Value: ""Hello \""silly\"" world.""
+    - ID: badd9cf9-53e0-4d0c-bcc0-2d784c282f6a
+      # Test Field
+      Value: |
+        Lorem thine ipsum
+        <p>forsooth thy sit amet</p>
+        <div class=""simian"">Chimpanzee.</div>
 ";
 	}
 }
