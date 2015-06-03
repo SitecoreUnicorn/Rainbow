@@ -12,7 +12,7 @@ namespace Gibson.SerializationFormatting.Yaml
 		private const int IndentSpaces = 2;
 		private const char IndentCharacter = ' ';
 		private readonly PeekableStreamReaderAdapter _readerAdapter;
-		private readonly Queue<KeyValuePair<string, string>> _peekQueue = new Queue<KeyValuePair<string, string>>(); 
+		private KeyValuePair<string, string>? _peek; 
 
 		public YamlReader(Stream stream, int bufferSize, bool leaveStreamOpen)
 		{
@@ -32,18 +32,25 @@ namespace Gibson.SerializationFormatting.Yaml
 			return GetExpectedMap(expectedKey, ReadMap);
 		}
 
-		public virtual KeyValuePair<string, string> PeekMap()
+		public virtual KeyValuePair<string, string>? PeekMap()
 		{
+			if (_peek != null) return _peek.Value;
+
 			var map = ReadMapInternal();
 
-			_peekQueue.Enqueue(map);
+			_peek = map;
 
 			return map;
 		}
 
-		public virtual KeyValuePair<string, string> ReadMap()
+		public virtual KeyValuePair<string, string>? ReadMap()
 		{
-			if (_peekQueue.Count > 0) return _peekQueue.Dequeue();
+			if (_peek != null)
+			{
+				var value = _peek.Value;
+				_peek = null;
+				return value;
+			}
 
 			return ReadMapInternal();
 		}
@@ -58,20 +65,22 @@ namespace Gibson.SerializationFormatting.Yaml
 			return result;
 		}
 
-		protected internal string GetExpectedMap(string expectedKey, Func<KeyValuePair<string, string>> mapFunction)
+		protected internal string GetExpectedMap(string expectedKey, Func<KeyValuePair<string, string>?> mapFunction)
 		{
 			var map = mapFunction();
 
-			if (!map.Key.Equals(expectedKey, StringComparison.Ordinal)) throw new InvalidOperationException(CreateErrorMessage("Expected map key " + expectedKey + " was not found. Instead got " + map.Key));
+			if (map == null) throw new InvalidOperationException(CreateErrorMessage("Unable to read expected " + expectedKey + " map; found end of file instead."));
 
-			return map.Value;
+			if (!map.Value.Key.Equals(expectedKey, StringComparison.Ordinal)) throw new InvalidOperationException(CreateErrorMessage("Expected map key " + expectedKey + " was not found. Instead got " + map.Value.Key));
+
+			return map.Value.Value;
 		}
 
-		protected virtual KeyValuePair<string, string> ReadMapInternal()
+		protected virtual KeyValuePair<string, string>? ReadMapInternal()
 		{
 			var initialValue = ReadNextDataLine();
 
-			if (initialValue == null) throw new InvalidOperationException(CreateErrorMessage("No more lines existed, could not read map."));
+			if (initialValue == null) return null;
 
 			var mapIndex = initialValue.IndexOf(':');
 
@@ -173,23 +182,24 @@ namespace Gibson.SerializationFormatting.Yaml
 		protected class PeekableStreamReaderAdapter
 		{
 			private readonly StreamReader _underlying;
-			private readonly Queue<string> _bufferedLines;
+			private string _peekedLine;
 			private int _currentLine;
 
 			public PeekableStreamReaderAdapter(StreamReader underlying)
 			{
 				_underlying = underlying;
-				_bufferedLines = new Queue<string>();
 			}
 
 			public string PeekLine()
 			{
+				if(_peekedLine != null) return _peekedLine;
+
 				string line = _underlying.ReadLine();
 
 				if (line == null)
 					return null;
 
-				_bufferedLines.Enqueue(line);
+				_peekedLine = line;
 
 				return line;
 			}
@@ -200,8 +210,13 @@ namespace Gibson.SerializationFormatting.Yaml
 			{
 				_currentLine++;
 
-				if (_bufferedLines.Count > 0)
-					return _bufferedLines.Dequeue();
+				if (_peekedLine != null)
+				{
+					var value = _peekedLine;
+					_peekedLine = null;
+					return value;
+				}
+
 				return _underlying.ReadLine();
 			}
 		}

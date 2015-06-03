@@ -96,7 +96,7 @@ namespace Gibson.SerializationFormatting.Yaml
 			Path = reader.ReadExpectedMap("Path");
 
 			var sharedFields = reader.PeekMap();
-			if (sharedFields.Key.Equals("SharedFields"))
+			if (sharedFields.HasValue && sharedFields.Value.Key.Equals("SharedFields"))
 			{
 				reader.ReadMap();
 				while (true)
@@ -108,7 +108,7 @@ namespace Gibson.SerializationFormatting.Yaml
 			}
 
 			var languages = reader.PeekMap();
-			if (languages.Key.Equals("Languages"))
+			if (languages.HasValue && languages.Value.Key.Equals("Languages"))
 			{
 				reader.ReadMap();
 				while (true)

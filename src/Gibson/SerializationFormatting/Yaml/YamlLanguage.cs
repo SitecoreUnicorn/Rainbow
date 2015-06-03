@@ -56,7 +56,7 @@ namespace Gibson.SerializationFormatting.Yaml
 		public bool ReadYaml(YamlReader reader)
 		{
 			var language = reader.PeekMap();
-			if (!language.Key.Equals("Language", StringComparison.Ordinal)) return false;
+			if (!language.HasValue || !language.Value.Key.Equals("Language", StringComparison.Ordinal)) return false;
 
 			Language = reader.ReadExpectedMap("Language");
 			reader.ReadExpectedMap("Versions");

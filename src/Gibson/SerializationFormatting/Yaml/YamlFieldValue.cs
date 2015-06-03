@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Gibson.Model;
 using Gibson.SerializationFormatting.FieldFormatters;
 
@@ -55,15 +56,19 @@ namespace Gibson.SerializationFormatting.Yaml
 		public bool ReadYaml(YamlReader reader)
 		{
 			var id = reader.PeekMap();
-			if (!id.Key.Equals("ID", StringComparison.Ordinal)) return false;
+			if (!id.HasValue || !id.Value.Key.Equals("ID", StringComparison.Ordinal))
+			{
+				return false;
+			}
 
 			Id = reader.ReadExpectedGuidMap("ID");
+			Debug.WriteLine("Read ID " + id);
 
 			var type = reader.PeekMap();
-			if (type.Key.Equals("Type"))
+			if (type.HasValue && type.Value.Key.Equals("Type"))
 			{
 				reader.ReadMap();
-				Type = type.Value;
+				Type = type.Value.Value;
 			}
 
 			Value = reader.ReadExpectedMap("Value");

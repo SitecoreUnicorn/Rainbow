@@ -118,6 +118,25 @@ namespace Gibson.Tests.SerializationFormatting.Yaml
 		}
 
 		[Test]
+		public void YamlReader_PeekMap_PeeksSameValue_WhenCalledMultipleTimes()
+		{
+			ExecuteYamlReader("---\r\nHello: There\r\nPie: Cake\r\n", reader =>
+			{
+				var peek = reader.PeekMap();
+
+				Assert.AreEqual(peek.Value, "There");
+
+				peek = reader.PeekMap();
+
+				Assert.AreEqual(peek.Value, "There");
+
+				var read = reader.ReadMap();
+
+				Assert.AreEqual(read.Value, "There");
+			});
+		}
+
+		[Test]
 		public void YamlReader_ReadExpectedGuid_ParsesValidGuidValue()
 		{
 			ExecuteYamlReader("---\r\nHello: 1d2261da-389e-4f0a-abc1-8cb7bbfbfe28\r\n", reader =>
