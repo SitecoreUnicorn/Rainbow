@@ -59,7 +59,7 @@ namespace Gibson.SerializationFormatting.Yaml
 
 		protected virtual void WriteMapInternal(string key, string value)
 		{
-			if (value.IndexOf(Environment.NewLine, StringComparison.Ordinal) > 0)
+			if (value.IndexOf('\n') > 0) // \n captures both Unix-style \n endlines and Windows-style \r\n - we only care if endlines exist
 			{
 				_writer.WriteLine("{0}: |{1}{2}", key, Environment.NewLine, IndentMultilineString(Indent + IndentSpaces, value));
 				return;
@@ -76,7 +76,28 @@ namespace Gibson.SerializationFormatting.Yaml
 		protected virtual string IndentMultilineString(int indent, string value)
 		{
 			string indentValue = new string(IndentCharacter, indent);
-			return indentValue + value.Replace(Environment.NewLine, Environment.NewLine + indentValue);
+
+			var charBuffer = new StringBuilder(indentValue);
+
+			foreach (char c in value)
+			{
+				switch (c)
+				{
+					case '\r': 
+						break; // ignore \r as that by itself is no newline
+					case '\n': 
+						// if we find \n we know it's either \n (Unix-style) or \r\n (Windows-style) so we normalize it to the environment endline
+						// and add the appropriate indent to the next line for the multline YAML expression
+						charBuffer.Append(Environment.NewLine + indentValue);
+						break;
+					default: 
+						// not any sort of endline char, echo it verbatim
+						charBuffer.Append(c);
+						break;
+				}
+			}
+
+			return charBuffer.ToString();
 		}
 
 		public void Dispose()

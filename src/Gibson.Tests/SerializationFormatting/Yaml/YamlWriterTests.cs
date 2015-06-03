@@ -50,6 +50,15 @@ namespace Gibson.Tests.SerializationFormatting.Yaml
 		}
 
 		[Test]
+		public void YamlWriter_WritesMultilineMap_WithLinuxEndLines_AtRoot()
+		{
+			ExecuteYamlWriter(writer =>
+			{
+				writer.WriteMap("Hello", "World\nit's me!");
+			}, "---\r\nHello: |\r\n  World\r\n  it's me!\r\n", "Written multiline map was not in expected format!");
+		}
+
+		[Test]
 		public void YamlWriter_WritesMap_Indented()
 		{
 			ExecuteYamlWriter(writer =>
