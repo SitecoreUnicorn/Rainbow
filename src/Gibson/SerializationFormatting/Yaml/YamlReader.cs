@@ -62,7 +62,7 @@ namespace Gibson.SerializationFormatting.Yaml
 		{
 			var map = mapFunction();
 
-			if (map.Key.Equals(expectedKey, StringComparison.Ordinal)) throw new InvalidOperationException(CreateErrorMessage("Expected map key " + expectedKey + " was not found. Instead got " + map.Key));
+			if (!map.Key.Equals(expectedKey, StringComparison.Ordinal)) throw new InvalidOperationException(CreateErrorMessage("Expected map key " + expectedKey + " was not found. Instead got " + map.Key));
 
 			return map.Value;
 		}
@@ -99,7 +99,7 @@ namespace Gibson.SerializationFormatting.Yaml
 		{
 			if (value.StartsWith("\"") && value.EndsWith("\""))
 			{
-				return value.Substring(1, value.Length - 1).Replace(@"\""", "\"");
+				return value.Substring(1, value.Length - 2).Replace(@"\""", "\"");
 			}
 
 			return value;
@@ -154,7 +154,7 @@ namespace Gibson.SerializationFormatting.Yaml
 				var indent = GetIndent(currentLine);
 
 				// comment line
-				if (currentLine.Length > indent && currentLine[indent + 1] == '#') continue;
+				if (currentLine.Length > indent && currentLine[indent] == '#') continue;
 
 				return currentLine;
 			} while (true);

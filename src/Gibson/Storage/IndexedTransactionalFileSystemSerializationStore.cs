@@ -183,6 +183,7 @@ namespace Gibson.Storage
 				if (indexItem == null) throw new DataConsistencyException("The item data at {0} was not present in the index. This indicates corruption in the index or data store. Run fsck.".FormatWith(path));
 
 				item.AddIndexData(indexItem);
+				item.DatabaseName = database;
 
 				return item;
 			}

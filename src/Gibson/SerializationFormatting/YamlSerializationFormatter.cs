@@ -11,7 +11,6 @@ using Gibson.SerializationFormatting.FieldFormatters;
 using Gibson.SerializationFormatting.Yaml;
 using Sitecore.Configuration;
 using Sitecore.Diagnostics;
-using YamlDotNet.Serialization;
 
 namespace Gibson.SerializationFormatting
 {
@@ -49,16 +48,12 @@ namespace Gibson.SerializationFormatting
 			Assert.ArgumentNotNull(dataStream, "dataStream");
 
 
-			using (var reader = new StreamReader(dataStream))
+			using (var reader = new YamlReader(dataStream, 4096, true))
 			{
-				Assert.IsTrue(reader.ReadLine().Equals("---"), "Missing expected YAML header");
+				var item = new YamlItem();
+				item.ReadYaml(reader);
 
-				var deserializer = new Deserializer();
-
-				var jItem = deserializer.Deserialize<YamlItem>(reader);
-
-
-				return new YamlSerializableItem(jItem, serializedItemId, FieldFormatters.ToArray());
+				return new YamlSerializableItem(item, serializedItemId, FieldFormatters.ToArray());
 			}
 		}
 
@@ -66,7 +61,7 @@ namespace Gibson.SerializationFormatting
 		{
 			Assert.ArgumentNotNull(item, "item");
 			Assert.ArgumentNotNull(outputStream, "outputStream");
-			
+
 			var itemToSerialize = new YamlItem();
 			itemToSerialize.LoadFrom(item, FieldFormatters.ToArray());
 
@@ -82,33 +77,39 @@ namespace Gibson.SerializationFormatting
 			private readonly YamlItem _item;
 			private readonly string _serializedItemId;
 			private readonly IFieldFormatter[] _formatters;
+			private IndexEntry _indexEntry;
 
 			public YamlSerializableItem(YamlItem item, string serializedItemId, IFieldFormatter[] formatters)
 			{
 				_item = item;
 				_serializedItemId = serializedItemId;
 				_formatters = formatters;
+				_indexEntry = new IndexEntry
+				{
+					Id = item.Id,
+					ParentId = item.ParentId,
+					TemplateId = item.TemplateId,
+					Path = item.Path
+				};
 			}
 
-			public Guid Id { get; protected set; }
+			public Guid Id { get { return _indexEntry.Id; } }
 
-			public string DatabaseName
-			{
-				get { return _item.DatabaseName; }
-			}
+			/// <remarks>The storage provider should set this automatically.</remarks>
+			public string DatabaseName { get; set; }
 
-			public Guid ParentId { get; protected set; }
+			public Guid ParentId { get { return _indexEntry.ParentId; } }
 
-			public string Path { get; protected set; }
+			public string Path { get { return _indexEntry.Path; } }
 
-			public string Name { get; protected set; }
+			public string Name { get { return _indexEntry.Name; } }
 
 			public Guid BranchId
 			{
 				get { return _item.BranchId; }
 			}
 
-			public Guid TemplateId { get; protected set; }
+			public Guid TemplateId { get { return _indexEntry.TemplateId; } }
 
 			public IEnumerable<ISerializableFieldValue> SharedFields
 			{
@@ -141,11 +142,7 @@ namespace Gibson.SerializationFormatting
 			{
 				Assert.ArgumentNotNull(indexEntry, "indexEntry");
 
-				Id = indexEntry.Id;
-				ParentId = indexEntry.ParentId;
-				Path = indexEntry.Path;
-				TemplateId = indexEntry.TemplateId;
-				Name = indexEntry.Name;
+				_indexEntry = indexEntry;
 			}
 		}
 

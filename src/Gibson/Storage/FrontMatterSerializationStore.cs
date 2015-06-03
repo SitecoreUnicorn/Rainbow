@@ -91,7 +91,10 @@ namespace Gibson.Storage
 			using (var reader = File.OpenRead(path))
 			{
 				// no need for the index here because front matter formatters will inject it
-				return _formatter.ReadSerializedItem(reader, path);
+				var result = _formatter.ReadSerializedItem(reader, path);
+				result.DatabaseName = database;
+
+				return result;
 			}
 		}
 

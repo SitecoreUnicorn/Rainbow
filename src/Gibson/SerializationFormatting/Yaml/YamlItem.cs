@@ -19,7 +19,6 @@ namespace Gibson.SerializationFormatting.Yaml
 		public Guid TemplateId { get; set; }
 		public string Path { get; set; }
 
-		public string DatabaseName { get; set; }
 		public Guid BranchId { get; set; }
 		public SortedSet<YamlFieldValue> SharedFields { get; private set; }
 		public SortedSet<YamlLanguage> Languages { get; private set; }
@@ -31,7 +30,6 @@ namespace Gibson.SerializationFormatting.Yaml
 			TemplateId = item.TemplateId;
 			Path = item.Path;
 
-			DatabaseName = item.DatabaseName;
 			BranchId = item.BranchId;
 
 			foreach (var field in item.SharedFields)

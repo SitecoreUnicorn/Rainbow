@@ -28,6 +28,7 @@ namespace Gibson.Model
 		public string DatabaseName
 		{
 			get { return _item.Database.Name; }
+			set { }
 		}
 
 		public Guid ParentId

@@ -7,7 +7,7 @@ namespace Gibson.Model
 	public interface ISerializableItem
 	{
 		Guid Id { get; }
-		string DatabaseName { get; }
+		string DatabaseName { get; set; }
 		Guid ParentId { get; }
 		string Path { get; }
 		string Name { get; }

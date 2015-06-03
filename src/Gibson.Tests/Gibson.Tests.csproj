@@ -54,6 +54,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Indexing\IndexEntryTests.cs" />
     <Compile Include="SerializationFormatting\Yaml\YamlSerializationFormatterTests.cs" />
+    <Compile Include="SerializationFormatting\Yaml\YamlReaderTests.cs" />
     <Compile Include="SerializationFormatting\Yaml\YamlWriterTests.cs" />
     <Compile Include="Storage\Pathing\IdBasedPathProviderTests.cs" />
   </ItemGroup>
