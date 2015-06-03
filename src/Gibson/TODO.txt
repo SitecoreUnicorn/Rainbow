@@ -13,3 +13,4 @@
 // TODO: shouldn't need to store db name in serialized items (implied by position), but this implies additional collaboration
 // TODO: YAML reader is not reading versions correctly (shared fields seem to be okay)
 // TODO: remove front matter formatter, merge into YamlFrontMatterIndex and use Yaml Reader to parse it.
+// TODO: file name shown in unicorn error messages appears to be incorrect
