@@ -14,3 +14,21 @@
 // TODO: YAML reader is not reading versions correctly (shared fields seem to be okay)
 // TODO: remove front matter formatter, merge into YamlFrontMatterIndex and use Yaml Reader to parse it.
 // TODO: file name shown in unicorn error messages appears to be incorrect
+// TODO: what if we made the sitecore db into a serialization store, and allowed you to generically diff serialization stores?
+	Could use that to diff serialization (for sitecore upgrades?), make update packages, etc
+// TODO: file pathing organization - long paths, ID-based, oh my.
+// TODO: what about implementing a separate diff engine that does the diff/comparison and generates a diff-list, which the deserializer could then pick up without recomparing?
+	- that said, doing this would mean that the diff engine would need to be comprehensive to get time savings on deserialization
+	- would enable "what if"
+	- would enable other diff/merge scenarios other than Unicorn
+
+
+Working architecture statements:
+- Project splits into three major components
+	- Gibson (and Gibson datastore types; at launch SitecoreDB and YAML, maybe Remoting) - generic storage APIs for serialized - or DB - or webservice - content. Any two datastores can be synced. Datastores know about deserialization. Datastores also know about security roles. Gibson core knows about predicate filtering, as stores need to know about predicates when moving items.
+	- Sync (as yet undefined) - a tool to compare two data stores and determine sync status (in Unicorn terms, imagine the sync engine + evaluator but without any writing only creating metadata). Also has a simple diff engine for security roles.
+	- Unicorn - now a shell of its former self. contains data provider, UI elements for sync. Sync now calls the Sync lib, and performs field predicate filtering and deserialization handled by destination data store
+
+- Futures
+	- Tool to visualize the tree in any data store, remove items
+	- Rhino reborn, using Gibson as a universal backend and requiring no syncing. Maybe.
