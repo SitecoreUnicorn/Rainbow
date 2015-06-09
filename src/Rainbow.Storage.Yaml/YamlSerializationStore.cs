@@ -66,6 +66,8 @@ namespace Rainbow.Storage.Yaml
 				if (!GetIndexForDatabase(database).Remove(item.Id)) return false;
 
 				File.Delete(path);
+
+				// TODO: check if item was a template field item - and if so, add to a queue to force-save all items of that template - sans that field
 			}
 
 			return true;

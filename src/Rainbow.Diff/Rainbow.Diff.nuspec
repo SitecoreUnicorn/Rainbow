@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Rainbow.Diff</id>
+    <version>$version$</version>
+    <authors>Kam Figy</authors>
+    <owners>Kam Figy</owners>
+    <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
+    <projectUrl>https://github.com/kamsar/Rainbow</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Library to diff two Rainbow data stores</description>
+    <tags>sitecore</tags>
+    <dependencies>
+        <dependency id="Rainbow" version="$version$" />
+    </dependencies>
+  </metadata>
+</package>

@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using Rainbow.Model;
 
-namespace Rainbow.SerializationFormatting
+namespace Rainbow.Formatting
 {
 	public interface ISerializationFormatter
 	{

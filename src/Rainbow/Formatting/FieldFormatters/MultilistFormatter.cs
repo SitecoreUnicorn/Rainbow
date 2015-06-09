@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Rainbow.Model;
 using Sitecore.Data;
 
-namespace Rainbow.SerializationFormatting.FieldFormatters
+namespace Rainbow.Formatting.FieldFormatters
 {
 	public class MultilistFormatter : IFieldFormatter
 	{

@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rainbow.Storage.Yaml.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rainbow.Storage.Sc", "src\Rainbow.Storage.Sc\Rainbow.Storage.Sc.csproj", "{956AFE8B-51CD-4D61-B8C1-BFFDC749FD82}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rainbow.Diff", "src\Rainbow.Diff\Rainbow.Diff.csproj", "{A2259642-5E6B-4E80-8F48-269693A4DBE5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{956AFE8B-51CD-4D61-B8C1-BFFDC749FD82}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{956AFE8B-51CD-4D61-B8C1-BFFDC749FD82}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{956AFE8B-51CD-4D61-B8C1-BFFDC749FD82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2259642-5E6B-4E80-8F48-269693A4DBE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2259642-5E6B-4E80-8F48-269693A4DBE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2259642-5E6B-4E80-8F48-269693A4DBE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2259642-5E6B-4E80-8F48-269693A4DBE5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

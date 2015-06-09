@@ -1,7 +1,7 @@
 ﻿using System;
 using Rainbow.Model;
 
-namespace Rainbow.Tests.SerializationFormatting.FieldFormatters
+namespace Rainbow.Tests.Formatting.FieldFormatters
 {
 	public class FakeSerializableFieldValue : ISerializableFieldValue
 	{

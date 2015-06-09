@@ -1,6 +1,6 @@
 ﻿using Rainbow.Model;
 
-namespace Rainbow.SerializationFormatting.FieldFormatters
+namespace Rainbow.Formatting.FieldFormatters
 {
 	public interface IFieldFormatter
 	{

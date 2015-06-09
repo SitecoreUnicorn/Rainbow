@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
-using Rainbow.SerializationFormatting.FieldFormatters;
+using Rainbow.Formatting.FieldFormatters;
 
-namespace Rainbow.Tests.SerializationFormatting.FieldFormatters
+namespace Rainbow.Tests.Formatting.FieldFormatters
 {
 	public class XmlFieldFormatterTests
 	{

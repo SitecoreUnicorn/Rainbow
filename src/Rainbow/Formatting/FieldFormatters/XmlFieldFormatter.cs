@@ -4,7 +4,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Rainbow.Model;
 
-namespace Rainbow.SerializationFormatting.FieldFormatters
+namespace Rainbow.Formatting.FieldFormatters
 {
 	public class XmlFieldFormatter : IFieldFormatter
 	{

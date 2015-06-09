@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Rainbow.Formatting.FieldFormatters;
 using Rainbow.Model;
-using Rainbow.SerializationFormatting.FieldFormatters;
 
 namespace Rainbow.Storage.Yaml.Formatting.OutputModel
 {

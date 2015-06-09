@@ -41,9 +41,9 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="SerializationFormatting\FieldFormatters\FakeSerializableFieldValue.cs" />
-    <Compile Include="SerializationFormatting\FieldFormatters\MultilistFormatterTests.cs" />
-    <Compile Include="SerializationFormatting\FieldFormatters\XmlFieldFormatterTests.cs" />
+    <Compile Include="Formatting\FieldFormatters\FakeSerializableFieldValue.cs" />
+    <Compile Include="Formatting\FieldFormatters\MultilistFormatterTests.cs" />
+    <Compile Include="Formatting\FieldFormatters\XmlFieldFormatterTests.cs" />
     <Compile Include="Indexing\IndexTests.cs" />
     <Compile Include="Indexing\LineOrientedIndexFormatterWriteTests.cs" />
     <Compile Include="Indexing\LineOrientedIndexFormatterReadTests.cs" />

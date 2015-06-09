@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using Rainbow.Formatting.FieldFormatters;
 using Rainbow.Model;
-using Rainbow.SerializationFormatting.FieldFormatters;
 
 namespace Rainbow.Storage.Yaml.Formatting.OutputModel
 {

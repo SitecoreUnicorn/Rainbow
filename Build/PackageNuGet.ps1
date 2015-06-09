@@ -13,3 +13,4 @@ $targetAssemblyVersion = $synthesisAssembly.ProductVersion
 & $nuGet pack "$scriptRoot\..\src\Rainbow\Rainbow.csproj" -Symbols -Prop Configuration=Release
 & $nuGet pack "$scriptRoot\..\src\Rainbow.Storage.Sc\Rainbow.Storage.Sc.csproj" -Symbols -Prop Configuration=Release
 & $nuGet pack "$scriptRoot\..\src\Rainbow.Storage.Yaml\Rainbow.Storage.Yaml.csproj" -Symbols -Prop Configuration=Release
+& $nuGet pack "$scriptRoot\..\src\Rainbow.Diff\Rainbow.Diff.csproj" -Symbols -Prop Configuration=Release

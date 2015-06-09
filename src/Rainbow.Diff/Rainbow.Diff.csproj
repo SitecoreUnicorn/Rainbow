@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{8FF75C8B-2A9E-4D95-91AD-333071813199}</ProjectGuid>
+    <ProjectGuid>{A2259642-5E6B-4E80-8F48-269693A4DBE5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Rainbow</RootNamespace>
-    <AssemblyName>Rainbow</AssemblyName>
+    <RootNamespace>Rainbow.Diff</RootNamespace>
+    <AssemblyName>Rainbow.Diff</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -30,51 +30,19 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AlphaFS">
-      <HintPath>..\..\packages\AlphaFS.2.0.1\lib\net45\AlphaFS.dll</HintPath>
-    </Reference>
-    <Reference Include="Sitecore.Kernel">
-      <HintPath>..\..\lib\Sitecore\v7\Sitecore.Kernel.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="DataConsistencyException.cs" />
-    <Compile Include="Formatting\FieldFormatters\IFieldFormatter.cs" />
-    <Compile Include="Formatting\FieldFormatters\MultilistFormatter.cs" />
-    <Compile Include="Formatting\FieldFormatters\XmlFieldFormatter.cs" />
-    <Compile Include="Indexing\IIndexFactory.cs" />
-    <Compile Include="Indexing\IIndexFormatter.cs" />
-    <Compile Include="Formatting\ISerializationFormatter.cs" />
-    <Compile Include="Indexing\LineOrientedIndexFormatter.cs" />
-    <Compile Include="Indexing\IIndex.cs" />
-    <Compile Include="Storage\IDataStore.cs" />
-    <Compile Include="Model\ISerializableFieldValue.cs" />
-    <Compile Include="Model\ISerializableItem.cs" />
-    <Compile Include="Model\ISerializableVersion.cs" />
-    <Compile Include="Storage\IndexedTransactionalFileSystemDataStore.cs" />
-    <Compile Include="Indexing\IndexEntry.cs" />
-    <Compile Include="Indexing\Index.cs" />
-    <Compile Include="Storage\Pathing\IFileSystemPathProvider.cs" />
-    <Compile Include="Storage\Pathing\IdBasedPathProvider.cs" />
-    <Compile Include="Storage\IndexedDataStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="TODO.txt" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
