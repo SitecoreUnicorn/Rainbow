@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Rainbow</id>
+    <version>$version$</version>
+    <authors>Kam Figy</authors>
+    <owners>Kam Figy</owners>
+    <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
+    <projectUrl>https://github.com/kamsar/Rainbow</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>An advanced serialization library for Sitecore 7 and above.	</description>
+    <tags>sitecore</tags>
+    <dependencies>
+    </dependencies>
+  </metadata>
+</package>
