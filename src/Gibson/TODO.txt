@@ -11,8 +11,6 @@
 // TODO: extend unicorn data provider model to allow optional dp features like consistency checks, updating items with a field when deleting a t-field
 // TODO: roles support
 // TODO: shouldn't need to store db name in serialized items (implied by position), but this implies additional collaboration
-// TODO: YAML reader is not reading versions correctly (shared fields seem to be okay)
-// TODO: remove front matter formatter, merge into YamlFrontMatterIndex and use Yaml Reader to parse it.
 // TODO: file name shown in unicorn error messages appears to be incorrect
 // TODO: what if we made the sitecore db into a serialization store, and allowed you to generically diff serialization stores?
 	Could use that to diff serialization (for sitecore upgrades?), make update packages, etc

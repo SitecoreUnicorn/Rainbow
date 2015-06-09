@@ -39,50 +39,30 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Transactions" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataConsistencyException.cs" />
-    <Compile Include="Deserialization\DeserializationException.cs" />
-    <Compile Include="Deserialization\DefaultDeserializer.cs" />
-    <Compile Include="Deserialization\IDefaultDeserializerLogger.cs" />
-    <Compile Include="Deserialization\IDeserializer.cs" />
-    <Compile Include="Predicates\ConfigurationFieldPredicate.cs" />
-    <Compile Include="Predicates\IFieldPredicate.cs" />
-    <Compile Include="Predicates\PredicateResult.cs" />
     <Compile Include="SerializationFormatting\FieldFormatters\IFieldFormatter.cs" />
     <Compile Include="SerializationFormatting\FieldFormatters\MultilistFormatter.cs" />
     <Compile Include="SerializationFormatting\FieldFormatters\XmlFieldFormatter.cs" />
     <Compile Include="Indexing\IIndexFactory.cs" />
     <Compile Include="Indexing\IIndexFormatter.cs" />
-    <Compile Include="SerializationFormatting\FrontMatterIndexJsonSerializationFormatter.cs" />
     <Compile Include="SerializationFormatting\ISerializationFormatter.cs" />
-    <Compile Include="SerializationFormatting\YamlSerializationFormatter.cs" />
-    <Compile Include="SerializationFormatting\Yaml\YamlFieldValue.cs" />
-    <Compile Include="SerializationFormatting\Yaml\YamlItem.cs" />
-    <Compile Include="SerializationFormatting\Yaml\YamlLanguage.cs" />
-    <Compile Include="SerializationFormatting\Yaml\YamlReader.cs" />
-    <Compile Include="SerializationFormatting\Yaml\YamlVersion.cs" />
     <Compile Include="Indexing\LineOrientedIndexFormatter.cs" />
     <Compile Include="Indexing\IIndex.cs" />
-    <Compile Include="SerializationFormatting\Yaml\YamlWriter.cs" />
-    <Compile Include="Storage\FrontMatterSerializationStore.cs" />
-    <Compile Include="Storage\ISerializationStore.cs" />
+    <Compile Include="Storage\IDataStore.cs" />
     <Compile Include="Model\ISerializableFieldValue.cs" />
     <Compile Include="Model\ISerializableItem.cs" />
     <Compile Include="Model\ISerializableVersion.cs" />
-    <Compile Include="Model\SerializableItem.cs" />
-    <Compile Include="Storage\IndexedTransactionalFileSystemSerializationStore.cs" />
+    <Compile Include="Storage\IndexedTransactionalFileSystemDataStore.cs" />
     <Compile Include="Indexing\IndexEntry.cs" />
     <Compile Include="Indexing\Index.cs" />
     <Compile Include="Storage\Pathing\IFileSystemPathProvider.cs" />
     <Compile Include="Storage\Pathing\IdBasedPathProvider.cs" />
-    <Compile Include="Storage\IndexedSerializationStore.cs" />
+    <Compile Include="Storage\IndexedDataStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -91,6 +71,7 @@
   <ItemGroup>
     <Content Include="TODO.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
