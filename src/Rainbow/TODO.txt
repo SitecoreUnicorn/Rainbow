@@ -22,10 +22,29 @@
 
 Working architecture statements:
 - Project splits into three major components
-	- Gibson (and Gibson datastore types; at launch SitecoreDB and YAML, maybe Remoting) - generic storage APIs for serialized - or DB - or webservice - content. Any two datastores can be synced. Datastores know about deserialization. Datastores also know about security roles. Gibson core knows about predicate filtering, as stores need to know about predicates when moving items.
+	- Rainbow (and Rainbow datastore types; at launch SitecoreDB and YAML, maybe Remoting) - generic storage APIs for serialized - or DB - or webservice - content. Any two datastores can be synced. Datastores know about deserialization. Datastores also know about security roles. Rainbow core knows about predicate filtering, as stores need to know about predicates when moving items.
 	- Sync (as yet undefined) - a tool to compare two data stores and determine sync status (in Unicorn terms, imagine the sync engine + evaluator but without any writing only creating metadata). Also has a simple diff engine for security roles.
 	- Unicorn - now a shell of its former self. contains data provider, UI elements for sync. Sync now calls the Sync lib, and performs field predicate filtering and deserialization handled by destination data store
 
 - Futures
 	- Tool to visualize the tree in any data store, remove items
-	- Rhino reborn, using Gibson as a universal backend and requiring no syncing. Maybe.
+	- Rhino reborn, using Rainbow as a universal backend and requiring no syncing. Maybe.
+
+Pathing provider thoughts
+
+- Naming things by ID - sounds good, but means item names are 35 char long which makes depth before path length too short (4-5 levels)
+- Loopback by path length to a NEW TREE - sounds good; Sitecore puts each item on a hashpath, we restart the tree there, preserving hierarchy
+	e.g. master/$/{guid}-RootItemName/child/item/foo.yml
+	Note: can run into situation where some children of an item are short enough to fit and some go to long paths.
+		This means we'd want to loopback to the PARENT ID and place the child within it - then traversing children is equal to native FS children + loopback root children if any
+
+- What if we could organize by "snippet", removing the base paths from the equation? e.g. if serRoot is /sitecore/templates/Sites/MySite, root at "MySite" and ignore the rest
+	Would save a lot of path length but would be a paradigm change from a 'data store'
+
+- CHALLENGES:
+	Same named items in same tree location. Gets ugly when keying filenames by something non unique.
+	Sparse trees - e.g. /sitecore wont be actually in the store, but /sitecore/templates/Sites would be - traversal of whole tree with unknown parent nodes, hopefully without 'references'
+	Moving and renaming items
+	Efficient get item by ID
+	Human readability
+	Cleanup after deleting items (e.g. empty folders)
