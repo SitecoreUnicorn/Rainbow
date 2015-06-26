@@ -53,7 +53,7 @@
     <Compile Include="Formatting\YamlReader.cs" />
     <Compile Include="Formatting\OutputModel\YamlVersion.cs" />
     <Compile Include="Formatting\YamlWriter.cs" />
-    <Compile Include="YamlSerializationStore.cs" />
+    <Compile Include="YamlSerializationDataStore.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Rainbow\Rainbow.csproj">

@@ -30,6 +30,11 @@ namespace Rainbow.Storage
 		void CheckConsistency(string database, bool fixErrors, Action<string> logMessageReceiver);
 
 		/// <summary>
+		/// Resets any kind of template field cache the provider may have
+		/// </summary>
+		void ResetTemplateEngine();
+
+		/// <summary>
 		/// Removes an item from the store
 		/// </summary>
 		/// <returns>True if the item existed in the store and was removed, false if it did not exist and the store is unchanged.</returns>

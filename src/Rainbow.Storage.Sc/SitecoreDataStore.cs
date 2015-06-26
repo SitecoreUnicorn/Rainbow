@@ -6,15 +6,16 @@ using Rainbow.Storage.Sc.Deserialization;
 using Sitecore;
 using Sitecore.Configuration;
 using Sitecore.Data;
+using Sitecore.Data.Events;
 using Sitecore.Diagnostics;
 
 namespace Rainbow.Storage.Sc
 {
-	public class SitecoreSerializationStore : IDataStore
+	public class SitecoreDataStore : IDataStore
 	{
 		private readonly IDeserializer _deserializer;
 
-		public SitecoreSerializationStore(IDeserializer deserializer)
+		public SitecoreDataStore(IDeserializer deserializer)
 		{
 			Assert.ArgumentNotNull(deserializer, "deserializer");
 
@@ -33,16 +34,39 @@ namespace Rainbow.Storage.Sc
 
 		public ISerializableItem GetById(Guid itemId, string database)
 		{
-			return new SerializableItem(GetDatabase(database).GetItem(new ID(itemId)));
+			Assert.ArgumentNotNullOrEmpty(database, "database");
+
+			Database db = GetDatabase(database);
+
+			Assert.IsNotNull(db, "Database " + database + " did not exist!");
+
+			var dbItem = db.GetItem(new ID(itemId));
+
+			if (dbItem == null) return null;
+
+			return new SerializableItem(dbItem);
 		}
 
 		public IEnumerable<ISerializableItem> GetByPath(string path, string database)
 		{
-			yield return new SerializableItem(GetDatabase(database).GetItem(path));
+			Assert.ArgumentNotNullOrEmpty(database, "database");
+			Assert.ArgumentNotNullOrEmpty(path, "path");
+
+			Database db = GetDatabase(database);
+
+			Assert.IsNotNull(db, "Database " + database + " did not exist!");
+
+			var dbItem = db.GetItem(path);
+
+			if (dbItem == null) yield break;
+
+			yield return new SerializableItem(dbItem);
 		}
 
 		public IEnumerable<ISerializableItem> GetByTemplate(Guid templateId, string database)
 		{
+			Assert.ArgumentNotNullOrEmpty(database, "database");
+			
 			var db = GetDatabase(database);
 			var templateItem = db.GetItem(new ID(templateId));
 
@@ -57,12 +81,27 @@ namespace Rainbow.Storage.Sc
 
 		public IEnumerable<ISerializableItem> GetChildren(Guid parentId, string database)
 		{
-			return GetDatabase(database).GetItem(new ID(parentId)).Children.Select(child => new SerializableItem(child));
+			Assert.ArgumentNotNullOrEmpty(database, "database");
+
+			var db = GetDatabase(database);
+
+			Assert.IsNotNull(db, "Database of item was null! Security issue?");
+
+			var item = db.GetItem(new ID(parentId));
+
+			return item.Children.Select(child => (ISerializableItem)new SerializableItem(child)).ToArray();
 		}
 
 		public IEnumerable<ISerializableItem> GetDescendants(Guid parentId, string database)
 		{
-			return GetDatabase(database).GetItem(new ID(parentId)).Axes.GetDescendants().Select(descendant => new SerializableItem(descendant));
+			Assert.ArgumentNotNullOrEmpty(database, "database");
+
+			var db = GetDatabase(database);
+
+			Assert.IsNotNull(db, "Database of item was null! Security issue?");
+
+			return db.GetItem(new ID(parentId)).Axes.GetDescendants()
+				.Select(descendant => new SerializableItem(descendant));
 		}
 
 		public void CheckConsistency(string database, bool fixErrors, Action<string> logMessageReceiver)
@@ -70,13 +109,34 @@ namespace Rainbow.Storage.Sc
 			// do nothing - the Sitecore database is always considered consistent.
 		}
 
+		public void ResetTemplateEngine()
+		{
+			foreach (Database current in Factory.GetDatabases())
+			{
+				current.Engines.TemplateEngine.Reset();
+			}
+		}
+
 		public bool Remove(Guid itemId, string database)
 		{
-			var item = GetDatabase(database).GetItem(new ID(itemId));
+			var databaseRef = GetDatabase(database);
+			var scId = new ID(itemId);
+			var item = databaseRef.GetItem(scId);
 
 			if (item == null) return false;
 
 			item.Recycle();
+
+			if (EventDisabler.IsActive)
+			{
+				databaseRef.Caches.ItemCache.RemoveItem(scId);
+				databaseRef.Caches.DataCache.RemoveItemInformation(scId);
+			}
+
+			if (databaseRef.Engines.TemplateEngine.IsTemplatePart(item))
+			{
+				databaseRef.Engines.TemplateEngine.Reset();
+			}
 
 			return true;
 		}

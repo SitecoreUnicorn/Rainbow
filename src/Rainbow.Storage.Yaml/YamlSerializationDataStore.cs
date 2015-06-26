@@ -11,13 +11,13 @@ using Sitecore.StringExtensions;
 
 namespace Rainbow.Storage.Yaml
 {
-	public class YamlSerializationStore : IndexedDataStore
+	public class YamlSerializationDataStore : IndexedDataStore
 	{
 		private readonly string _rootPath;
 		private readonly IFileSystemPathProvider _pathProvider;
 		private readonly YamlSerializationFormatter _formatter;
 
-		public YamlSerializationStore(string rootPath, IFileSystemPathProvider pathProvider, YamlSerializationFormatter formatter)
+		public YamlSerializationDataStore(string rootPath, IFileSystemPathProvider pathProvider, YamlSerializationFormatter formatter)
 			: base(new YamlFrontMatterIndexFactory(rootPath, pathProvider))
 		{
 			_rootPath = rootPath;
@@ -48,6 +48,11 @@ namespace Rainbow.Storage.Yaml
 		{
 			// TODO: consistency check
 			throw new NotImplementedException();
+		}
+
+		public override void ResetTemplateEngine()
+		{
+			// do nothing, the YAML serializer has no template engine
 		}
 
 		public override bool Remove(Guid itemId, string database)

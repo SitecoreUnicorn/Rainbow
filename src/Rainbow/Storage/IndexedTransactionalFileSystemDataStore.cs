@@ -97,6 +97,11 @@ namespace Rainbow.Storage
 			var orphans = _pathProvider.GetOrphans(_rootPath, database);
 		}
 
+		public override void ResetTemplateEngine()
+		{
+			// do nothing, no template engine here
+		}
+
 		/// <summary>
 		/// Removes an item from the store
 		/// </summary>

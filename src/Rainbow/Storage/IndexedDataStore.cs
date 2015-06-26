@@ -72,6 +72,8 @@ namespace Rainbow.Storage
 		/// </summary>
 		public abstract void CheckConsistency(string database, bool fixErrors, Action<string> logMessageReceiver);
 
+		public abstract void ResetTemplateEngine();
+
 		/// <summary>
 		/// Removes an item from the store
 		/// </summary>

@@ -48,7 +48,7 @@
     <Compile Include="Deserialization\IDeserializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SerializableItem.cs" />
-    <Compile Include="SitecoreSerializationStore.cs" />
+    <Compile Include="SitecoreDataStore.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Rainbow\Rainbow.csproj">
