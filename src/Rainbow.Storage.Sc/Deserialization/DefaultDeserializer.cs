@@ -2,6 +2,7 @@
 using System.Collections;
 using System.IO;
 using System.Linq;
+using Rainbow.Filtering;
 using Rainbow.Model;
 using Sitecore;
 using Sitecore.Configuration;
@@ -23,17 +24,20 @@ namespace Rainbow.Storage.Sc.Deserialization
 	/// <summary>
 	/// This is a re-implementation of the way Sitecore does deserialization. Unlike the stock deserializer,
 	/// this exposes much richer logging and only sets field values if they have changed (which is faster).
-	/// It also enables FieldPredicate support, which allows ignoring deserialization of certain fields.
+	/// It also enables Field Filter support, which allows ignoring deserialization of certain fields.
 	/// </summary>
 	public class DefaultDeserializer : IDeserializer
 	{
 		private readonly IDefaultDeserializerLogger _logger;
+		private readonly IFieldFilter _fieldFilter;
 
-		public DefaultDeserializer(IDefaultDeserializerLogger logger)
+		public DefaultDeserializer(IDefaultDeserializerLogger logger, IFieldFilter fieldFilter)
 		{
 			Assert.ArgumentNotNull(logger, "logger");
+			Assert.ArgumentNotNull(fieldFilter, "fieldFilter");
 
 			_logger = logger;
+			_fieldFilter = fieldFilter;
 		}
 
 		public ISerializableItem Deserialize(ISerializableItem serializedItem, bool ignoreMissingTemplateFields)
@@ -318,6 +322,12 @@ namespace Rainbow.Storage.Sc.Deserialization
 		/// <exception cref="T:Sitecore.Data.Serialization.Exceptions.FieldIsMissingFromTemplateException"/>
 		protected virtual void PasteSyncField(Item item, ISerializableFieldValue field, bool ignoreMissingTemplateFields, bool creatingNewItem)
 		{
+			if (!_fieldFilter.Includes(field.FieldId))
+			{
+				_logger.SkippedPastingIgnoredField(item, field);
+				return;
+			}
+
 			Template template = AssertTemplate(item.Database, item.TemplateID, item.Paths.Path);
 			if (template.GetField(new ID(field.FieldId)) == null)
 			{

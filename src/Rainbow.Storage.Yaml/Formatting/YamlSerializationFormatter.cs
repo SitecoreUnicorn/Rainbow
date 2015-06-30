@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml;
+using Rainbow.Filtering;
 using Rainbow.Formatting;
 using Rainbow.Formatting.FieldFormatters;
 using Rainbow.Indexing;
@@ -17,14 +18,14 @@ namespace Rainbow.Storage.Yaml.Formatting
 {
 	public class YamlSerializationFormatter : ISerializationFormatter
 	{
-		public YamlSerializationFormatter()
-		{
+		private readonly IFieldFilter _fieldFilter;
 
-		}
-
-		public YamlSerializationFormatter(XmlNode configNode)
+		public YamlSerializationFormatter(XmlNode configNode, IFieldFilter fieldFilter)
 		{
 			Assert.ArgumentNotNull(configNode, "configNode");
+			Assert.ArgumentNotNull(fieldFilter, "fieldFilter");
+
+			_fieldFilter = fieldFilter;
 
 			var formatters = configNode.ChildNodes;
 
@@ -63,8 +64,10 @@ namespace Rainbow.Storage.Yaml.Formatting
 			Assert.ArgumentNotNull(item, "item");
 			Assert.ArgumentNotNull(outputStream, "outputStream");
 
+			var filteredItem = new FilteredItem(item, _fieldFilter);
+
 			var itemToSerialize = new YamlItem();
-			itemToSerialize.LoadFrom(item, FieldFormatters.ToArray());
+			itemToSerialize.LoadFrom(filteredItem, FieldFormatters.ToArray());
 
 			using (var writer = new YamlWriter(outputStream, 4096, true))
 			{
@@ -199,17 +202,19 @@ namespace Rainbow.Storage.Yaml.Formatting
 				{
 					if (_value == null)
 					{
+						_value = _field.Value;
+
 						foreach (var formatter in _formatters)
 						{
 							if (formatter.CanFormat(this))
 							{
-								_value = formatter.Unformat(_value ?? _field.Value);
+								_value = formatter.Unformat(_value);
 
 								break;
 							}
 						}
 					}
-					return _field.Value;
+					return _value;
 				}
 			}
 

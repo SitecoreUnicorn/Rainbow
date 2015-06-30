@@ -48,6 +48,9 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="DataConsistencyException.cs" />
+    <Compile Include="Filtering\ConfigurationFieldFilter.cs" />
+    <Compile Include="Filtering\FilteredItem.cs" />
+    <Compile Include="Filtering\IFieldFilter.cs" />
     <Compile Include="Formatting\FieldFormatters\IFieldFormatter.cs" />
     <Compile Include="Formatting\FieldFormatters\MultilistFormatter.cs" />
     <Compile Include="Formatting\FieldFormatters\XmlFieldFormatter.cs" />

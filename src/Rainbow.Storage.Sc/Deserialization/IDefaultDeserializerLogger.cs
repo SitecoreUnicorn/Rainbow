@@ -27,5 +27,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 		void UpdatedChangedFieldValue(Item item, ISerializableFieldValue field, string oldValue);
 
 		void ResetFieldThatDidNotExistInSerialized(Field field);
+
+		void SkippedPastingIgnoredField(Item item, ISerializableFieldValue field);
 	}
 }
