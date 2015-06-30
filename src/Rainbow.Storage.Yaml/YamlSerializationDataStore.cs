@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Rainbow.Formatting;
 using Rainbow.Indexing;
 using Rainbow.Model;
 using Rainbow.Storage.Pathing;
 using Rainbow.Storage.Yaml.Formatting;
 using Rainbow.Storage.Yaml.Indexing;
+using Sitecore.Diagnostics;
 using Sitecore.StringExtensions;
 
 namespace Rainbow.Storage.Yaml
@@ -17,12 +19,16 @@ namespace Rainbow.Storage.Yaml
 		private readonly IFileSystemPathProvider _pathProvider;
 		private readonly YamlSerializationFormatter _formatter;
 
-		public YamlSerializationDataStore(string rootPath, IFileSystemPathProvider pathProvider, YamlSerializationFormatter formatter)
+		public YamlSerializationDataStore(string rootPath, IFileSystemPathProvider pathProvider, ISerializationFormatter formatter)
 			: base(new YamlFrontMatterIndexFactory(rootPath, pathProvider))
 		{
+			Assert.ArgumentNotNullOrEmpty(rootPath, "rootPath");
+			Assert.ArgumentNotNull(pathProvider, "pathProvider");
+			Assert.ArgumentNotNull(formatter, "formatter");
+
 			_rootPath = rootPath;
 			_pathProvider = pathProvider;
-			_formatter = formatter;
+			_formatter = (YamlSerializationFormatter)formatter;
 		}
 
 		public override IEnumerable<string> GetDatabaseNames()
