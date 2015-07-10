@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Rainbow.Diff;
 using Rainbow.Model;
 
 namespace Rainbow.Storage
@@ -12,6 +13,9 @@ namespace Rainbow.Storage
 		/// Saves an item into the store
 		/// </summary>
 		void Save(ISerializableItem item);
+
+		// take left? take right? enum? ref comparison?
+		void Save(ISerializableItem item, ItemComparisonResult comparisonResult);
 
 		/// <summary>
 		/// Loads an item from the store by ID
