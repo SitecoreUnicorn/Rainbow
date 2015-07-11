@@ -48,7 +48,6 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="DataConsistencyException.cs" />
-    <Compile Include="Diff\Fields\BlobComparisonIgnorer.cs" />
     <Compile Include="Diff\Fields\DefaultComparison.cs" />
     <Compile Include="Diff\Fields\FieldComparisonResult.cs" />
     <Compile Include="Diff\Fields\FieldTypeBasedComparer.cs" />
@@ -85,7 +84,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Diff\TODO.txt" />
     <Content Include="TODO.txt" />
   </ItemGroup>
   <ItemGroup />
