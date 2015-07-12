@@ -11,12 +11,12 @@ namespace Rainbow.Filtering
 	/// <summary>
 	/// Wraps any serializable item with a filter that returns only included fields
 	/// </summary>
-	public class FilteredItemData : IItemData
+	public class FilteredItem : IItemData
 	{
 		private readonly IItemData _itemData;
 		private readonly IFieldFilter _fieldFilter;
 
-		public FilteredItemData(IItemData itemData, IFieldFilter fieldFilter)
+		public FilteredItem(IItemData itemData, IFieldFilter fieldFilter)
 		{
 			Assert.ArgumentNotNull(itemData, "item");
 			Assert.ArgumentNotNull(fieldFilter, "fieldFilter");
