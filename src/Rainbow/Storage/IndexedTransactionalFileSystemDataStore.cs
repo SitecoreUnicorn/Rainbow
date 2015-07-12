@@ -50,7 +50,7 @@ namespace Rainbow.Storage
 		/// <summary>
 		/// Saves an item into the store
 		/// </summary>
-		public override void Save(ISerializableItem item)
+		public override void Save(IItemData item)
 		{
 			lock (UpdateLock)
 			{
@@ -159,12 +159,12 @@ namespace Rainbow.Storage
 			}
 		}
 
-		protected IndexEntry GetIndexEntry(ISerializableItem item)
+		protected IndexEntry GetIndexEntry(IItemData itemData)
 		{
-			return new IndexEntry().LoadFrom(item);
+			return new IndexEntry().LoadFrom(itemData);
 		}
 
-		protected override ISerializableItem Load(IndexEntry indexData, string database, bool assertExists)
+		protected override IItemData Load(IndexEntry indexData, string database, bool assertExists)
 		{
 			var path = _pathProvider.GetStoragePath(indexData, database, _rootPath);
 
@@ -178,19 +178,19 @@ namespace Rainbow.Storage
 			return Load(path, database);
 		}
 
-		protected virtual ISerializableItem Load(string path, string database)
+		protected virtual IItemData Load(string path, string database)
 		{
 			using (var reader = File.OpenRead(path))
 			{
-				ISerializableItem item = _formatter.ReadSerializedItem(reader, path);
-				var indexItem = GetIndexForDatabase(database).GetById(item.Id);
+				IItemData itemData = _formatter.ReadSerializedItem(reader, path);
+				var indexItem = GetIndexForDatabase(database).GetById(itemData.Id);
 
 				if (indexItem == null) throw new DataConsistencyException("The item data at {0} was not present in the index. This indicates corruption in the index or data store. Run fsck.".FormatWith(path));
 
-				item.AddIndexData(indexItem);
-				item.DatabaseName = database;
+				itemData.AddIndexData(indexItem);
+				itemData.DatabaseName = database;
 
-				return item;
+				return itemData;
 			}
 		}
 

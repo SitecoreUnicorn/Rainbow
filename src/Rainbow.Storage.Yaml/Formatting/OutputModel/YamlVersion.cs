@@ -21,7 +21,7 @@ namespace Rainbow.Storage.Yaml.Formatting.OutputModel
 			return VersionNumber.CompareTo(other.VersionNumber);
 		}
 
-		public void LoadFrom(ISerializableVersion version, IFieldFormatter[] fieldFormatters)
+		public void LoadFrom(IItemVersion version, IFieldFormatter[] fieldFormatters)
 		{
 			VersionNumber = version.VersionNumber;
 

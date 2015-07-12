@@ -2,7 +2,7 @@
 
 namespace Rainbow.Model
 {
-	public interface ISerializableFieldValue
+	public interface IItemFieldValue
 	{
 		Guid FieldId { get; }
 		string NameHint { get; }

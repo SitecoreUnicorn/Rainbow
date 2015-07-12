@@ -10,13 +10,13 @@ using Sitecore.Data.Items;
 namespace Rainbow.Storage.Sc
 {
 	[DebuggerDisplay("{Name} ({DatabaseName}::{Id}) [DB ITEM]")]
-	public class SerializableItem : ISerializableItem
+	public class ItemData : IItemData
 	{
 		private readonly Item _item;
 		private Item[] _itemVersions;
 		private bool _fieldsLoaded = false;
 
-		public SerializableItem(Item item)
+		public ItemData(Item item)
 		{
 			_item = item;
 		}
@@ -57,7 +57,7 @@ namespace Rainbow.Storage.Sc
 			get { return _item.TemplateID.Guid; }
 		}
 
-		public IEnumerable<ISerializableFieldValue> SharedFields
+		public IEnumerable<IItemFieldValue> SharedFields
 		{
 			get
 			{
@@ -72,7 +72,7 @@ namespace Rainbow.Storage.Sc
 			}
 		}
 
-		public IEnumerable<ISerializableVersion> Versions
+		public IEnumerable<IItemVersion> Versions
 		{
 			get
 			{
@@ -112,7 +112,7 @@ namespace Rainbow.Storage.Sc
 		}
 
 		[DebuggerDisplay("{NameHint} ({FieldType})")]
-		protected class ItemFieldValue : ISerializableFieldValue
+		protected class ItemFieldValue : IItemFieldValue
 		{
 			private readonly Field _field;
 
@@ -157,7 +157,7 @@ namespace Rainbow.Storage.Sc
 		}
 
 		[DebuggerDisplay("{Language} #{VersionNumber}")]
-		protected class ItemVersionValue : ISerializableVersion
+		protected class ItemVersionValue : IItemVersion
 		{
 			private readonly Item _version;
 			private bool _fieldsLoaded = false;
@@ -167,7 +167,7 @@ namespace Rainbow.Storage.Sc
 				_version = version;
 			}
 
-			public IEnumerable<ISerializableFieldValue> Fields
+			public IEnumerable<IItemFieldValue> Fields
 			{
 				get
 				{

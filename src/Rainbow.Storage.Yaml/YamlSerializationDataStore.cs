@@ -36,7 +36,7 @@ namespace Rainbow.Storage.Yaml
 			return _pathProvider.GetAllStoredDatabaseNames(_rootPath);
 		}
 
-		public override void Save(ISerializableItem item)
+		public override void Save(IItemData item)
 		{
 			var path = _pathProvider.GetStoragePath(new IndexEntry().LoadFrom(item), item.DatabaseName, _rootPath);
 
@@ -84,7 +84,7 @@ namespace Rainbow.Storage.Yaml
 			return true;
 		}
 
-		protected override ISerializableItem Load(IndexEntry indexData, string database, bool assertExists)
+		protected override IItemData Load(IndexEntry indexData, string database, bool assertExists)
 		{
 			var path = _pathProvider.GetStoragePath(indexData, database, _rootPath);
 
@@ -98,7 +98,7 @@ namespace Rainbow.Storage.Yaml
 			return Load(path, database);
 		}
 
-		protected virtual ISerializableItem Load(string path, string database)
+		protected virtual IItemData Load(string path, string database)
 		{
 			using (var reader = File.OpenRead(path))
 			{

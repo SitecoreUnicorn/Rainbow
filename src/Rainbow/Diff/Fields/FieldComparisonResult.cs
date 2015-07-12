@@ -5,7 +5,7 @@ namespace Rainbow.Diff.Fields
 {
 	public class FieldComparisonResult
 	{
-		public FieldComparisonResult(ISerializableFieldValue sourceField, ISerializableFieldValue targetField)
+		public FieldComparisonResult(IItemFieldValue sourceField, IItemFieldValue targetField)
 		{
 			Assert.ArgumentNotNull(sourceField, "sourceField");
 			Assert.ArgumentNotNull(targetField, "targetField");
@@ -14,7 +14,7 @@ namespace Rainbow.Diff.Fields
 			TargetField = targetField;
 		}
 
-		public ISerializableFieldValue SourceField { get; private set; }
-		public ISerializableFieldValue TargetField { get; private set; }
+		public IItemFieldValue SourceField { get; private set; }
+		public IItemFieldValue TargetField { get; private set; }
 	}
 }

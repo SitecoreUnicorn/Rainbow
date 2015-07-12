@@ -24,13 +24,13 @@ namespace Rainbow.Storage
 		/// <summary>
 		/// Saves an item into the store
 		/// </summary>
-		public abstract void Save(ISerializableItem item);
+		public abstract void Save(IItemData item);
 
 		/// <summary>
 		/// Loads an item from the store by ID
 		/// </summary>
 		/// <returns>The stored item, or null if it does not exist in the store</returns>
-		public virtual ISerializableItem GetById(Guid itemId, string database)
+		public virtual IItemData GetById(Guid itemId, string database)
 		{
 			var itemById = GetIndexForDatabase(database).GetById(itemId);
 
@@ -39,28 +39,28 @@ namespace Rainbow.Storage
 			return Load(itemById, database, false);
 		}
 
-		public virtual IEnumerable<ISerializableItem> GetByPath(string path, string database)
+		public virtual IEnumerable<IItemData> GetByPath(string path, string database)
 		{
 			var itemsOnPath = GetIndexForDatabase(database).GetByPath(path);
 
 			return itemsOnPath.Select(x => Load(x, database, true));
 		}
 
-		public virtual IEnumerable<ISerializableItem> GetByTemplate(Guid templateId, string database)
+		public virtual IEnumerable<IItemData> GetByTemplate(Guid templateId, string database)
 		{
 			var itemsOfTemplate = GetIndexForDatabase(database).GetByTemplate(templateId);
 
 			return itemsOfTemplate.Select(x => Load(x, database, true));
 		}
 
-		public virtual IEnumerable<ISerializableItem> GetChildren(Guid parentId, string database)
+		public virtual IEnumerable<IItemData> GetChildren(Guid parentId, string database)
 		{
 			var childItems = GetIndexForDatabase(database).GetChildren(parentId);
 
 			return childItems.Select(x => Load(x, database, true));
 		}
 
-		public virtual IEnumerable<ISerializableItem> GetDescendants(Guid parentId, string database)
+		public virtual IEnumerable<IItemData> GetDescendants(Guid parentId, string database)
 		{
 			var descendants = GetIndexForDatabase(database).GetDescendants(parentId);
 
@@ -80,7 +80,7 @@ namespace Rainbow.Storage
 		/// <returns>True if the item existed in the store and was removed, false if it did not exist and the store is unchanged.</returns>
 		public abstract bool Remove(Guid itemId, string database);
 
-		protected abstract ISerializableItem Load(IndexEntry indexData, string database, bool assertExists);
+		protected abstract IItemData Load(IndexEntry indexData, string database, bool assertExists);
 
 		protected virtual IIndex GetIndexForDatabase(string database)
 		{

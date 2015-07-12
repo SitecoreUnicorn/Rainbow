@@ -40,20 +40,20 @@ namespace Rainbow.Storage.Sc.Deserialization
 			_fieldFilter = fieldFilter;
 		}
 
-		public ISerializableItem Deserialize(ISerializableItem serializedItem, bool ignoreMissingTemplateFields)
+		public IItemData Deserialize(IItemData serializedItemData, bool ignoreMissingTemplateFields)
 		{
-			Assert.ArgumentNotNull(serializedItem, "serializedItem");
+			Assert.ArgumentNotNull(serializedItemData, "serializedItem");
 
-			Database database = Factory.GetDatabase(serializedItem.DatabaseName);
+			Database database = Factory.GetDatabase(serializedItemData.DatabaseName);
 
-			Item destinationParentItem = database.GetItem(new ID(serializedItem.ParentId));
-			Item targetItem = database.GetItem(new ID(serializedItem.Id));
+			Item destinationParentItem = database.GetItem(new ID(serializedItemData.ParentId));
+			Item targetItem = database.GetItem(new ID(serializedItemData.Id));
 			bool newItemWasCreated = false;
 
 			// the target item did not yet exist, so we need to start by creating it
 			if (targetItem == null)
 			{
-				targetItem = CreateTargetItem(serializedItem, destinationParentItem);
+				targetItem = CreateTargetItem(serializedItemData, destinationParentItem);
 
 				_logger.CreatedNewItem(targetItem);
 
@@ -69,7 +69,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 				{
 					throw new ParentForMovedItemNotFoundException
 					{
-						ParentID = new ID(serializedItem.ParentId).ToString(),
+						ParentID = new ID(serializedItemData.ParentId).ToString(),
 						Item = targetItem
 					};
 				}
@@ -85,8 +85,8 @@ namespace Rainbow.Storage.Sc.Deserialization
 			}
 			try
 			{
-				ChangeTemplateIfNeeded(serializedItem, targetItem);
-				RenameIfNeeded(serializedItem, targetItem);
+				ChangeTemplateIfNeeded(serializedItemData, targetItem);
+				RenameIfNeeded(serializedItemData, targetItem);
 				ResetTemplateEngineIfItemIsTemplate(targetItem);
 
 				using (new EditContext(targetItem))
@@ -96,18 +96,18 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 					foreach (Field field in targetItem.Fields)
 					{
-						if (field.Shared && serializedItem.SharedFields.All(x => x.FieldId != field.ID.Guid))
+						if (field.Shared && serializedItemData.SharedFields.All(x => x.FieldId != field.ID.Guid))
 						{
 							_logger.ResetFieldThatDidNotExistInSerialized(field);
 							field.Reset();
 						}
 					}
 
-					foreach (var field in serializedItem.SharedFields)
+					foreach (var field in serializedItemData.SharedFields)
 						PasteSyncField(targetItem, field, ignoreMissingTemplateFields, newItemWasCreated);
 				}
 
-				ClearCaches(database, new ID(serializedItem.Id));
+				ClearCaches(database, new ID(serializedItemData.Id));
 				targetItem.Reload();
 				ResetTemplateEngineIfItemIsTemplate(targetItem);
 
@@ -118,7 +118,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 				foreach (Item version in targetItem.Versions.GetVersions(true))
 					versionTable[version.Uri] = null;
 
-				foreach (var syncVersion in serializedItem.Versions)
+				foreach (var syncVersion in serializedItemData.Versions)
 				{
 					var version = PasteSyncVersion(targetItem, syncVersion, ignoreMissingTemplateFields, newItemWasCreated);
 					if (versionTable.ContainsKey(version.Uri))
@@ -136,7 +136,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 				ClearCaches(targetItem.Database, targetItem.ID);
 
-				return new SerializableItem(targetItem);
+				return new ItemData(targetItem);
 			}
 			catch (ParentForMovedItemNotFoundException)
 			{
@@ -157,15 +157,15 @@ namespace Rainbow.Storage.Sc.Deserialization
 				if (newItemWasCreated)
 				{
 					targetItem.Delete();
-					ClearCaches(database, new ID(serializedItem.Id));
+					ClearCaches(database, new ID(serializedItemData.Id));
 				}
-				throw new Exception("Failed to paste item: " + serializedItem.Path, ex);
+				throw new Exception("Failed to paste item: " + serializedItemData.Path, ex);
 			}
 		}
 
-		protected void RenameIfNeeded(ISerializableItem serializedItem, Item targetItem)
+		protected void RenameIfNeeded(IItemData serializedItemData, Item targetItem)
 		{
-			if (targetItem.Name != serializedItem.Name || targetItem.BranchId.Guid != serializedItem.BranchId)
+			if (targetItem.Name != serializedItemData.Name || targetItem.BranchId.Guid != serializedItemData.BranchId)
 			{
 				string oldName = targetItem.Name;
 				Guid oldBranchId = targetItem.BranchId.Guid;
@@ -173,29 +173,29 @@ namespace Rainbow.Storage.Sc.Deserialization
 				using (new EditContext(targetItem))
 				{
 					targetItem.RuntimeSettings.ReadOnlyStatistics = true;
-					targetItem.Name = serializedItem.Name;
-					targetItem.BranchId = ID.Parse(serializedItem.BranchId);
+					targetItem.Name = serializedItemData.Name;
+					targetItem.BranchId = ID.Parse(serializedItemData.BranchId);
 				}
 
 				ClearCaches(targetItem.Database, targetItem.ID);
 				targetItem.Reload();
 
-				if (oldName != serializedItem.Name)
+				if (oldName != serializedItemData.Name)
 					_logger.RenamedItem(targetItem, oldName);
 
-				if (oldBranchId != serializedItem.BranchId)
+				if (oldBranchId != serializedItemData.BranchId)
 					_logger.ChangedBranchTemplate(targetItem, new ID(oldBranchId).ToString());
 			}
 		}
 
-		protected void ChangeTemplateIfNeeded(ISerializableItem serializedItem, Item targetItem)
+		protected void ChangeTemplateIfNeeded(IItemData serializedItemData, Item targetItem)
 		{
-			if (targetItem.TemplateID.Guid != serializedItem.TemplateId)
+			if (targetItem.TemplateID.Guid != serializedItemData.TemplateId)
 			{
 				var oldTemplate = targetItem.Template;
-				var newTemplate = targetItem.Database.Templates[new ID(serializedItem.TemplateId)];
+				var newTemplate = targetItem.Database.Templates[new ID(serializedItemData.TemplateId)];
 
-				Assert.IsNotNull(newTemplate, "Cannot change template of {0} because its new template {1} does not exist!", targetItem.ID, serializedItem.TemplateId);
+				Assert.IsNotNull(newTemplate, "Cannot change template of {0} because its new template {1} does not exist!", targetItem.ID, serializedItemData.TemplateId);
 
 				using (new EditContext(targetItem))
 				{
@@ -232,31 +232,31 @@ namespace Rainbow.Storage.Sc.Deserialization
 			}
 		}
 
-		protected Item CreateTargetItem(ISerializableItem serializedItem, Item destinationParentItem)
+		protected Item CreateTargetItem(IItemData serializedItemData, Item destinationParentItem)
 		{
-			Database database = Factory.GetDatabase(serializedItem.DatabaseName);
+			Database database = Factory.GetDatabase(serializedItemData.DatabaseName);
 			if (destinationParentItem == null)
 			{
 				throw new ParentItemNotFoundException
 				{
-					ParentID = new ID(serializedItem.ParentId).ToString(),
-					ItemID = new ID(serializedItem.Id).ToString()
+					ParentID = new ID(serializedItemData.ParentId).ToString(),
+					ItemID = new ID(serializedItemData.Id).ToString()
 				};
 			}
 
-			AssertTemplate(database, new ID(serializedItem.TemplateId), serializedItem.Path);
+			AssertTemplate(database, new ID(serializedItemData.TemplateId), serializedItemData.Path);
 
-			Item targetItem = ItemManager.AddFromTemplate(serializedItem.Name, new ID(serializedItem.TemplateId), destinationParentItem, new ID(serializedItem.TemplateId));
+			Item targetItem = ItemManager.AddFromTemplate(serializedItemData.Name, new ID(serializedItemData.TemplateId), destinationParentItem, new ID(serializedItemData.TemplateId));
 
 			if(targetItem == null)
-				throw new DeserializationException("Creating " + serializedItem.DatabaseName + ":" + serializedItem.Path + " failed. API returned null.");
+				throw new DeserializationException("Creating " + serializedItemData.DatabaseName + ":" + serializedItemData.Path + " failed. API returned null.");
 
 			targetItem.Versions.RemoveAll(true);
 
 			return targetItem;
 		}
 
-		protected virtual Item PasteSyncVersion(Item item, ISerializableVersion serializedVersion, bool ignoreMissingTemplateFields, bool creatingNewItem)
+		protected virtual Item PasteSyncVersion(Item item, IItemVersion serializedVersion, bool ignoreMissingTemplateFields, bool creatingNewItem)
 		{
 			Language language = Language.Parse(serializedVersion.Language.Name);
 			var targetVersion = Version.Parse(serializedVersion.VersionNumber);
@@ -294,7 +294,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 				}
 
 				bool wasOwnerFieldParsed = false;
-				foreach (ISerializableFieldValue field in serializedVersion.Fields)
+				foreach (IItemFieldValue field in serializedVersion.Fields)
 				{
 					if (field.FieldId == FieldIDs.Owner.Guid)
 						wasOwnerFieldParsed = true;
@@ -320,7 +320,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 		/// <param name="ignoreMissingTemplateFields">Whether to ignore fields in the serialized item that do not exist on the Sitecore template</param>
 		/// <param name="creatingNewItem">Whether the item under update is new or not (controls logging verbosity)</param>
 		/// <exception cref="T:Sitecore.Data.Serialization.Exceptions.FieldIsMissingFromTemplateException"/>
-		protected virtual void PasteSyncField(Item item, ISerializableFieldValue field, bool ignoreMissingTemplateFields, bool creatingNewItem)
+		protected virtual void PasteSyncField(Item item, IItemFieldValue field, bool ignoreMissingTemplateFields, bool creatingNewItem)
 		{
 			if (!_fieldFilter.Includes(field.FieldId))
 			{

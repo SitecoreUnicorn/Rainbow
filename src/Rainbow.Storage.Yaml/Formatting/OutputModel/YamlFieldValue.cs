@@ -17,7 +17,7 @@ namespace Rainbow.Storage.Yaml.Formatting.OutputModel
 			return Id.CompareTo(other.Id);
 		}
 
-		public void LoadFrom(ISerializableFieldValue field, IFieldFormatter[] formatters)
+		public void LoadFrom(IItemFieldValue field, IFieldFormatter[] formatters)
 		{
 			Id = field.FieldId;
 			NameHint = field.NameHint;

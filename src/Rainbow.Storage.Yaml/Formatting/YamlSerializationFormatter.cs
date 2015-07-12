@@ -45,7 +45,7 @@ namespace Rainbow.Storage.Yaml.Formatting
 		}
 
 
-		public virtual ISerializableItem ReadSerializedItem(Stream dataStream, string serializedItemId)
+		public virtual IItemData ReadSerializedItem(Stream dataStream, string serializedItemId)
 		{
 			Assert.ArgumentNotNull(dataStream, "dataStream");
 
@@ -55,16 +55,16 @@ namespace Rainbow.Storage.Yaml.Formatting
 				var item = new YamlItem();
 				item.ReadYaml(reader);
 
-				return new YamlSerializableItem(item, serializedItemId, FieldFormatters.ToArray());
+				return new YamlItemData(item, serializedItemId, FieldFormatters.ToArray());
 			}
 		}
 
-		public virtual void WriteSerializedItem(ISerializableItem item, Stream outputStream)
+		public virtual void WriteSerializedItem(IItemData itemData, Stream outputStream)
 		{
-			Assert.ArgumentNotNull(item, "item");
+			Assert.ArgumentNotNull(itemData, "item");
 			Assert.ArgumentNotNull(outputStream, "outputStream");
 
-			var filteredItem = new FilteredItem(item, _fieldFilter);
+			var filteredItem = new FilteredItemData(itemData, _fieldFilter);
 
 			var itemToSerialize = new YamlItem();
 			itemToSerialize.LoadFrom(filteredItem, FieldFormatters.ToArray());
@@ -76,14 +76,14 @@ namespace Rainbow.Storage.Yaml.Formatting
 		}
 
 		[DebuggerDisplay("{Name} ({DatabaseName}::{Id}) [YAML - {SerializedItemId}]")]
-		protected class YamlSerializableItem : ISerializableItem
+		protected class YamlItemData : IItemData
 		{
 			private readonly YamlItem _item;
 			private readonly string _serializedItemId;
 			private readonly IFieldFormatter[] _formatters;
 			private IndexEntry _indexEntry;
 
-			public YamlSerializableItem(YamlItem item, string serializedItemId, IFieldFormatter[] formatters)
+			public YamlItemData(YamlItem item, string serializedItemId, IFieldFormatter[] formatters)
 			{
 				_item = item;
 				_serializedItemId = serializedItemId;
@@ -115,15 +115,15 @@ namespace Rainbow.Storage.Yaml.Formatting
 
 			public Guid TemplateId { get { return _indexEntry.TemplateId; } }
 
-			public IEnumerable<ISerializableFieldValue> SharedFields
+			public IEnumerable<IItemFieldValue> SharedFields
 			{
 				get
 				{
-					return _item.SharedFields.Select(field => new YamlSerializableFieldValue(field, _formatters));
+					return _item.SharedFields.Select(field => new YamlItemFieldValue(field, _formatters));
 				}
 			}
 
-			public IEnumerable<ISerializableVersion> Versions
+			public IEnumerable<IItemVersion> Versions
 			{
 				get
 				{
@@ -150,7 +150,7 @@ namespace Rainbow.Storage.Yaml.Formatting
 			}
 		}
 
-		protected class YamlSerializableVersion : ISerializableVersion
+		protected class YamlSerializableVersion : IItemVersion
 		{
 			private readonly YamlVersion _version;
 			private readonly YamlLanguage _language;
@@ -163,9 +163,9 @@ namespace Rainbow.Storage.Yaml.Formatting
 				_formatters = formatters;
 			}
 
-			public IEnumerable<ISerializableFieldValue> Fields
+			public IEnumerable<IItemFieldValue> Fields
 			{
-				get { return _version.Fields.Select(x => new YamlSerializableFieldValue(x, _formatters)); }
+				get { return _version.Fields.Select(x => new YamlItemFieldValue(x, _formatters)); }
 			}
 
 			public CultureInfo Language
@@ -179,12 +179,12 @@ namespace Rainbow.Storage.Yaml.Formatting
 			}
 		}
 
-		protected class YamlSerializableFieldValue : ISerializableFieldValue
+		protected class YamlItemFieldValue : IItemFieldValue
 		{
 			private readonly YamlFieldValue _field;
 			private readonly IFieldFormatter[] _formatters;
 
-			public YamlSerializableFieldValue(YamlFieldValue field, IFieldFormatter[] formatters)
+			public YamlItemFieldValue(YamlFieldValue field, IFieldFormatter[] formatters)
 			{
 				_field = field;
 				_formatters = formatters;

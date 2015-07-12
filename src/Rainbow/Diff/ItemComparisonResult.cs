@@ -6,13 +6,13 @@ namespace Rainbow.Diff
 {
 	public class ItemComparisonResult
 	{
-		public ItemComparisonResult(ISerializableItem sourceItem, ISerializableItem targetItem, bool isRenamed = false, bool isMoved = false, bool isTemplateChanged = false, FieldComparisonResult[] changedSharedFields = null, ItemVersionComparisonResult[] changedVersions = null)
+		public ItemComparisonResult(IItemData sourceItemData, IItemData targetItemData, bool isRenamed = false, bool isMoved = false, bool isTemplateChanged = false, FieldComparisonResult[] changedSharedFields = null, ItemVersionComparisonResult[] changedVersions = null)
 		{
-			Assert.ArgumentNotNull(sourceItem, "sourceItem");
-			Assert.ArgumentNotNull(targetItem, "targetItem");
+			Assert.ArgumentNotNull(sourceItemData, "sourceItem");
+			Assert.ArgumentNotNull(targetItemData, "targetItem");
 
-			SourceItem = sourceItem;
-			TargetItem = targetItem;
+			SourceItemData = sourceItemData;
+			TargetItemData = targetItemData;
 			IsRenamed = isRenamed;
 			IsMoved = isMoved;
 			IsTemplateChanged = isTemplateChanged;
@@ -20,9 +20,9 @@ namespace Rainbow.Diff
 			ChangedVersions = changedVersions ?? new ItemVersionComparisonResult[0];
 		}
 
-		public ISerializableItem SourceItem { get; private set; }
-		public ISerializableItem TargetItem { get; private set; }
-		public bool AreEqual { get { return IsRenamed || IsTemplateChanged || ChangedSharedFields.Length > 0 || ChangedVersions.Length > 0 || SourceItem == null || TargetItem == null; } }
+		public IItemData SourceItemData { get; private set; }
+		public IItemData TargetItemData { get; private set; }
+		public bool AreEqual { get { return IsRenamed || IsTemplateChanged || ChangedSharedFields.Length > 0 || ChangedVersions.Length > 0 || SourceItemData == null || TargetItemData == null; } }
 		public bool IsRenamed { get; private set; }
 		public bool IsMoved { get; private set; }
 		public bool IsTemplateChanged { get; private set; }

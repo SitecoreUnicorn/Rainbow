@@ -69,9 +69,9 @@
     <Compile Include="Indexing\LineOrientedIndexFormatter.cs" />
     <Compile Include="Indexing\IIndex.cs" />
     <Compile Include="Storage\IDataStore.cs" />
-    <Compile Include="Model\ISerializableFieldValue.cs" />
-    <Compile Include="Model\ISerializableItem.cs" />
-    <Compile Include="Model\ISerializableVersion.cs" />
+    <Compile Include="Model\IItemFieldValue.cs" />
+    <Compile Include="Model\IItemData.cs" />
+    <Compile Include="Model\IItemVersion.cs" />
     <Compile Include="Storage\IndexedTransactionalFileSystemDataStore.cs" />
     <Compile Include="Indexing\IndexEntry.cs" />
     <Compile Include="Indexing\Index.cs" />

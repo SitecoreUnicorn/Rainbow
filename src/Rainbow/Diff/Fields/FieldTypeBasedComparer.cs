@@ -6,7 +6,7 @@ namespace Rainbow.Diff.Fields
 {
 	public abstract class FieldTypeBasedComparer : IFieldComparer
 	{
-		public bool CanCompare(ISerializableFieldValue field1, ISerializableFieldValue field2)
+		public bool CanCompare(IItemFieldValue field1, IItemFieldValue field2)
 		{
 			var typeToCompare = field1.FieldType ?? field2.FieldType;
 
@@ -15,7 +15,7 @@ namespace Rainbow.Diff.Fields
 			return SupportedFieldTypes.Any(type => type.Equals(typeToCompare, StringComparison.OrdinalIgnoreCase));
 		}
 
-		public abstract bool AreEqual(ISerializableFieldValue field1, ISerializableFieldValue field2);
+		public abstract bool AreEqual(IItemFieldValue field1, IItemFieldValue field2);
 
 		public abstract string[] SupportedFieldTypes { get; }
 	}

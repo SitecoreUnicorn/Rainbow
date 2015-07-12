@@ -3,9 +3,9 @@ using System.Globalization;
 
 namespace Rainbow.Model
 {
-	public interface ISerializableVersion
+	public interface IItemVersion
 	{
-		IEnumerable<ISerializableFieldValue> Fields { get; }
+		IEnumerable<IItemFieldValue> Fields { get; }
 		CultureInfo Language { get; }
 		int VersionNumber { get; }
 	}

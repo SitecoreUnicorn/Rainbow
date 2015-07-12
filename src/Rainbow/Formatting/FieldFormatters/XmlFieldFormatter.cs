@@ -8,14 +8,14 @@ namespace Rainbow.Formatting.FieldFormatters
 {
 	public class XmlFieldFormatter : IFieldFormatter
 	{
-		public virtual bool CanFormat(ISerializableFieldValue field)
+		public virtual bool CanFormat(IItemFieldValue field)
 		{
 			if (field.FieldType == null) return false;
 
 			return field.FieldType.Equals("Layout", StringComparison.OrdinalIgnoreCase);
 		}
 
-		public virtual string Format(ISerializableFieldValue field)
+		public virtual string Format(IItemFieldValue field)
 		{
 			try
 			{

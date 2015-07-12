@@ -20,7 +20,7 @@ namespace Rainbow.Storage.Yaml.Formatting.OutputModel
 			return String.Compare(Language, other.Language, StringComparison.Ordinal);
 		}
 
-		public void LoadFrom(IEnumerable<ISerializableVersion> versions, IFieldFormatter[] fieldFormatters)
+		public void LoadFrom(IEnumerable<IItemVersion> versions, IFieldFormatter[] fieldFormatters)
 		{
 			bool first = true;
 			foreach (var version in versions)

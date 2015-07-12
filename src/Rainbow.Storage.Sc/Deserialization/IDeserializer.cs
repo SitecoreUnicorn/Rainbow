@@ -4,6 +4,6 @@ namespace Rainbow.Storage.Sc.Deserialization
 {
 	public interface IDeserializer
 	{
-		ISerializableItem Deserialize(ISerializableItem serializedItem, bool ignoreMissingTemplateFields);
+		IItemData Deserialize(IItemData serializedItemData, bool ignoreMissingTemplateFields);
 	}
 }

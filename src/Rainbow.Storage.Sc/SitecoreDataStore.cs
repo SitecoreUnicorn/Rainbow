@@ -27,12 +27,12 @@ namespace Rainbow.Storage.Sc
 			return Factory.GetDatabaseNames();
 		}
 
-		public void Save(ISerializableItem item)
+		public void Save(IItemData item)
 		{
 			_deserializer.Deserialize(item, false);
 		}
 
-		public ISerializableItem GetById(Guid itemId, string database)
+		public IItemData GetById(Guid itemId, string database)
 		{
 			Assert.ArgumentNotNullOrEmpty(database, "database");
 
@@ -44,10 +44,10 @@ namespace Rainbow.Storage.Sc
 
 			if (dbItem == null) return null;
 
-			return new SerializableItem(dbItem);
+			return new ItemData(dbItem);
 		}
 
-		public IEnumerable<ISerializableItem> GetByPath(string path, string database)
+		public IEnumerable<IItemData> GetByPath(string path, string database)
 		{
 			Assert.ArgumentNotNullOrEmpty(database, "database");
 			Assert.ArgumentNotNullOrEmpty(path, "path");
@@ -60,26 +60,26 @@ namespace Rainbow.Storage.Sc
 
 			if (dbItem == null) yield break;
 
-			yield return new SerializableItem(dbItem);
+			yield return new ItemData(dbItem);
 		}
 
-		public IEnumerable<ISerializableItem> GetByTemplate(Guid templateId, string database)
+		public IEnumerable<IItemData> GetByTemplate(Guid templateId, string database)
 		{
 			Assert.ArgumentNotNullOrEmpty(database, "database");
 			
 			var db = GetDatabase(database);
 			var templateItem = db.GetItem(new ID(templateId));
 
-			if (templateItem == null) return Enumerable.Empty<ISerializableItem>();
+			if (templateItem == null) return Enumerable.Empty<IItemData>();
 
 			return Globals.LinkDatabase.GetReferrers(templateItem)
 				.Where(link => link.SourceDatabaseName.Equals(database, StringComparison.OrdinalIgnoreCase) && link.SourceFieldID == ID.Null)
 				.Select(link => link.GetSourceItem())
 				.Where(linkItem => linkItem != null && linkItem.TemplateID.Equals(new ID(templateId)))
-				.Select(linkItem => new SerializableItem(linkItem));
+				.Select(linkItem => new ItemData(linkItem));
 		}
 
-		public IEnumerable<ISerializableItem> GetChildren(Guid parentId, string database)
+		public IEnumerable<IItemData> GetChildren(Guid parentId, string database)
 		{
 			Assert.ArgumentNotNullOrEmpty(database, "database");
 
@@ -89,10 +89,10 @@ namespace Rainbow.Storage.Sc
 
 			var item = db.GetItem(new ID(parentId));
 
-			return item.Children.Select(child => (ISerializableItem)new SerializableItem(child)).ToArray();
+			return item.Children.Select(child => (IItemData)new ItemData(child)).ToArray();
 		}
 
-		public IEnumerable<ISerializableItem> GetDescendants(Guid parentId, string database)
+		public IEnumerable<IItemData> GetDescendants(Guid parentId, string database)
 		{
 			Assert.ArgumentNotNullOrEmpty(database, "database");
 
@@ -101,7 +101,7 @@ namespace Rainbow.Storage.Sc
 			Assert.IsNotNull(db, "Database of item was null! Security issue?");
 
 			return db.GetItem(new ID(parentId)).Axes.GetDescendants()
-				.Select(descendant => new SerializableItem(descendant));
+				.Select(descendant => new ItemData(descendant));
 		}
 
 		public void CheckConsistency(string database, bool fixErrors, Action<string> logMessageReceiver)

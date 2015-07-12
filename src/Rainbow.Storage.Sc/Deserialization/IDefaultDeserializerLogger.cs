@@ -20,14 +20,14 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 		void AddedNewVersion(Item newVersion);
 
-		void SkippedMissingTemplateField(Item item, ISerializableFieldValue field);
+		void SkippedMissingTemplateField(Item item, IItemFieldValue field);
 
-		void WroteBlobStream(Item item, ISerializableFieldValue field);
+		void WroteBlobStream(Item item, IItemFieldValue field);
 
-		void UpdatedChangedFieldValue(Item item, ISerializableFieldValue field, string oldValue);
+		void UpdatedChangedFieldValue(Item item, IItemFieldValue field, string oldValue);
 
 		void ResetFieldThatDidNotExistInSerialized(Field field);
 
-		void SkippedPastingIgnoredField(Item item, ISerializableFieldValue field);
+		void SkippedPastingIgnoredField(Item item, IItemFieldValue field);
 	}
 }

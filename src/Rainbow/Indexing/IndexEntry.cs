@@ -43,12 +43,12 @@ namespace Rainbow.Indexing
 			}
 		}
 
-		public IndexEntry LoadFrom(ISerializableItem item)
+		public IndexEntry LoadFrom(IItemData itemData)
 		{
-			Path = item.Path;
-			Id = item.Id;
-			ParentId = item.ParentId;
-			TemplateId = item.TemplateId;
+			Path = itemData.Path;
+			Id = itemData.Id;
+			ParentId = itemData.ParentId;
+			TemplateId = itemData.TemplateId;
 
 			return this;
 		}

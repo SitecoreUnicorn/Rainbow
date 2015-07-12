@@ -7,7 +7,7 @@ namespace Rainbow.Formatting.FieldFormatters
 {
 	public class MultilistFormatter : IFieldFormatter
 	{
-		public virtual bool CanFormat(ISerializableFieldValue field)
+		public virtual bool CanFormat(IItemFieldValue field)
 		{
 			if (field.FieldType == null) return false;
 
@@ -19,7 +19,7 @@ namespace Rainbow.Formatting.FieldFormatters
 				   field.FieldType.Equals("TreelistEx", StringComparison.OrdinalIgnoreCase);
 		}
 
-		public virtual string Format(ISerializableFieldValue field)
+		public virtual string Format(IItemFieldValue field)
 		{
 			var values = ID.ParseArray(field.Value);
 

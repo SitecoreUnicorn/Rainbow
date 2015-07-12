@@ -23,16 +23,16 @@ namespace Rainbow.Storage.Yaml.Formatting.OutputModel
 		public SortedSet<YamlFieldValue> SharedFields { get; private set; }
 		public SortedSet<YamlLanguage> Languages { get; private set; }
 
-		public virtual void LoadFrom(ISerializableItem item, IFieldFormatter[] fieldFormatters)
+		public virtual void LoadFrom(IItemData itemData, IFieldFormatter[] fieldFormatters)
 		{
-			Id = item.Id;
-			ParentId = item.ParentId;
-			TemplateId = item.TemplateId;
-			Path = item.Path;
+			Id = itemData.Id;
+			ParentId = itemData.ParentId;
+			TemplateId = itemData.TemplateId;
+			Path = itemData.Path;
 
-			BranchId = item.BranchId;
+			BranchId = itemData.BranchId;
 
-			foreach (var field in item.SharedFields)
+			foreach (var field in itemData.SharedFields)
 			{
 				if(string.IsNullOrWhiteSpace(field.Value)) continue;
 
@@ -42,7 +42,7 @@ namespace Rainbow.Storage.Yaml.Formatting.OutputModel
 				SharedFields.Add(fieldObject);
 			}
 
-			var languages = item.Versions.GroupBy(x => x.Language.Name);
+			var languages = itemData.Versions.GroupBy(x => x.Language.Name);
 
 			foreach (var language in languages)
 			{

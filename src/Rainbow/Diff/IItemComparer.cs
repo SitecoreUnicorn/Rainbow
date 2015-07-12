@@ -4,7 +4,7 @@ namespace Rainbow.Diff
 {
 	public interface IItemComparer
 	{
-		ItemComparisonResult Compare(ISerializableItem targetItem, ISerializableItem sourceItem);
-		bool SimpleCompare(ISerializableItem targetItem, ISerializableItem sourceItem);
+		ItemComparisonResult Compare(IItemData targetItemData, IItemData sourceItemData);
+		bool SimpleCompare(IItemData targetItemData, IItemData sourceItemData);
 	}
 }

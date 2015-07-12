@@ -7,7 +7,7 @@ namespace Rainbow.Diff
 {
 	public class ItemVersionComparisonResult
 	{
-		public ItemVersionComparisonResult(ISerializableVersion sourceVersion, ISerializableVersion targetVersion, FieldComparisonResult[] changedFields)
+		public ItemVersionComparisonResult(IItemVersion sourceVersion, IItemVersion targetVersion, FieldComparisonResult[] changedFields)
 		{
 			SourceVersion = sourceVersion;
 			TargetVersion = targetVersion;
@@ -35,8 +35,8 @@ namespace Rainbow.Diff
 			}
 		}
 
-		public ISerializableVersion SourceVersion { get; private set; }
-		public ISerializableVersion TargetVersion { get; private set; }
+		public IItemVersion SourceVersion { get; private set; }
+		public IItemVersion TargetVersion { get; private set; }
 		public FieldComparisonResult[] ChangedFields { get; private set; }
 	}
 }
