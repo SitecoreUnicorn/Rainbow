@@ -10,16 +10,11 @@
 // TODO: updating items with a field when deleting a t-field and other TODO comments
 
 // TODO: file name shown in unicorn error messages appears to be incorrect
-// TODO: what if we made the sitecore db into a serialization store, and allowed you to generically diff serialization stores?
-	Could use that to diff serialization (for sitecore upgrades?), make update packages, etc
 // TODO: file pathing organization - long paths, ID-based, oh my.
-// TODO: what about implementing a separate diff engine that does the diff/comparison and generates a diff-list, which the deserializer could then pick up without recomparing?
-	- that said, doing this would mean that the diff engine would need to be comprehensive to get time savings on deserialization
-	- would enable "what if"
-	- would enable other diff/merge scenarios other than Unicorn
 
 // 3.1: roles support
 // 3.1: rejig unicorn sync into two-step 'compare, act' setup, with whatifs
+// 3.1: additional path providers/refactored path provider?
 
 Working architecture statements:
 - Project splits into three major components

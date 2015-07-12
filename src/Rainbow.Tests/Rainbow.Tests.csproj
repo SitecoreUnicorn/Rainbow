@@ -49,6 +49,8 @@
     <Compile Include="FakeFieldValue.cs" />
     <Compile Include="FakeItem.cs" />
     <Compile Include="FakeItemVersion.cs" />
+    <Compile Include="Filtering\ConfigurationFieldFilterTests.cs" />
+    <Compile Include="Filtering\FilteredItemTests.cs" />
     <Compile Include="Formatting\FieldFormatters\MultilistFormatterTests.cs" />
     <Compile Include="Formatting\FieldFormatters\XmlFieldFormatterTests.cs" />
     <Compile Include="Indexing\IndexTests.cs" />
