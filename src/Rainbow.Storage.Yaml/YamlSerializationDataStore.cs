@@ -29,6 +29,8 @@ namespace Rainbow.Storage.Yaml
 			_rootPath = rootPath;
 			_pathProvider = pathProvider;
 			_formatter = (YamlSerializationFormatter)formatter;
+
+			_pathProvider.FileExtension = ".yml";
 		}
 
 		public override IEnumerable<string> GetDatabaseNames()
