@@ -18,7 +18,7 @@ namespace Rainbow.Tests.Formatting.FieldFormatters
 		{
 			var formatter = new XmlFieldFormatter();
 
-			var result = formatter.Format(new FakeSerializableFieldValue(SourceValueExpectation));
+			var result = formatter.Format(new FakeFieldValue(SourceValueExpectation));
 
 			Assert.AreEqual(result, FormattedValueExpectation);
 		}

@@ -13,7 +13,7 @@ namespace Rainbow.Tests.Formatting.FieldFormatters
 		{
 			var formatter = new MultilistFormatter();
 
-			var result = formatter.Format(new FakeSerializableFieldValue(SourceValueExpectation));
+			var result = formatter.Format(new FakeFieldValue(SourceValueExpectation));
 
 			Assert.AreEqual(result, FormattedValueExpectation);
 		}

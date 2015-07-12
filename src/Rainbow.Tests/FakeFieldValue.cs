@@ -1,11 +1,11 @@
 ﻿using System;
 using Rainbow.Model;
 
-namespace Rainbow.Tests.Formatting.FieldFormatters
+namespace Rainbow.Tests
 {
-	public class FakeSerializableFieldValue : ISerializableFieldValue
+	public class FakeFieldValue : IItemFieldValue
 	{
-		public FakeSerializableFieldValue(string value, string fieldType = "Test", Guid fieldId = new Guid())
+		public FakeFieldValue(string value, string fieldType = "Test", Guid fieldId = new Guid())
 		{
 			Value = value;
 			FieldType = fieldType;

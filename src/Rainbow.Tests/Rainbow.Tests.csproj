@@ -36,12 +36,19 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Formatting\FieldFormatters\FakeSerializableFieldValue.cs" />
+    <Compile Include="Diff\Fields\DefaultComparisonTests.cs" />
+    <Compile Include="Diff\Fields\FieldComparerTest.cs" />
+    <Compile Include="Diff\Fields\XmlComparisonTests.cs" />
+    <Compile Include="Diff\ItemComparerTests.cs" />
+    <Compile Include="FakeFieldValue.cs" />
+    <Compile Include="FakeItem.cs" />
+    <Compile Include="FakeItemVersion.cs" />
     <Compile Include="Formatting\FieldFormatters\MultilistFormatterTests.cs" />
     <Compile Include="Formatting\FieldFormatters\XmlFieldFormatterTests.cs" />
     <Compile Include="Indexing\IndexTests.cs" />
