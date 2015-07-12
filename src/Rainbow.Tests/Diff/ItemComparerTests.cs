@@ -42,6 +42,66 @@ namespace Rainbow.Tests.Diff
 		}
 
 		[Test]
+		public void ItemComparer_IsNotEqual_WhenSharedFieldIsInSourceOnly()
+		{
+			var comparer = new TestItemComparer();
+
+			var sourceItem = new FakeItem(sharedFields: new[] { new FakeFieldValue("Hello") });
+			var targetItem = new FakeItem();
+
+			var comparison = comparer.Compare(sourceItem, targetItem);
+
+			Assert.IsFalse(comparison.AreEqual);
+			Assert.AreEqual(1, comparison.ChangedSharedFields.Length);
+			Assert.AreEqual("Hello", comparison.ChangedSharedFields[0].SourceField.Value);
+			Assert.IsNull(comparison.ChangedSharedFields[0].TargetField);
+		}
+
+		[Test]
+		public void ItemComparer_IsEqual_WhenSharedFieldIsInSourceOnly_AndValueIsEmpty()
+		{
+			var comparer = new TestItemComparer();
+
+			var sourceItem = new FakeItem(sharedFields: new[] { new FakeFieldValue(string.Empty) });
+			var targetItem = new FakeItem();
+
+			var comparison = comparer.Compare(sourceItem, targetItem);
+
+			Assert.IsTrue(comparison.AreEqual);
+			Assert.AreEqual(0, comparison.ChangedSharedFields.Length);
+		}
+
+		[Test]
+		public void ItemComparer_IsNotEqual_WhenSharedFieldIsInTargetOnly()
+		{
+			var comparer = new TestItemComparer();
+
+			var sourceItem = new FakeItem();
+			var targetItem = new FakeItem(sharedFields: new[] { new FakeFieldValue("Hello") });
+
+			var comparison = comparer.Compare(sourceItem, targetItem);
+
+			Assert.IsFalse(comparison.AreEqual);
+			Assert.AreEqual(1, comparison.ChangedSharedFields.Length);
+			Assert.AreEqual("Hello", comparison.ChangedSharedFields[0].TargetField.Value);
+			Assert.IsNull(comparison.ChangedSharedFields[0].SourceField);
+		}
+
+		[Test]
+		public void ItemComparer_IsEqual_WhenSharedFieldIsInTargetOnly_AndValueIsEmpty()
+		{
+			var comparer = new TestItemComparer();
+
+			var sourceItem = new FakeItem();
+			var targetItem = new FakeItem(sharedFields: new[] { new FakeFieldValue(string.Empty) });
+
+			var comparison = comparer.Compare(sourceItem, targetItem);
+
+			Assert.IsTrue(comparison.AreEqual);
+			Assert.AreEqual(0, comparison.ChangedSharedFields.Length);
+		}
+
+		[Test]
 		public void ItemComparer_IsNotEqual_WhenNewTargetVersionExists()
 		{
 			var comparer = new TestItemComparer();

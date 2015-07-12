@@ -138,19 +138,33 @@ namespace Rainbow.Diff
 		protected virtual FieldComparisonResult[] GetFieldDifferences(IEnumerable<IItemFieldValue> sourceFields, IEnumerable<IItemFieldValue> targetFields, IItemData existingItemData, IItemData serializedItemData, bool abortOnChangeFound)
 		{
 			var targetFieldIndex = targetFields.ToDictionary(x => x.FieldId);
+			var sourceFieldIndex = sourceFields.ToDictionary(x => x.FieldId);
 
 			var changedFields = new List<FieldComparisonResult>();
 
-			foreach (var sourceField in sourceFields)
+			foreach (var sourceField in sourceFieldIndex.Values)
 			{
 				bool isDifferent = IsFieldDifferent(sourceField, targetFieldIndex, sourceField.FieldId);
 
 				if (isDifferent)
 				{
-					changedFields.Add(new FieldComparisonResult(sourceField, targetFieldIndex[sourceField.FieldId]));
-					if (abortOnChangeFound) return changedFields.ToArray();
+					IItemFieldValue targetField;
+					if (targetFieldIndex.TryGetValue(sourceField.FieldId, out targetField))
+					{
+						changedFields.Add(new FieldComparisonResult(sourceField, targetField));
+						if (abortOnChangeFound) return changedFields.ToArray();
+					}
+					// NOTE: empty values in the source are considered to be 'allowed to not exist in the target'
+					else if (!string.IsNullOrEmpty(sourceField.Value))
+					{
+						changedFields.Add(new FieldComparisonResult(sourceField, null));
+						if (abortOnChangeFound) return changedFields.ToArray();
+					}
 				}
 			}
+
+			// add target-only fields to the changes
+			changedFields.AddRange(targetFieldIndex.Values.Where(field => !sourceFieldIndex.ContainsKey(field.FieldId) && !string.IsNullOrEmpty(field.Value)).Select(field => new FieldComparisonResult(null, field)));
 
 			return changedFields.ToArray();
 		}
