@@ -52,6 +52,7 @@
     <Compile Include="Diff\Fields\FieldComparisonResult.cs" />
     <Compile Include="Diff\Fields\FieldTypeBasedComparer.cs" />
     <Compile Include="Diff\Fields\IFieldComparer.cs" />
+    <Compile Include="Diff\Fields\MultiLineTextComparison.cs" />
     <Compile Include="Diff\Fields\XmlComparison.cs" />
     <Compile Include="Diff\IItemComparer.cs" />
     <Compile Include="Diff\ItemComparer.cs" />
