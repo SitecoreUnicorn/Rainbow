@@ -44,7 +44,7 @@ namespace Rainbow.Storage.Yaml
 
 			Directory.CreateDirectory(Path.GetDirectoryName(path));
 
-			using (var writer = File.OpenWrite(path))
+			using (var writer = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.None))
 			{
 				_formatter.WriteSerializedItem(item, writer);
 			}
