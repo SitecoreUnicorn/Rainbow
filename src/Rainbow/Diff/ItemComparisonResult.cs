@@ -1,19 +1,23 @@
 ﻿using Rainbow.Diff.Fields;
 using Rainbow.Model;
+using Sitecore.Diagnostics;
 
 namespace Rainbow.Diff
 {
 	public class ItemComparisonResult
 	{
-		public ItemComparisonResult(ISerializableItem sourceItem, ISerializableItem targetItem, bool isRenamed, bool isMoved, bool isTemplateChanged, FieldComparisonResult[] changedSharedFields, ItemVersionComparisonResult[] changedVersions)
+		public ItemComparisonResult(ISerializableItem sourceItem, ISerializableItem targetItem, bool isRenamed = false, bool isMoved = false, bool isTemplateChanged = false, FieldComparisonResult[] changedSharedFields = null, ItemVersionComparisonResult[] changedVersions = null)
 		{
+			Assert.ArgumentNotNull(sourceItem, "sourceItem");
+			Assert.ArgumentNotNull(targetItem, "targetItem");
+
 			SourceItem = sourceItem;
 			TargetItem = targetItem;
 			IsRenamed = isRenamed;
 			IsMoved = isMoved;
 			IsTemplateChanged = isTemplateChanged;
-			ChangedSharedFields = changedSharedFields;
-			ChangedVersions = changedVersions;
+			ChangedSharedFields = changedSharedFields ?? new FieldComparisonResult[0];
+			ChangedVersions = changedVersions ?? new ItemVersionComparisonResult[0];
 		}
 
 		public ISerializableItem SourceItem { get; private set; }

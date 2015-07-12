@@ -15,12 +15,9 @@ namespace Rainbow.Diff
 		private readonly IFieldFilter _fieldFilter;
 		protected readonly List<IFieldComparer> FieldComparers = new List<IFieldComparer>();
 
-		public ItemComparer(XmlNode configNode, IFieldFilter fieldFilter)
+		public ItemComparer(XmlNode configNode)
 		{
 			Assert.ArgumentNotNull(configNode, "configNode");
-			Assert.ArgumentNotNull(fieldFilter, "fieldFilter");
-
-			_fieldFilter = fieldFilter;
 
 			var comparers = configNode.ChildNodes;
 
@@ -33,15 +30,31 @@ namespace Rainbow.Diff
 			FieldComparers.Add(new DefaultComparison());
 		}
 
-		protected ItemComparer(List<IFieldComparer> fieldComparers, IFieldFilter fieldFilter)
+		protected ItemComparer(List<IFieldComparer> fieldComparers)
 		{
 			Assert.ArgumentNotNull(fieldComparers, "fieldComparers");
 
 			FieldComparers = fieldComparers;
-			_fieldFilter = fieldFilter;
 		}
 
+		/// <summary>
+		/// Compares two items and returns detailed differences between the two
+		/// </summary>
 		public virtual ItemComparisonResult Compare(ISerializableItem targetItem, ISerializableItem sourceItem)
+		{
+			return CompareInternal(targetItem, sourceItem, false);
+		}
+
+		/// <summary>
+		/// Compares two items and determines if they are equal or not, without details of the differences.
+		/// </summary>
+		/// <returns>True if equal, false if not equal</returns>
+		public bool SimpleCompare(ISerializableItem targetItem, ISerializableItem sourceItem)
+		{
+			return CompareInternal(targetItem, sourceItem, true).AreEqual;
+		}
+
+		protected virtual ItemComparisonResult CompareInternal(ISerializableItem targetItem, ISerializableItem sourceItem, bool abortOnChangeFound)
 		{
 			Assert.ArgumentNotNull(targetItem, "targetItem");
 			Assert.ArgumentNotNull(sourceItem, "sourceItem");
@@ -49,11 +62,15 @@ namespace Rainbow.Diff
 			bool moved = sourceItem.ParentId != targetItem.ParentId;
 
 			// check if templates are different
-			bool templatesMatch = IsTemplateChanged(sourceItem, targetItem);
+			bool templateChanged = IsTemplateChanged(sourceItem, targetItem);
+
+			if(abortOnChangeFound && templateChanged) return new ItemComparisonResult(sourceItem, targetItem, isTemplateChanged: true);
 
 			// check if names are different
 			bool renamed = IsRenamed(sourceItem, targetItem);
-			
+
+			if (abortOnChangeFound && renamed) return new ItemComparisonResult(sourceItem, targetItem, isRenamed: true);
+
 			var changedVersions = new List<ItemVersionComparisonResult>();
 
 			// check if source has version(s) that serialized does not
@@ -65,38 +82,42 @@ namespace Rainbow.Diff
 			{
 				// source contained versions not present in the serialized version, which is a difference
 				changedVersions.AddRange(orphanVersions.Select(version => new ItemVersionComparisonResult(version, null, null)));
+
+				if(abortOnChangeFound) return new ItemComparisonResult(sourceItem, targetItem, changedVersions: changedVersions.ToArray());
 			}
 
 			// check if shared fields have any mismatching values
-			var changedSharedFields = GetFieldDifferences(targetItem.SharedFields, sourceItem.SharedFields, sourceItem, targetItem);
+			var changedSharedFields = GetFieldDifferences(targetItem.SharedFields, sourceItem.SharedFields, sourceItem, targetItem, abortOnChangeFound);
+
+			if(changedSharedFields.Length > 0 && abortOnChangeFound) return new ItemComparisonResult(sourceItem, targetItem, changedSharedFields:changedSharedFields);
 
 			// see if the serialized versions have any mismatching values in the source data
-			var changedTargetVersions = targetItem.Versions.Select(targetVersion =>
+			var changedTargetVersions = new List<ItemVersionComparisonResult>();
+			foreach (var targetVersion in targetItem.Versions)
 			{
 				var sourceVersion = GetVersion(sourceItem, targetVersion.Language.Name, targetVersion.VersionNumber);
 
 				// version exists in target item but does not in source item
 				if (sourceVersion == null)
 				{
-					return new ItemVersionComparisonResult(null, targetVersion, null);
+					changedTargetVersions.Add(new ItemVersionComparisonResult(null, targetVersion, null));
+					if (abortOnChangeFound) break;
+					continue;
 				}
 
 				// field values mismatch
-				var changedFields = GetFieldDifferences(targetVersion.Fields, sourceVersion.Fields, sourceItem, targetItem);
+				var changedFields = GetFieldDifferences(targetVersion.Fields, sourceVersion.Fields, sourceItem, targetItem, abortOnChangeFound);
 				if (changedFields.Length > 0)
 				{
 					// field changes found
-					return new ItemVersionComparisonResult(sourceVersion, targetVersion, changedFields);
-				} 
-
-				// if we get here everything matches to the best of our knowledge, so we return null (e.g. "ignore this result")
-				return null;
-			})
-			.Where(version => version != null);
+					changedTargetVersions.Add(new ItemVersionComparisonResult(sourceVersion, targetVersion, changedFields));
+					if (abortOnChangeFound) break;
+				}
+			}
 
 			changedVersions.AddRange(changedTargetVersions);
 
-			return new ItemComparisonResult(sourceItem, targetItem, renamed, moved, templatesMatch, changedSharedFields, changedVersions.ToArray());
+			return new ItemComparisonResult(sourceItem, targetItem, renamed, moved, templateChanged, changedSharedFields, changedVersions.ToArray());
 		}
 
 		protected virtual bool IsRenamed(ISerializableItem existingItem, ISerializableItem serializedItem)
@@ -111,22 +132,26 @@ namespace Rainbow.Diff
 			return !serializedItem.TemplateId.Equals(existingItem.TemplateId);
 		}
 
-		protected virtual FieldComparisonResult[] GetFieldDifferences(IEnumerable<ISerializableFieldValue> sourceFields, IEnumerable<ISerializableFieldValue> targetFields, ISerializableItem existingItem, ISerializableItem serializedItem)
+		protected virtual FieldComparisonResult[] GetFieldDifferences(IEnumerable<ISerializableFieldValue> sourceFields, IEnumerable<ISerializableFieldValue> targetFields, ISerializableItem existingItem, ISerializableItem serializedItem, bool abortOnChangeFound)
 		{
 			var targetFieldIndex = targetFields.ToDictionary(x => x.FieldId);
 
-			return sourceFields.Select(sourceField =>
+			var changedFields = new List<FieldComparisonResult>();
+
+			foreach (var sourceField in sourceFields)
 			{
-				if (!_fieldFilter.Includes(sourceField.FieldId)) return null;
+				if (!_fieldFilter.Includes(sourceField.FieldId)) continue;
 
 				bool isDifferent = IsFieldDifferent(sourceField, targetFieldIndex, sourceField.FieldId);
 
-				if(isDifferent) return new FieldComparisonResult(sourceField, targetFieldIndex[sourceField.FieldId]);
+				if (isDifferent)
+				{
+					changedFields.Add(new FieldComparisonResult(sourceField, targetFieldIndex[sourceField.FieldId]));
+					if (abortOnChangeFound) return changedFields.ToArray();
+				}
+			}
 
-				return null;
-			})
-			.Where(result => result != null)
-			.ToArray();
+			return changedFields.ToArray();
 		}
 
 		protected virtual bool IsFieldDifferent(ISerializableFieldValue sourceField, Dictionary<Guid, ISerializableFieldValue> targetFields, Guid fieldId)
