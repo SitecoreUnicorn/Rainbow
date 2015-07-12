@@ -13,7 +13,6 @@ namespace Rainbow.Filtering
 	public class ConfigurationFieldFilter : IFieldFilter
 	{
 		private readonly HashSet<Guid> _excludedFieldIds = new HashSet<Guid>();
-		private readonly HashSet<string> _excludedFieldIdStrings = new HashSet<string>(); 
  
 		public ConfigurationFieldFilter(XmlNode configNode)
 		{
@@ -26,18 +25,12 @@ namespace Rainbow.Filtering
 				if (attribute == null || !Guid.TryParse(attribute.InnerText, out candidate)) continue;
 
 				_excludedFieldIds.Add(candidate);
-				_excludedFieldIdStrings.Add(candidate.ToString());
 			}
 		}
 
 		public bool Includes(Guid fieldId)
 		{
 			return !_excludedFieldIds.Contains(fieldId);
-		}
-
-		public bool Includes(string fieldId)
-		{
-			return !_excludedFieldIdStrings.Contains(fieldId);
 		}
 	}
 }

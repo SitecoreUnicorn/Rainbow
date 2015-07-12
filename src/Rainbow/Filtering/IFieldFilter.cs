@@ -9,6 +9,5 @@ namespace Rainbow.Filtering
 	public interface IFieldFilter
 	{
 		bool Includes(Guid fieldId);
-		bool Includes(string fieldId);
 	}
 }
