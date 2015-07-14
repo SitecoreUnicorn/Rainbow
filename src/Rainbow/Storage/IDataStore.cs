@@ -11,6 +11,10 @@ namespace Rainbow.Storage
 		/// <summary>
 		/// Saves an item into the store
 		/// </summary>
+		/// <remarks>
+		/// The store should internally detect if updates/moves/renamed are required to items based on current state.
+		/// Note: for moved items, pass in the FINAL path to move to, not the path being moved from (if it's a move within the store, we'll know the old path by ID from current state)
+		/// </remarks>
 		void Save(IItemData item);
 
 		/// <summary>
