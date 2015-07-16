@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Rainbow.Indexing;
 using Sitecore.Diagnostics;
+using Sitecore.StringExtensions;
 
 namespace Rainbow.Storage.Pathing
 {
@@ -48,6 +49,40 @@ namespace Rainbow.Storage.Pathing
 			paths.Push(rootPath);
 
 			return Path.Combine(paths.ToArray());
+		}
+
+		public string GetDatabaseNameFromPath(string physicalPath, string rootPath)
+		{
+			Assert.ArgumentNotNullOrEmpty(physicalPath, "physicalPath");
+			Assert.ArgumentNotNullOrEmpty(rootPath, "rootPath");
+
+			if(!physicalPath.StartsWith(rootPath)) throw new InvalidOperationException("Physical path was not under the root path.");
+
+			var relativePath = physicalPath.Substring(rootPath.Length).TrimStart(Path.DirectorySeparatorChar);
+
+			var indexOfSlash = relativePath.IndexOf(Path.DirectorySeparatorChar);
+
+			string result = relativePath;
+
+			if (indexOfSlash > 0) result = relativePath.Substring(0, indexOfSlash);
+
+			if(string.IsNullOrEmpty(result)) throw new InvalidOperationException("Path {0} did not result in a usable database name.".FormatWith(physicalPath));
+
+			return result;
+		}
+
+		public IndexEntry FindItemByPhysicalPath(string physicalPath, string rootPath, IIndex index)
+		{
+			Assert.ArgumentNotNullOrEmpty(physicalPath, "physicalPath");
+			Assert.ArgumentNotNull(index, "index");
+
+			var itemName = Path.GetFileNameWithoutExtension(physicalPath);
+
+			Guid id;
+
+			if (!Guid.TryParse(itemName, out id)) return null;
+
+			return index.GetById(id);
 		}
 
 		public IEnumerable<string> GetAllStoredPaths(string rootPath, string database)

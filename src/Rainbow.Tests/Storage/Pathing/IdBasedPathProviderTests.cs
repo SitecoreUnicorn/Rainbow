@@ -100,6 +100,38 @@ namespace Rainbow.Tests.Storage.Pathing
 			}
 		}
 
+		[Test]
+		public void GetDatabaseNameFromPath_ReturnsExpectedDatabase_WhenPathIsDeep()
+		{
+			var provider = new IdBasedPathProvider();
+			
+			Assert.AreEqual("master", provider.GetDatabaseNameFromPath(@"c:\temp\foo\master\bar\baz.ext", @"c:\temp\foo"));
+		}
+
+		[Test]
+		public void GetDatabaseNameFromPath_ReturnsExpectedDatabase_WhenPathIsShallow()
+		{
+			var provider = new IdBasedPathProvider();
+
+			Assert.AreEqual("master", provider.GetDatabaseNameFromPath(@"c:\temp\foo\master", @"c:\temp\foo"));
+		}
+
+		[Test]
+		public void GetDatabaseNameFromPath_Throws_WhenPathIsRoot()
+		{
+			var provider = new IdBasedPathProvider();
+
+			Assert.Throws<InvalidOperationException>(() => provider.GetDatabaseNameFromPath(@"c:\temp\foo", @"c:\temp\foo"));
+		}
+
+		[Test]
+		public void GetDatabaseNameFromPath_Throws_WhenPathIsUnrooted()
+		{
+			var provider = new IdBasedPathProvider();
+
+			Assert.Throws<InvalidOperationException>(() => provider.GetDatabaseNameFromPath(@"c:\temp\foo", @"c:\bar\foo"));
+		}
+
 		private string GetTemporaryDirectory()
 		{
 			string tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());

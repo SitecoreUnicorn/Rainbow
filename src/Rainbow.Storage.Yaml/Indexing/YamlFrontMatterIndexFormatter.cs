@@ -43,15 +43,6 @@ namespace Rainbow.Storage.Yaml.Indexing
 			throw new NotImplementedException();
 		}
 
-		/*
-		 * Front matter is a fixed length data index set.
-		 * Format (GUID is 36 chars):
-		 * ID $guid\r\n
-		 * PID $guid\r\n
-		 * TID $guid\r\n
-		 * PATH $path\r\n
-		 * # begin regular matter
-		 */
 		protected virtual IndexEntry ReadFrontMatter(Stream inputStream)
 		{
 			var entry = new IndexEntry();
