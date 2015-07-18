@@ -8,7 +8,6 @@ using System.Xml;
 using Rainbow.Filtering;
 using Rainbow.Formatting;
 using Rainbow.Formatting.FieldFormatters;
-using Rainbow.Indexing;
 using Rainbow.Model;
 using Rainbow.Storage.Yaml.Formatting.OutputModel;
 using Sitecore.Configuration;
@@ -75,45 +74,55 @@ namespace Rainbow.Storage.Yaml.Formatting
 			}
 		}
 
+		public string FileExtension { get { return ".yml"; } }
+
 		[DebuggerDisplay("{Name} ({DatabaseName}::{Id}) [YAML - {SerializedItemId}]")]
 		protected class YamlItemData : IItemData
 		{
 			private readonly YamlItem _item;
 			private readonly string _serializedItemId;
 			private readonly IFieldFormatter[] _formatters;
-			private IndexEntry _indexEntry;
+			private readonly IDataStore _sourceDataStore;
 
-			public YamlItemData(YamlItem item, string serializedItemId, IFieldFormatter[] formatters)
+			public YamlItemData(YamlItem item, string serializedItemId, IFieldFormatter[] formatters, IDataStore sourceDataStore)
 			{
 				_item = item;
 				_serializedItemId = serializedItemId;
 				_formatters = formatters;
-				_indexEntry = new IndexEntry
-				{
-					Id = item.Id,
-					ParentId = item.ParentId,
-					TemplateId = item.TemplateId,
-					Path = item.Path
-				};
+				_sourceDataStore = sourceDataStore;
 			}
 
-			public Guid Id { get { return _indexEntry.Id; } }
+			public Guid Id { get { return _item.Id; } }
 
 			/// <remarks>The storage provider should set this automatically.</remarks>
 			public string DatabaseName { get; set; }
 
-			public Guid ParentId { get { return _indexEntry.ParentId; } }
+			public Guid ParentId { get { return _item.ParentId; } }
 
-			public string Path { get { return _indexEntry.Path; } }
+			public string Path { get { return _item.Path; } }
 
-			public string Name { get { return _indexEntry.Name; } }
+			public string Name
+			{
+				get
+				{
+					if (Path == null) return null;
+
+					var trimmedPath = Path.TrimEnd('/');
+
+					var index = trimmedPath.LastIndexOf('/');
+
+					if (index < 0) return Path;
+
+					return trimmedPath.Substring(index + 1);
+				}
+			}
 
 			public Guid BranchId
 			{
 				get { return _item.BranchId; }
 			}
 
-			public Guid TemplateId { get { return _indexEntry.TemplateId; } }
+			public Guid TemplateId { get { return _item.TemplateId; } }
 
 			public IEnumerable<IItemFieldValue> SharedFields
 			{
@@ -142,11 +151,9 @@ namespace Rainbow.Storage.Yaml.Formatting
 				get { return _serializedItemId; }
 			}
 
-			public void AddIndexData(IndexEntry indexEntry)
+			public IEnumerable<IItemData> GetChildren()
 			{
-				Assert.ArgumentNotNull(indexEntry, "indexEntry");
-
-				_indexEntry = indexEntry;
+				return _sourceDataStore.GetChildren(this);
 			}
 		}
 

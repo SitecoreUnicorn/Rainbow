@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Rainbow.Indexing;
 
 namespace Rainbow.Model
 {
@@ -21,6 +20,6 @@ namespace Rainbow.Model
 		/// </summary>
 		string SerializedItemId { get; }
 
-		void AddIndexData(IndexEntry indexEntry);
+		IEnumerable<IItemData> GetChildren();
 	}
 }

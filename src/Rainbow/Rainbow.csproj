@@ -30,15 +30,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AlphaFS">
-      <HintPath>..\..\packages\AlphaFS.2.0.1\lib\net45\AlphaFS.dll</HintPath>
-    </Reference>
     <Reference Include="Sitecore.Kernel">
       <HintPath>..\..\lib\Sitecore\v7\Sitecore.Kernel.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Xml" />
@@ -64,25 +62,16 @@
     <Compile Include="Formatting\FieldFormatters\IFieldFormatter.cs" />
     <Compile Include="Formatting\FieldFormatters\MultilistFormatter.cs" />
     <Compile Include="Formatting\FieldFormatters\XmlFieldFormatter.cs" />
-    <Compile Include="Indexing\IIndexFactory.cs" />
-    <Compile Include="Indexing\IIndexFormatter.cs" />
     <Compile Include="Formatting\ISerializationFormatter.cs" />
-    <Compile Include="Indexing\LineOrientedIndexFormatter.cs" />
-    <Compile Include="Indexing\IIndex.cs" />
     <Compile Include="Storage\IDataStore.cs" />
     <Compile Include="Model\IItemFieldValue.cs" />
     <Compile Include="Model\IItemData.cs" />
     <Compile Include="Model\IItemVersion.cs" />
-    <Compile Include="Storage\IndexedTransactionalFileSystemDataStore.cs" />
-    <Compile Include="Indexing\IndexEntry.cs" />
-    <Compile Include="Indexing\Index.cs" />
-    <Compile Include="Storage\Pathing\IFileSystemPathProvider.cs" />
-    <Compile Include="Storage\Pathing\IdBasedPathProvider.cs" />
-    <Compile Include="Storage\IndexedDataStore.cs" />
+    <None Include="Experimental\Pathing\IFileSystemPathProvider.csx" />
+    <None Include="Experimental\Pathing\IdBasedPathProvider.csx" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
+    <Compile Include="Storage\FileSystemDataStore.cs" />
+    <Compile Include="Storage\SFS\SfsTree.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="TODO.txt" />

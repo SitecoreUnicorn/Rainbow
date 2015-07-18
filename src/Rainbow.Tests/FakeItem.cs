@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Rainbow.Indexing;
 using Rainbow.Model;
 
 namespace Rainbow.Tests
 {
-	public class FakeItem :IItemData
+	public class FakeItem : IItemData
 	{
-		public FakeItem(Guid id = default(Guid), string databaseName = "master", Guid parentId = default(Guid), string path = "/sitecore/content/test item", string name = "test item", Guid branchId = default(Guid), Guid templateId = default(Guid), IEnumerable<IItemFieldValue> sharedFields = null, IEnumerable<IItemVersion> versions = null, string serializedItemId = "0xDEADBEEF")
+		private readonly IItemData[] _children;
+
+		public FakeItem(Guid id = default(Guid), string databaseName = "master", Guid parentId = default(Guid), string path = "/sitecore/content/test item", string name = "test item", Guid branchId = default(Guid), Guid templateId = default(Guid), IEnumerable<IItemFieldValue> sharedFields = null, IEnumerable<IItemVersion> versions = null, string serializedItemId = "0xDEADBEEF", IEnumerable<IItemData> children = null)
 		{
 			ParentId = parentId;
 			Path = path;
@@ -22,6 +21,7 @@ namespace Rainbow.Tests
 			SerializedItemId = serializedItemId;
 			Id = id;
 			DatabaseName = databaseName;
+			_children = children != null ? children.ToArray() : new IItemData[0];
 		}
 
 		public Guid Id { get; }
@@ -34,10 +34,9 @@ namespace Rainbow.Tests
 		public IEnumerable<IItemFieldValue> SharedFields { get; }
 		public IEnumerable<IItemVersion> Versions { get; }
 		public string SerializedItemId { get; }
-
-		public void AddIndexData(IndexEntry indexEntry)
+		public IEnumerable<IItemData> GetChildren()
 		{
-			throw new NotImplementedException();
+			return _children;
 		}
 	}
 }

@@ -44,8 +44,6 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Formatting\YamlSerializationFormatter.cs" />
-    <Compile Include="Indexing\YamlFrontMatterIndexFactory.cs" />
-    <Compile Include="Indexing\YamlFrontMatterIndexFormatter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Formatting\OutputModel\YamlFieldValue.cs" />
     <Compile Include="Formatting\OutputModel\YamlItem.cs" />
@@ -53,7 +51,7 @@
     <Compile Include="Formatting\YamlReader.cs" />
     <Compile Include="Formatting\OutputModel\YamlVersion.cs" />
     <Compile Include="Formatting\YamlWriter.cs" />
-    <Compile Include="YamlSerializationDataStore.cs" />
+    <None Include="YamlSerializationDataStore.csx" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Rainbow\Rainbow.csproj">

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Rainbow.Model;
 using Rainbow.Storage.Sc.Deserialization;
-using Sitecore;
 using Sitecore.Configuration;
 using Sitecore.Data;
 using Sitecore.Data.Events;
@@ -32,19 +31,9 @@ namespace Rainbow.Storage.Sc
 			_deserializer.Deserialize(item, false);
 		}
 
-		public IItemData GetById(Guid itemId, string database)
+		public void MoveOrRenameItem(IItemData itemWithFinalPath, string oldPath)
 		{
-			Assert.ArgumentNotNullOrEmpty(database, "database");
-
-			Database db = GetDatabase(database);
-
-			Assert.IsNotNull(db, "Database " + database + " did not exist!");
-
-			var dbItem = db.GetItem(new ID(itemId));
-
-			if (dbItem == null) return null;
-
-			return new ItemData(dbItem);
+			throw new NotImplementedException();
 		}
 
 		public IEnumerable<IItemData> GetByPath(string path, string database)
@@ -60,48 +49,20 @@ namespace Rainbow.Storage.Sc
 
 			if (dbItem == null) yield break;
 
-			yield return new ItemData(dbItem);
+			yield return new ItemData(dbItem, this);
 		}
 
-		public IEnumerable<IItemData> GetByTemplate(Guid templateId, string database)
+		public IEnumerable<IItemData> GetChildren(IItemData parentItem)
 		{
-			Assert.ArgumentNotNullOrEmpty(database, "database");
-			
-			var db = GetDatabase(database);
-			var templateItem = db.GetItem(new ID(templateId));
+			Assert.ArgumentNotNull(parentItem, "parentItem");
 
-			if (templateItem == null) return Enumerable.Empty<IItemData>();
-
-			return Globals.LinkDatabase.GetReferrers(templateItem)
-				.Where(link => link.SourceDatabaseName.Equals(database, StringComparison.OrdinalIgnoreCase) && link.SourceFieldID == ID.Null)
-				.Select(link => link.GetSourceItem())
-				.Where(linkItem => linkItem != null && linkItem.TemplateID.Equals(new ID(templateId)))
-				.Select(linkItem => new ItemData(linkItem));
-		}
-
-		public IEnumerable<IItemData> GetChildren(Guid parentId, string database)
-		{
-			Assert.ArgumentNotNullOrEmpty(database, "database");
-
-			var db = GetDatabase(database);
+			var db = GetDatabase(parentItem.DatabaseName);
 
 			Assert.IsNotNull(db, "Database of item was null! Security issue?");
 
-			var item = db.GetItem(new ID(parentId));
+			var item = db.GetItem(new ID(parentItem.Id));
 
-			return item.Children.Select(child => (IItemData)new ItemData(child)).ToArray();
-		}
-
-		public IEnumerable<IItemData> GetDescendants(Guid parentId, string database)
-		{
-			Assert.ArgumentNotNullOrEmpty(database, "database");
-
-			var db = GetDatabase(database);
-
-			Assert.IsNotNull(db, "Database of item was null! Security issue?");
-
-			return db.GetItem(new ID(parentId)).Axes.GetDescendants()
-				.Select(descendant => new ItemData(descendant));
+			return item.Children.Select(child => (IItemData)new ItemData(child, this)).ToArray();
 		}
 
 		public void CheckConsistency(string database, bool fixErrors, Action<string> logMessageReceiver)
@@ -117,15 +78,15 @@ namespace Rainbow.Storage.Sc
 			}
 		}
 
-		public bool Remove(Guid itemId, string database)
+		public bool Remove(IItemData item)
 		{
-			var databaseRef = GetDatabase(database);
-			var scId = new ID(itemId);
-			var item = databaseRef.GetItem(scId);
+			var databaseRef = GetDatabase(item.DatabaseName);
+			var scId = new ID(item.Id);
+			var scItem = databaseRef.GetItem(scId);
 
-			if (item == null) return false;
+			if (scItem == null) return false;
 
-			item.Recycle();
+			scItem.Recycle();
 
 			if (EventDisabler.IsActive)
 			{
@@ -133,7 +94,7 @@ namespace Rainbow.Storage.Sc
 				databaseRef.Caches.DataCache.RemoveItemInformation(scId);
 			}
 
-			if (databaseRef.Engines.TemplateEngine.IsTemplatePart(item))
+			if (databaseRef.Engines.TemplateEngine.IsTemplatePart(scItem))
 			{
 				databaseRef.Engines.TemplateEngine.Reset();
 			}

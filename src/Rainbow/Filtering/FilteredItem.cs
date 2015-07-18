@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Rainbow.Indexing;
 using Rainbow.Model;
 using Sitecore.Diagnostics;
 
@@ -46,9 +45,9 @@ namespace Rainbow.Filtering
 		}
 
 		public string SerializedItemId { get { return _itemData.SerializedItemId; } }
-		public void AddIndexData(IndexEntry indexEntry)
+		public IEnumerable<IItemData> GetChildren()
 		{
-			_itemData.AddIndexData(indexEntry);
+			return _itemData.GetChildren();
 		}
 
 		protected class FilteredVersion : IItemVersion

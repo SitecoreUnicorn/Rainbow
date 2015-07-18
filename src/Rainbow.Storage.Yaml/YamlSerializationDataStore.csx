@@ -10,6 +10,7 @@ using Rainbow.Storage.Pathing;
 using Rainbow.Storage.Yaml.Formatting;
 using Rainbow.Storage.Yaml.Indexing;
 using Sitecore.Diagnostics;
+using Sitecore.IO;
 using Sitecore.StringExtensions;
 
 namespace Rainbow.Storage.Yaml
@@ -19,9 +20,8 @@ namespace Rainbow.Storage.Yaml
 		private readonly string _rootPath;
 		private readonly IFileSystemPathProvider _pathProvider;
 		private readonly YamlSerializationFormatter _formatter;
-		private readonly FileSystemWatcher _watcher;
 
-		public YamlSerializationDataStore(string rootPath, bool watchForChanges, IFileSystemPathProvider pathProvider, ISerializationFormatter formatter)
+		public YamlSerializationDataStore(string rootPath, IFileSystemPathProvider pathProvider, ISerializationFormatter formatter)
 			: base(new YamlFrontMatterIndexFactory(rootPath, pathProvider))
 		{
 			Assert.ArgumentNotNullOrEmpty(rootPath, "rootPath");
@@ -33,15 +33,6 @@ namespace Rainbow.Storage.Yaml
 			_formatter = (YamlSerializationFormatter)formatter;
 
 			_pathProvider.FileExtension = ".yml";
-
-			if (watchForChanges)
-			{
-				_watcher = new FileSystemWatcher(rootPath, "*") { IncludeSubdirectories = true };
-				_watcher.Changed += OnFileChanged;
-				_watcher.Created += OnFileChanged;
-				_watcher.Deleted += OnFileChanged;
-				_watcher.EnableRaisingEvents = true;
-			}
 		}
 
 		public override IEnumerable<string> GetDatabaseNames()
@@ -55,9 +46,12 @@ namespace Rainbow.Storage.Yaml
 
 			Directory.CreateDirectory(Path.GetDirectoryName(path));
 
-			using (var writer = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.None))
+			lock (FileUtil.GetFileLock(path))
 			{
-				_formatter.WriteSerializedItem(item, writer);
+				using (var writer = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.None))
+				{
+					_formatter.WriteSerializedItem(item, writer);
+				}
 			}
 
 			GetIndexForDatabase(item.DatabaseName).Update(new IndexEntry().LoadFrom(item));
@@ -121,79 +115,6 @@ namespace Rainbow.Storage.Yaml
 
 				return result;
 			}
-		}
-
-		protected virtual void OnFileChanged(object source, FileSystemEventArgs args)
-		{
-			var changeType = args.ChangeType;
-
-			if (!File.Exists(args.FullPath)) return;
-
-			if (changeType == WatcherChangeTypes.Created || changeType == WatcherChangeTypes.Changed)
-			{
-				Log.Info(string.Format("[Rainbow] Serialized item {0} changed ({1}), updating index.", args.FullPath, changeType), this);
-
-				const int retries = 4;
-				for (int i = 0; i < retries; i++)
-				{
-					try
-					{
-						using (var stream = File.OpenRead(args.FullPath))
-						{
-							var yamlItem = _formatter.ReadSerializedItem(stream, args.FullPath);
-
-							var indexEntry = new IndexEntry
-							{
-								Id = yamlItem.Id,
-								ParentId = yamlItem.ParentId,
-								Path = yamlItem.Path,
-								TemplateId = yamlItem.TemplateId
-							};
-
-							var databaseName = _pathProvider.GetDatabaseNameFromPath(args.FullPath, _rootPath);
-
-							GetIndexForDatabase(databaseName).Update(indexEntry);
-						}
-					}
-					catch (IOException iex)
-					{
-						// this is here because FSW can tell us the file has changed
-						// BEFORE it's done with writing. So if we get access denied,
-						// we wait 500ms and retry up to 4x before rethrowing
-						if (i < retries - 1)
-						{
-							Thread.Sleep(500);
-							continue;
-						}
-
-						Log.Error("[Rainbow] Failed to read serialization file " + args.FullPath, iex, this);
-					}
-					catch (Exception ex)
-					{
-						Log.Warn("[Rainbow] Unable to parse changed item {0}; will retry if changed again.".FormatWith(args.FullPath), ex, this);
-					}
-
-					break;
-				}
-			}
-
-			if (changeType == WatcherChangeTypes.Deleted)
-			{
-				Log.Info(string.Format("[Rainbow] Serialized item {0} deleted, updating index.", args.FullPath), this);
-
-				var databaseName = _pathProvider.GetDatabaseNameFromPath(args.FullPath, _rootPath);
-
-				var index = GetIndexForDatabase(databaseName);
-
-				var indexEntry = _pathProvider.FindItemByPhysicalPath(args.FullPath, _rootPath, index);
-
-				if (indexEntry != null) index.Remove(indexEntry.Id);
-			}
-		}
-
-		~YamlSerializationDataStore()
-		{
-			if(_watcher != null) _watcher.Dispose();
 		}
 	}
 }

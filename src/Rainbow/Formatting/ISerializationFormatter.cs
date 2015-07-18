@@ -7,5 +7,7 @@ namespace Rainbow.Formatting
 	{
 		IItemData ReadSerializedItem(Stream dataStream, string serializedItemId);
 		void WriteSerializedItem(IItemData itemData, Stream outputStream);
+
+		string FileExtension { get; }
 	}
 }

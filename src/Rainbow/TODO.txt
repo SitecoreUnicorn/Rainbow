@@ -1,14 +1,24 @@
-﻿// TODO: need a way to ignore moving descendants of moves to ignored paths in the predicate
+﻿// TODO: figure out handling of getting children for post-move serialization. We added the prop to the items, but the data store that gets children is not always available and may not be a simple matter of injection due to source/target semantics
+// TODO: implement the hard part of SFS (get target path with looping)
+	- Implement unit tests for SFS
+// TODO: go looking for NotImplementedExceptions()
+
+// TODO: if you edit the template value on E1EAE8FF-9FC8-43D4-8C52-477D07722F74, and save then sync, the template you set is PERMANENTLY DELETED from sitecore. WTFF?
+// TODO: need a way to ignore moving descendants of moves to ignored paths in the predicate
 	e.g. you move /foo/bar to /foot/bar. but /foot/bar/baz is on ignore list. the moved baz item should be deleted instead of moved. see movedescendants in the old serialization provider.
 // TODO: 'default' root path semantic not supported
-// TODO: unicorn reserialize does not delete existing gib folders
-// TODO: do something with the transactional filesystem provider and line oriented index file stuff. deprecate? leave in experimental namespace?
 // TODO: formatting of security field values?
 // TODO: add consistency checking to unicorn control panel, 
+// TODO: Replace client serialize commands with unicorn config aware ones that conditionally use Uni configs
 // TODO: updating items with a field when deleting a t-field and other TODO comments
+// TODO: SPE extensions
+	- Get-RainbowItemData: Gets IItemData from a sitecore item (or disk?)
+	- Export-SerializedItem: Serialize an item with a specified formatter, to cmd output
+	- Import-SerializedItem -Data $serializedItem: Loads an item from a formatter into Sitecore
+	- Sync-UnicornConfiguration -Config "Default Configuration"
+	- Export-UnicornConfiguration (runs reserialize)
 
 // TODO: file name shown in unicorn error messages appears to be incorrect
-// TODO: file pathing organization - long paths, ID-based, oh my.
 
 // 3.1: roles support
 // 3.1: rejig unicorn sync into two-step 'compare, act' setup, with whatifs
@@ -37,9 +47,10 @@ Pathing provider thoughts
 	Would save a lot of path length but would be a paradigm change from a 'data store'
 
 - CHALLENGES:
-	Same named items in same tree location. Gets ugly when keying filenames by something non unique.
+	Same named items in same tree location. Gets ugly when keying filenames by something non unique, for example if there are two /foo/bar what does it mean when you request /foo/bar/baz?
 	Sparse trees - e.g. /sitecore wont be actually in the store, but /sitecore/templates/Sites would be - traversal of whole tree with unknown parent nodes, hopefully without 'references'
 	Moving and renaming items
-	Efficient get item by ID
-	Human readability
+	Efficient get item by ID - or at least 'by unambiguous path'
+	Path based hierarchy for humans
 	Cleanup after deleting items (e.g. empty folders)
+	Unlimited file path depth 

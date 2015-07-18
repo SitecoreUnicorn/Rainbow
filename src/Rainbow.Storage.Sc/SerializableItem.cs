@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using Rainbow.Indexing;
 using Rainbow.Model;
 using Sitecore.Data.Fields;
 using Sitecore.Data.Items;
@@ -13,12 +12,14 @@ namespace Rainbow.Storage.Sc
 	public class ItemData : IItemData
 	{
 		private readonly Item _item;
+		private readonly IDataStore _sourceDataStore;
 		private Item[] _itemVersions;
 		private bool _fieldsLoaded = false;
 
-		public ItemData(Item item)
+		public ItemData(Item item, IDataStore sourceDataStore)
 		{
 			_item = item;
+			_sourceDataStore = sourceDataStore;
 		}
 
 		public Guid Id
@@ -89,9 +90,9 @@ namespace Rainbow.Storage.Sc
 			get { return "(from Sitecore database)"; }
 		}
 
-		public void AddIndexData(IndexEntry indexEntry)
+		public IEnumerable<IItemData> GetChildren()
 		{
-			throw new NotImplementedException("You cannot merge a Sitecore Item-based serializable with the index, as it is already a complete data set.");
+			return _sourceDataStore.GetChildren(this);
 		}
 
 		protected void EnsureFields()
