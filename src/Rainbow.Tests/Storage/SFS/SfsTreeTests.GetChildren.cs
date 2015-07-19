@@ -146,29 +146,5 @@ namespace Rainbow.Tests.Storage.SFS
 				Assert.AreEqual(children[0].Name, "$head");
 			}
 		}
-
-		[Test]
-		public void GetChildren_ReturnsExpectedChildren_WhenChildrenAreInLoopbackFolder()
-		{
-			throw new NotImplementedException();
-		}
-
-		[Test]
-		public void GetChildren_ReturnsExpectedChildren_WhenChildrenAreInChildOfLoopbackFolder()
-		{
-			throw new NotImplementedException();
-		}
-
-		[Test]
-		public void GetChildren_ReturnsExpectedChildren_WhenChildrenAreInDoubleLoopbackFolder()
-		{
-			throw new NotImplementedException();
-		}
-
-		[Test]
-		public void GetChildren_ReturnsExpectedChildren_WhenChildrenAreInChildOfDoubleLoopbackFolder()
-		{
-			throw new NotImplementedException();
-		}
 	}
 }

@@ -50,6 +50,7 @@ namespace Rainbow.Storage.SFS
 			- honk
 				- wonk
 	*/
+
 	/// <summary>
 	/// Represents a tree of items in a Serialization File System (SFS) organization
 	/// SFS is similar to Sitecore standard, but accounts for things that Sitecore does not do very well,
@@ -69,7 +70,8 @@ namespace Rainbow.Storage.SFS
 		/// <param name="databaseName">Name of the database the items in this tree are from. This is for your reference and help when resolving this tree as a destination, and is not directly used.</param>
 		/// <param name="physicalRootPath">The physical root path to write items in this tree to. Will be created if it does not exist.</param>
 		/// <param name="formatter">The formatter to use when reading or writing items to disk</param>
-		public SfsTree(string name, string globalRootItemPath, string databaseName, string physicalRootPath, ISerializationFormatter formatter)
+		public SfsTree(string name, string globalRootItemPath, string databaseName, string physicalRootPath,
+			ISerializationFormatter formatter)
 		{
 			Assert.ArgumentNotNullOrEmpty(globalRootItemPath, "globalRootItemPath");
 			Assert.ArgumentNotNullOrEmpty(databaseName, "databaseName");
@@ -102,7 +104,8 @@ namespace Rainbow.Storage.SFS
 
 			if (rootItem.Length == 0) return null;
 
-			if (rootItem.Length > 1) throw new InvalidOperationException("Found multiple root items in " + PhysicalRootPath + "! This is not valid: a tree may only have one root inode.");
+			if (rootItem.Length > 1)
+				throw new InvalidOperationException("Found multiple root items in " + PhysicalRootPath + "! This is not valid: a tree may only have one root inode.");
 
 			return ReadItem(rootItem[0]);
 		}
@@ -130,6 +133,7 @@ namespace Rainbow.Storage.SFS
 			2. Use 'finding child paths, given a physical path' recursively to find all descendant items including through loopbacks
 			3. Starting at the deepest paths, begin deleting item files and - if present - children subfolders, until all are gone
 		*/
+
 		public bool Remove(IItemData item)
 		{
 			Assert.ArgumentNotNull(item, "item");
@@ -147,8 +151,13 @@ namespace Rainbow.Storage.SFS
 				lock (FileUtil.GetFileLock(descendant.SerializedItemId))
 				{
 					File.Delete(descendant.SerializedItemId);
+
 					var childrenDirectory = Path.ChangeExtension(descendant.SerializedItemId, null);
-					if(Directory.Exists(childrenDirectory)) Directory.Delete(childrenDirectory, true);
+
+					if (Directory.Exists(childrenDirectory)) Directory.Delete(childrenDirectory, true);
+
+					var shortChildrenDirectory = Path.Combine(PhysicalRootPath, descendant.Id.ToString());
+					if(Directory.Exists(shortChildrenDirectory)) Directory.Delete(shortChildrenDirectory);
 				}
 			}
 
@@ -160,6 +169,7 @@ namespace Rainbow.Storage.SFS
 		- Get the parent item from the tree, if it exists (error if not exists)
 		- Save the child item into the tree (replace existing if same ID, or add new if no matching name OR no matching ID)
 		*/
+
 		public void Save(IItemData item)
 		{
 			Assert.ArgumentNotNull(item, "item");
@@ -207,7 +217,8 @@ namespace Rainbow.Storage.SFS
 		{
 			Assert.ArgumentNotNullOrEmpty(globalPath, "globalPath");
 
-			if (!globalPath.StartsWith(_globalRootItemPath)) throw new InvalidOperationException("The global path {0} was not rooted under the local item root path {1}. This means you tried to put an item where it didn't belong.".FormatWith(globalPath, _globalRootItemPath));
+			if (!globalPath.StartsWith(_globalRootItemPath))
+				throw new InvalidOperationException("The global path {0} was not rooted under the local item root path {1}. This means you tried to put an item where it didn't belong.".FormatWith(globalPath, _globalRootItemPath));
 
 			// we want to preserve the last segment in the global path because the root virtual path is considered to contain that
 			// e.g. if the global path is "/sitecore/templates" we want the converted path to start with /templates - e.g. /sitecore/templates/foo -> /templates/foo
@@ -230,11 +241,9 @@ namespace Rainbow.Storage.SFS
 				6. The path string is now the 'base' path, which may be too long to use
 				7. Determine if the base-string is over-length (which would be 240-$(Serialization.SerializationFolderPathMaxLength))
 					- If the base string is short enough, return it
-				8. Break up the path into an array. Loop over it, counting length up until you find the node that gets too long
-				9. Start up a new path parts list, and as you keep looping over the parts of the base string add to this 'loopback path' until - if necessary - this one gets too long as well (note: length limit is -35 for this due to guid root folder)
-				10. If the 'overlength path array' fills, clear it and cycle again
-				11. Create the absolute path to the SFS root + the loopback path and return it
+				8. If it's over length create a folder named the parent ID in the root folder, and put it there
 		*/
+
 		protected virtual string GetTargetPhysicalPath(IItemData item)
 		{
 			Assert.ArgumentNotNull(item, "item");
@@ -243,7 +252,9 @@ namespace Rainbow.Storage.SFS
 
 			// if the item is the root item in our tree, we return the root physical path
 			var localPath = ConvertGlobalVirtualPathToTreeVirtualPath(item.Path);
-			if (localPath.LastIndexOf('/') == 0) return Path.Combine(PhysicalRootPath, strippedItemName + _formatter.FileExtension); // if it's the root item, well yeah it won't have a parent. And we know the right path too :)
+			if (localPath.LastIndexOf('/') == 0)
+				return Path.Combine(PhysicalRootPath, strippedItemName + _formatter.FileExtension);
+			// if it's the root item, well yeah it won't have a parent. And we know the right path too :)
 
 			var parentItem = GetParentSerializedItem(item);
 
@@ -270,7 +281,8 @@ namespace Rainbow.Storage.SFS
 					break;
 				}
 
-				if (candidate.Id != item.Id && candidate.Name.Equals(item.Name, StringComparison.OrdinalIgnoreCase) && basePath == null)
+				if (candidate.Id != item.Id && candidate.Name.Equals(item.Name, StringComparison.OrdinalIgnoreCase) &&
+					basePath == null)
 				{
 					// we found an item with a different ID, and the same name - so we need to escape this item's name
 					basePath = string.Concat(Path.ChangeExtension(parentItem.SerializedItemId, null), Path.DirectorySeparatorChar, strippedItemName, "_", item.Id, _formatter.FileExtension);
@@ -278,19 +290,19 @@ namespace Rainbow.Storage.SFS
 			}
 
 			// no dupes or existing item found - create default base path
-			if (basePath == null) basePath = string.Concat(Path.ChangeExtension(parentItem.SerializedItemId, null), Path.DirectorySeparatorChar, strippedItemName, _formatter.FileExtension);
+			if (basePath == null)
+				basePath = string.Concat(Path.ChangeExtension(parentItem.SerializedItemId, null), Path.DirectorySeparatorChar, strippedItemName, _formatter.FileExtension);
 
 			// Determine if the base-string is over - length(which would be 240 -$(Serialization.SerializationFolderPathMaxLength))
-			// TODO: move the settings somewhere tests can inject?
-			int maxPathLength = 240 - Settings.GetIntSetting("Serialization.SerializationFolderPathMaxLength", 80);
+			int maxPathLength = MaxPathLength;
 
+			// path not over length = return it and we're done here
 			if (basePath.Length < maxPathLength) return basePath;
 
-			// Break up the path into an array. Loop over it, counting length up until you find the node that gets too long
-			// Start up a new path parts list, and as you keep looping over the parts of the base string add to this 'loopback path' until - if necessary - this one gets too long as well (note: length limit is - 35 for this due to guid root folder)
-			// If the 'overlength path array' fills, clear it and cycle again
-			// Create the absolute path to the SFS root + the loopback path and return it
-			throw new NotImplementedException();
+			// ok we have a path that will be too long for Windows once we combine the parent's physical path with the item's name (and/or name deduping ID)
+			// since we know it won't fit in the parent, we create a folder in the root named the parent's ID, and drop that as the item's base path
+			// e.g. c:\foo\long\path\foo.yml > c:\foo\[id-of-path]\foo.yml
+			return Path.Combine(PhysicalRootPath, parentItem.Id.ToString(), basePath.Substring(basePath.LastIndexOf(Path.DirectorySeparatorChar) + 1));
 		}
 
 		/*
@@ -325,8 +337,8 @@ namespace Rainbow.Storage.SFS
 					// e.g. if component is "foo" find "c:\bar\foo.yml" and "c:\bar\foo_0xA9f4.yml"
 					parentPaths.AddRange(
 						GetChildPaths(ReadItem(parentPath))
-						.Where(childPath => Path.GetFileName(childPath).StartsWith(pathComponent))
-					);
+							.Where(childPath => Path.GetFileName(childPath).StartsWith(pathComponent))
+						);
 				}
 			}
 
@@ -344,6 +356,7 @@ namespace Rainbow.Storage.SFS
 				- If the folder exists, add all children of that directory that are both files and have the expected serialized item extension from the formatter
 			5. Note: unlike searching by path, this guarantees ONLY children of the correct item if multiple same named items are present
 		*/
+
 		protected virtual string[] GetChildPaths(IItemData item)
 		{
 			Assert.ArgumentNotNull(item, "item");
@@ -352,7 +365,8 @@ namespace Rainbow.Storage.SFS
 
 			var serializedItem = GetItemForVirtualPath(localPath, item.Id);
 
-			if (serializedItem == null) throw new InvalidOperationException("Item {0} does not exist on disk.".FormatWith(item.Path));
+			if (serializedItem == null)
+				throw new InvalidOperationException("Item {0} does not exist on disk.".FormatWith(item.Path));
 
 			IEnumerable<string> children = Enumerable.Empty<string>();
 
@@ -434,7 +448,8 @@ namespace Rainbow.Storage.SFS
 			if (parentPhysicalPaths.Length > 1)
 			{
 				// find the expected parent's physical path
-				var parentItem = parentPhysicalPaths.Select(ReadItem).FirstOrDefault(parentCandiate => parentCandiate.Id == item.ParentId);
+				var parentItem =
+					parentPhysicalPaths.Select(ReadItem).FirstOrDefault(parentCandiate => parentCandiate.Id == item.ParentId);
 
 				if (parentItem == null) return null;
 
@@ -442,6 +457,24 @@ namespace Rainbow.Storage.SFS
 			}
 
 			return ReadItem(parentPhysicalPaths[0]);
+		}
+
+		/// <summary>
+		/// This is the 'effective' max physical path length before we start having to use loopback paths.
+		/// This is usually (Windows Path Max) - (Constant), where the constant is the maximum expected physical path length
+		/// to the SFS tree's root directory.
+		/// </summary>
+		protected virtual int MaxPathLength
+		{
+			get
+			{
+				const int windowsMaxPathLength = 240; // 260 - sundry directory chars, separators, file extension allowance, etc
+				int expectedPhysicalPathMaxConstant = Settings.GetIntSetting("Serialization.SerializationFolderPathMaxLength", 80);
+
+				if (PhysicalRootPath.Length > expectedPhysicalPathMaxConstant) throw new InvalidOperationException("The physical root path of this SFS tree, {0}, is longer than the configured max base path length {1}. If the tree contains any loopback paths, unexpected behavior may occur. You should increase the Serialization.SerializationFolderPathMaxLength setting to greater than {2} and perform a reserialization from a master content database.".FormatWith(PhysicalRootPath, expectedPhysicalPathMaxConstant, PhysicalRootPath.Length));
+
+				return windowsMaxPathLength - expectedPhysicalPathMaxConstant;
+			}
 		}
 	}
 }

@@ -59,34 +59,45 @@ namespace Rainbow.Tests.Storage.SFS
 		[Test]
 		public void Remove_DeletesItem_WhenItemHasChildrenInLoopbackDirectory()
 		{
-			throw new NotImplementedException();
 			using (var testTree = new TestSfsTree())
 			{
-				CreateTestTree("/sitecore/content/foo/bar/baz/boing", testTree);
+				// force the tree to loopback after only 50 chars after the root path
+				testTree.MaxPathLengthForTests = testTree.PhysicalRootPathTest.Length + 50;
 
-				var item = testTree.GetItemsByPath("/sitecore/content").First();
+				// this tree is long enough to loopback, but the 'hello' is short enough to be a child of the first loopback at 'e'
+				CreateTestTree("/sitecore/content lorem/ipsum dolor/sit amet/e/hello", testTree);
 
-				testTree.Remove(item);
+				var loopParent = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet").First();
+				var helloItem = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet/e/hello").First();
 
-				Assert.IsEmpty(Directory.GetFileSystemEntries(Path.GetDirectoryName(item.SerializedItemId)));
-				Assert.IsEmpty(testTree.GetItemsByPath("/sitecore/content"));
+				testTree.Remove(loopParent);
+
+				Assert.IsFalse(File.Exists(loopParent.SerializedItemId));
+				Assert.IsFalse(Directory.Exists(Path.Combine(testTree.PhysicalRootPathTest, loopParent.Id.ToString())));
+				Assert.IsFalse(File.Exists(helloItem.SerializedItemId));
 			}
 		}
 
 		[Test]
 		public void Remove_DeletesItem_WhenItemHasChildrenInDoubleLoopbackDirectory()
 		{
-			throw new NotImplementedException();
 			using (var testTree = new TestSfsTree())
 			{
-				CreateTestTree("/sitecore/content/foo/bar/baz/boing", testTree);
+				// force the tree to loopback after only 50 chars after the root path
+				testTree.MaxPathLengthForTests = testTree.PhysicalRootPathTest.Length + 50;
 
-				var item = testTree.GetItemsByPath("/sitecore/content").First();
+				// this tree is long enough that it will loopback at 'elitr foo bar baz', and that '{id}+/elitr foo bar baz' will make it loopback again on 'h', leaving the final 'hello' a child of the second loopback
+				CreateTestTree("/sitecore/content lorem/ipsum dolor/sit amet/elitr foo bar baz/h/hello", testTree);
 
-				testTree.Remove(item);
+				var loopParent = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet/elitr foo bar baz").First();
+				var loop2Parent = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet/elitr foo bar baz/h").First();
+				var helloItem = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet/elitr foo bar baz/h/hello").First();
 
-				Assert.IsEmpty(Directory.GetFileSystemEntries(Path.GetDirectoryName(item.SerializedItemId)));
-				Assert.IsEmpty(testTree.GetItemsByPath("/sitecore/content"));
+				testTree.Remove(loopParent);
+
+				Assert.IsFalse(File.Exists(loop2Parent.SerializedItemId));
+				Assert.IsFalse(Directory.Exists(Path.Combine(testTree.PhysicalRootPathTest, loop2Parent.Id.ToString())));
+				Assert.IsFalse(File.Exists(helloItem.SerializedItemId));
 			}
 		}
 	}

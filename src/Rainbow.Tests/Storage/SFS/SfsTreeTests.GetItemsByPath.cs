@@ -132,29 +132,5 @@ namespace Rainbow.Tests.Storage.SFS
 				Assert.IsTrue(results.Any(result => result.Id == templates2.Id));
 			}
 		}
-
-		[Test]
-		public void GetItemsByPath_ReturnsExpectedItems_WhenItemIsInLoopbackFolder()
-		{
-			throw new NotImplementedException();
-		}
-
-		[Test]
-		public void GetItemsByPath_ReturnsExpectedItems_WhenItemIsInChildOfLoopbackFolder()
-		{
-			throw new NotImplementedException();
-		}
-
-		[Test]
-		public void GetItemsByPath_ReturnsExpectedItems_WhenItemIsInDoubleLoopbackFolder()
-		{
-			throw new NotImplementedException();
-		}
-
-		[Test]
-		public void GetItemsByPath_ReturnsExpectedItems_WhenItemIsInChildOfDoubleLoopbackFolder()
-		{
-			throw new NotImplementedException();
-		}
 	}
 }
