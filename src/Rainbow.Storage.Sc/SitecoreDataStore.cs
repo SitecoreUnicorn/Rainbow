@@ -19,6 +19,7 @@ namespace Rainbow.Storage.Sc
 			Assert.ArgumentNotNull(deserializer, "deserializer");
 
 			_deserializer = deserializer;
+			_deserializer.ParentDataStore = this;
 		}
 
 		public IEnumerable<string> GetDatabaseNames()
@@ -33,6 +34,7 @@ namespace Rainbow.Storage.Sc
 
 		public void MoveOrRenameItem(IItemData itemWithFinalPath, string oldPath)
 		{
+			// We don't ask the Sitecore provider to move or rename
 			throw new NotImplementedException();
 		}
 

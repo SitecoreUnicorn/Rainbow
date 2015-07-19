@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using Rainbow.Formatting;
 using Rainbow.Model;
 using Sitecore.Configuration;
+using Sitecore.Diagnostics;
 using Sitecore.IO;
 using Sitecore.StringExtensions;
 
@@ -57,7 +58,7 @@ namespace Rainbow.Storage.SFS
 	public class SfsTree
 	{
 		private readonly string _globalRootItemPath;
-		private readonly string _physicalRootPath;
+		protected readonly string PhysicalRootPath;
 		private readonly ISerializationFormatter _formatter;
 
 		/// <summary>
@@ -70,11 +71,20 @@ namespace Rainbow.Storage.SFS
 		/// <param name="formatter">The formatter to use when reading or writing items to disk</param>
 		public SfsTree(string name, string globalRootItemPath, string databaseName, string physicalRootPath, ISerializationFormatter formatter)
 		{
-			_globalRootItemPath = globalRootItemPath;
-			_physicalRootPath = physicalRootPath;
+			Assert.ArgumentNotNullOrEmpty(globalRootItemPath, "globalRootItemPath");
+			Assert.ArgumentNotNullOrEmpty(databaseName, "databaseName");
+			Assert.ArgumentNotNullOrEmpty(physicalRootPath, "physicalRootPath");
+			Assert.ArgumentNotNull(formatter, "formatter");
+			Assert.IsTrue(globalRootItemPath.StartsWith("/"), "The global root item path must start with '/', e.g. '/sitecore' or '/sitecore/content'");
+			Assert.IsTrue(globalRootItemPath.Length > 1, "The global root item path cannot be '/' - there is no root item. You probably mean '/sitecore'.");
+
+			_globalRootItemPath = globalRootItemPath.TrimEnd('/');
+			PhysicalRootPath = physicalRootPath;
 			_formatter = formatter;
 			Name = name;
 			DatabaseName = databaseName;
+
+			if (!Directory.Exists(PhysicalRootPath)) Directory.CreateDirectory(PhysicalRootPath);
 		}
 
 		public string DatabaseName { get; private set; }
@@ -88,24 +98,28 @@ namespace Rainbow.Storage.SFS
 
 		public IItemData GetRootItem()
 		{
-			var rootItem = Directory.GetFiles(_physicalRootPath, "*" + _formatter.FileExtension);
+			var rootItem = Directory.GetFiles(PhysicalRootPath, "*" + _formatter.FileExtension);
 
 			if (rootItem.Length == 0) return null;
 
-			if (rootItem.Length > 1) throw new InvalidOperationException("Found multiple root items in " + _physicalRootPath + "! This is not valid: a tree may only have one root inode.");
+			if (rootItem.Length > 1) throw new InvalidOperationException("Found multiple root items in " + PhysicalRootPath + "! This is not valid: a tree may only have one root inode.");
 
 			return ReadItem(rootItem[0]);
 		}
 
 		public IEnumerable<IItemData> GetItemsByPath(string globalPath)
 		{
-			var localPath = ConvertGlobalPathToTreePath(globalPath);
+			Assert.ArgumentNotNullOrEmpty(globalPath, "globalPath");
+
+			var localPath = ConvertGlobalVirtualPathToTreeVirtualPath(globalPath);
 
 			return GetPhysicalFilePathsForVirtualPath(localPath).Select(ReadItem);
 		}
 
 		public IEnumerable<IItemData> GetChildren(IItemData parentItem)
 		{
+			Assert.ArgumentNotNull(parentItem, "parentItem");
+
 			return GetChildPaths(parentItem).Select(ReadItem);
 		}
 
@@ -118,19 +132,23 @@ namespace Rainbow.Storage.SFS
 		*/
 		public bool Remove(IItemData item)
 		{
-			var localPath = ConvertGlobalPathToTreePath(item.Path);
+			Assert.ArgumentNotNull(item, "item");
+
+			var localPath = ConvertGlobalVirtualPathToTreeVirtualPath(item.Path);
 
 			var itemToRemove = GetItemForVirtualPath(localPath, item.Id);
 
 			if (itemToRemove == null) return false;
 
-			var descendants = GetDescendants(item);
+			var descendants = GetDescendants(item).Concat(new[] { itemToRemove });
 
 			foreach (var descendant in descendants.OrderByDescending(desc => desc.Path))
 			{
 				lock (FileUtil.GetFileLock(descendant.SerializedItemId))
 				{
 					File.Delete(descendant.SerializedItemId);
+					var childrenDirectory = Path.ChangeExtension(descendant.SerializedItemId, null);
+					if(Directory.Exists(childrenDirectory)) Directory.Delete(childrenDirectory, true);
 				}
 			}
 
@@ -144,6 +162,8 @@ namespace Rainbow.Storage.SFS
 		*/
 		public void Save(IItemData item)
 		{
+			Assert.ArgumentNotNull(item, "item");
+
 			var storagePath = GetTargetPhysicalPath(item);
 
 			WriteItem(item, storagePath);
@@ -151,8 +171,14 @@ namespace Rainbow.Storage.SFS
 
 		protected virtual IItemData ReadItem(string path)
 		{
+			Assert.ArgumentNotNullOrEmpty(path, "path");
+
+			if (!path.EndsWith(_formatter.FileExtension)) path = path + _formatter.FileExtension;
+
 			lock (FileUtil.GetFileLock(path))
 			{
+				if (!File.Exists(path)) return null;
+
 				using (var reader = File.OpenRead(path))
 				{
 					return _formatter.ReadSerializedItem(reader, path);
@@ -162,8 +188,14 @@ namespace Rainbow.Storage.SFS
 
 		protected virtual void WriteItem(IItemData item, string path)
 		{
+			Assert.ArgumentNotNull(item, "item");
+			Assert.ArgumentNotNullOrEmpty(path, "path");
+
 			lock (FileUtil.GetFileLock(path))
 			{
+				var directory = Path.GetDirectoryName(path);
+				if (directory != null && !Directory.Exists(directory)) Directory.CreateDirectory(directory);
+
 				using (var writer = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.None))
 				{
 					_formatter.WriteSerializedItem(item, writer);
@@ -171,11 +203,17 @@ namespace Rainbow.Storage.SFS
 			}
 		}
 
-		protected virtual string ConvertGlobalPathToTreePath(string globalPath)
+		protected virtual string ConvertGlobalVirtualPathToTreeVirtualPath(string globalPath)
 		{
+			Assert.ArgumentNotNullOrEmpty(globalPath, "globalPath");
+
 			if (!globalPath.StartsWith(_globalRootItemPath)) throw new InvalidOperationException("The global path {0} was not rooted under the local item root path {1}. This means you tried to put an item where it didn't belong.".FormatWith(globalPath, _globalRootItemPath));
 
-			return globalPath.Substring(_globalRootItemPath.Length);
+			// we want to preserve the last segment in the global path because the root virtual path is considered to contain that
+			// e.g. if the global path is "/sitecore/templates" we want the converted path to start with /templates - e.g. /sitecore/templates/foo -> /templates/foo
+
+			int globalPathClipIndex = _globalRootItemPath.LastIndexOf('/');
+			return globalPath.Substring(globalPathClipIndex);
 		}
 
 		/*
@@ -199,18 +237,28 @@ namespace Rainbow.Storage.SFS
 		*/
 		protected virtual string GetTargetPhysicalPath(IItemData item)
 		{
+			Assert.ArgumentNotNull(item, "item");
+
 			var strippedItemName = PrepareItemNameForFileSystem(item.Name);
+
+			// if the item is the root item in our tree, we return the root physical path
+			var localPath = ConvertGlobalVirtualPathToTreeVirtualPath(item.Path);
+			if (localPath.LastIndexOf('/') == 0) return Path.Combine(PhysicalRootPath, strippedItemName + _formatter.FileExtension); // if it's the root item, well yeah it won't have a parent. And we know the right path too :)
 
 			var parentItem = GetParentSerializedItem(item);
 
-			//  If no matches exist, throw - parent must be serialized
-			if (parentItem == null) throw new InvalidOperationException("The parent item of {0} was not serialized. You cannot have a sparse serialized tree.".FormatWith(item.Path));
+			//  If no matches exist, and the item isn't the root item, throw - parent must be serialized
+			if (parentItem == null)
+			{
+				throw new InvalidOperationException("The parent item of {0} was not serialized. You cannot have a sparse serialized tree.".FormatWith(item.Path));
+			}
 
 			// Determine if this item has any name-dupes in the source store.
 			var nameDupeCandidateItems = GetChildPaths(parentItem)
 				.Where(path => Path.GetFileName(path).StartsWith(strippedItemName))
 				.Select(ReadItem);
 
+			// the base path is the path the item would be written to on the filesystem *if there were no length limitations*. Note that this is why we avoid using Path.X() on the base path, because those validate path lengths.
 			string basePath = null;
 
 			foreach (var candidate in nameDupeCandidateItems)
@@ -228,6 +276,9 @@ namespace Rainbow.Storage.SFS
 					basePath = string.Concat(Path.ChangeExtension(parentItem.SerializedItemId, null), Path.DirectorySeparatorChar, strippedItemName, "_", item.Id, _formatter.FileExtension);
 				}
 			}
+
+			// no dupes or existing item found - create default base path
+			if (basePath == null) basePath = string.Concat(Path.ChangeExtension(parentItem.SerializedItemId, null), Path.DirectorySeparatorChar, strippedItemName, _formatter.FileExtension);
 
 			// Determine if the base-string is over - length(which would be 240 -$(Serialization.SerializationFolderPathMaxLength))
 			// TODO: move the settings somewhere tests can inject?
@@ -255,12 +306,14 @@ namespace Rainbow.Storage.SFS
 		*/
 		protected virtual string[] GetPhysicalFilePathsForVirtualPath(string virtualPath)
 		{
-			var pathComponents = virtualPath.Trim('/').Split('/').Select(PrepareItemNameForFileSystem);
+			Assert.ArgumentNotNullOrEmpty(virtualPath, "virtualPath");
+
+			var pathComponents = virtualPath.Trim('/').Split('/').Select(PrepareItemNameForFileSystem).ToArray();
 
 			var parentPaths = new List<string>();
-			parentPaths.Add(_physicalRootPath);
+			parentPaths.Add(Path.Combine(PhysicalRootPath, pathComponents[0] + _formatter.FileExtension));
 
-			foreach (var pathComponent in pathComponents)
+			foreach (var pathComponent in pathComponents.Skip(1))
 			{
 				// copy the parent paths; we process all for this path level and add next path level candidates to the list
 				var startingParentPathsArray = parentPaths.ToArray();
@@ -293,15 +346,24 @@ namespace Rainbow.Storage.SFS
 		*/
 		protected virtual string[] GetChildPaths(IItemData item)
 		{
-			var localPath = ConvertGlobalPathToTreePath(item.Path);
+			Assert.ArgumentNotNull(item, "item");
+
+			var localPath = ConvertGlobalVirtualPathToTreeVirtualPath(item.Path);
 
 			var serializedItem = GetItemForVirtualPath(localPath, item.Id);
 
 			if (serializedItem == null) throw new InvalidOperationException("Item {0} does not exist on disk.".FormatWith(item.Path));
 
-			IEnumerable<string> children = Directory.GetFiles(Path.GetFileName(serializedItem.SerializedItemId), "*" + _formatter.FileExtension);
+			IEnumerable<string> children = Enumerable.Empty<string>();
 
-			var shortPath = Path.Combine(_physicalRootPath, item.Id.ToString());
+			var childrenPath = Path.ChangeExtension(serializedItem.SerializedItemId, null);
+
+			if (Directory.Exists(childrenPath))
+			{
+				children = Directory.GetFiles(childrenPath, "*" + _formatter.FileExtension);
+			}
+
+			var shortPath = Path.Combine(PhysicalRootPath, item.Id.ToString());
 
 			if (Directory.Exists(shortPath))
 				children = children.Concat(Directory.GetFiles(shortPath, "*" + _formatter.FileExtension));
@@ -311,11 +373,15 @@ namespace Rainbow.Storage.SFS
 
 		protected virtual string PrepareItemNameForFileSystem(string name)
 		{
-			return Regex.Replace(name, @"[%\$\\/:]+", "-");
+			Assert.ArgumentNotNullOrEmpty(name, "name");
+
+			return Regex.Replace(name, @"[%\$\\/:\*\?<>\|""]+", "_", RegexOptions.Compiled);
 		}
 
 		protected virtual IItemData GetItemForVirtualPath(string virtualPath, Guid expectedItemId)
 		{
+			Assert.ArgumentNotNullOrEmpty(virtualPath, "virtualPath");
+
 			return GetPhysicalFilePathsForVirtualPath(virtualPath)
 				.Select(ReadItem)
 				.FirstOrDefault(candidateItem => candidateItem.Id == expectedItemId);
@@ -323,7 +389,9 @@ namespace Rainbow.Storage.SFS
 
 		protected virtual IList<IItemData> GetDescendants(IItemData root)
 		{
-			var localPath = ConvertGlobalPathToTreePath(root.Path);
+			Assert.ArgumentNotNull(root, "root");
+
+			var localPath = ConvertGlobalVirtualPathToTreeVirtualPath(root.Path);
 			var itemToRemove = GetItemForVirtualPath(localPath, root.Id);
 
 			if (itemToRemove == null) return null;
@@ -349,10 +417,14 @@ namespace Rainbow.Storage.SFS
 
 		protected virtual IItemData GetParentSerializedItem(IItemData item)
 		{
-			var localPath = ConvertGlobalPathToTreePath(item.Path);
+			Assert.ArgumentNotNull(item, "item");
+
+			var localPath = ConvertGlobalVirtualPathToTreeVirtualPath(item.Path);
 
 			// Start by using "finding file paths, given a virtual path" on the parent path of the item
-			var parentVirtualPath = item.Path.Substring(0, localPath.LastIndexOf('/'));
+			var parentVirtualPath = localPath.Substring(0, localPath.LastIndexOf('/'));
+
+			if (parentVirtualPath == string.Empty) return null;
 
 			var parentPhysicalPaths = GetPhysicalFilePathsForVirtualPath(parentVirtualPath);
 
@@ -362,7 +434,7 @@ namespace Rainbow.Storage.SFS
 			if (parentPhysicalPaths.Length > 1)
 			{
 				// find the expected parent's physical path
-				var parentItem = GetItemForVirtualPath(localPath, item.Id);
+				var parentItem = parentPhysicalPaths.Select(ReadItem).FirstOrDefault(parentCandiate => parentCandiate.Id == item.ParentId);
 
 				if (parentItem == null) return null;
 

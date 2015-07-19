@@ -29,6 +29,7 @@ namespace Rainbow.Storage
 			Trees = InitializeTrees();
 
 			_formatter = formatter;
+			_formatter.ParentDataStore = this;
 		}
 
 		public void Save(IItemData item)

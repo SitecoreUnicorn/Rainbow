@@ -136,7 +136,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 				ClearCaches(targetItem.Database, targetItem.ID);
 
-				return new ItemData(targetItem);
+				return new ItemData(targetItem, ParentDataStore);
 			}
 			catch (ParentForMovedItemNotFoundException)
 			{
@@ -162,6 +162,8 @@ namespace Rainbow.Storage.Sc.Deserialization
 				throw new Exception("Failed to paste item: " + serializedItemData.Path, ex);
 			}
 		}
+
+		public IDataStore ParentDataStore { get; set; }
 
 		protected void RenameIfNeeded(IItemData serializedItemData, Item targetItem)
 		{

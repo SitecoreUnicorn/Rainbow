@@ -21,10 +21,9 @@ namespace Rainbow.Storage.Yaml.Formatting
 
 		public YamlSerializationFormatter(XmlNode configNode, IFieldFilter fieldFilter)
 		{
-			Assert.ArgumentNotNull(configNode, "configNode");
-			Assert.ArgumentNotNull(fieldFilter, "fieldFilter");
-
 			_fieldFilter = fieldFilter;
+
+			if (configNode == null) return;
 
 			var formatters = configNode.ChildNodes;
 
@@ -43,7 +42,6 @@ namespace Rainbow.Storage.Yaml.Formatting
 			}
 		}
 
-
 		public virtual IItemData ReadSerializedItem(Stream dataStream, string serializedItemId)
 		{
 			Assert.ArgumentNotNull(dataStream, "dataStream");
@@ -54,7 +52,7 @@ namespace Rainbow.Storage.Yaml.Formatting
 				var item = new YamlItem();
 				item.ReadYaml(reader);
 
-				return new YamlItemData(item, serializedItemId, FieldFormatters.ToArray());
+				return new YamlItemData(item, serializedItemId, FieldFormatters.ToArray(), ParentDataStore);
 			}
 		}
 
@@ -63,10 +61,11 @@ namespace Rainbow.Storage.Yaml.Formatting
 			Assert.ArgumentNotNull(itemData, "item");
 			Assert.ArgumentNotNull(outputStream, "outputStream");
 
-			var filteredItem = new FilteredItem(itemData, _fieldFilter);
+			if(_fieldFilter != null)
+				itemData = new FilteredItem(itemData, _fieldFilter);
 
 			var itemToSerialize = new YamlItem();
-			itemToSerialize.LoadFrom(filteredItem, FieldFormatters.ToArray());
+			itemToSerialize.LoadFrom(itemData, FieldFormatters.ToArray());
 
 			using (var writer = new YamlWriter(outputStream, 4096, true))
 			{
@@ -75,6 +74,7 @@ namespace Rainbow.Storage.Yaml.Formatting
 		}
 
 		public string FileExtension { get { return ".yml"; } }
+		public IDataStore ParentDataStore { get; set; }
 
 		[DebuggerDisplay("{Name} ({DatabaseName}::{Id}) [YAML - {SerializedItemId}]")]
 		protected class YamlItemData : IItemData

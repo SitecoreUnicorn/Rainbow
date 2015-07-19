@@ -1,7 +1,7 @@
-﻿// TODO: figure out handling of getting children for post-move serialization. We added the prop to the items, but the data store that gets children is not always available and may not be a simple matter of injection due to source/target semantics
-// TODO: implement the hard part of SFS (get target path with looping)
+﻿// TODO: implement the hard part of SFS (get target path with looping)
 	- Implement unit tests for SFS
 // TODO: go looking for NotImplementedExceptions()
+// TODO: refactor evaluators and logging there to work correctly with comparison
 
 // TODO: if you edit the template value on E1EAE8FF-9FC8-43D4-8C52-477D07722F74, and save then sync, the template you set is PERMANENTLY DELETED from sitecore. WTFF?
 // TODO: need a way to ignore moving descendants of moves to ignored paths in the predicate
