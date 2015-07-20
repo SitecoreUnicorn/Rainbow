@@ -5,31 +5,33 @@ using System.Linq;
 using System.Web.Hosting;
 using Rainbow.Formatting;
 using Rainbow.Model;
-using Rainbow.Storage.SFS;
 using Sitecore.Diagnostics;
 using Sitecore.StringExtensions;
 
 namespace Rainbow.Storage
 {
-	public class FileSystemDataStore : IDataStore
+	public class SerializationFileSystemDataStore : IDataStore
 	{
 		private readonly string _rootPath;
+		private readonly ITreeRootFactory _rootFactory;
 		private readonly ISerializationFormatter _formatter;
-		protected readonly List<SfsTree> Trees;
+		protected readonly List<SerializationFileSystemTree> Trees;
 
-		public FileSystemDataStore(string rootPath, ISerializationFormatter formatter)
+		public SerializationFileSystemDataStore(string rootPath, ITreeRootFactory rootFactory, ISerializationFormatter formatter)
 		{
 			Assert.ArgumentNotNullOrEmpty(rootPath, "rootPath");
 			Assert.ArgumentNotNull(formatter, "formatter");
+			Assert.ArgumentNotNull(rootFactory, "rootFactory");
 
 			// ReSharper disable once DoNotCallOverridableMethodsInConstructor
 			_rootPath = InitializeRootPath(rootPath);
 
-			// ReSharper disable once DoNotCallOverridableMethodsInConstructor
-			Trees = InitializeTrees();
-
+			_rootFactory = rootFactory;
 			_formatter = formatter;
 			_formatter.ParentDataStore = this;
+
+			// ReSharper disable once DoNotCallOverridableMethodsInConstructor
+			Trees = InitializeTrees();
 		}
 
 		public void Save(IItemData item)
@@ -68,6 +70,7 @@ namespace Rainbow.Storage
 			if (newPathTree != null)
 			{
 				// TODO: this is unaware of any predicate restrictions - inclined to make that a Unicorn version injection
+				// TODO: or consider pushing this logic up into the data provider, which would let us remove the getchildren kinda hack
 				var saveQueue = new Queue<IItemData>();
 				saveQueue.Enqueue(itemWithFinalPath);
 
@@ -120,7 +123,7 @@ namespace Rainbow.Storage
 		{
 			var tree = GetTreeForPath(item.Path, item.DatabaseName);
 
-			if (tree == null) throw new InvalidOperationException("No trees contained the global path " + item.Path);
+			if (tree == null) return false;
 
 			return tree.Remove(item);
 		}
@@ -137,27 +140,28 @@ namespace Rainbow.Storage
 			return rootPath;
 		}
 
-		protected virtual List<SfsTree> InitializeTrees()
+		protected virtual List<SerializationFileSystemTree> InitializeTrees()
 		{
-			return Directory.GetDirectories(_rootPath).Select(treeFolder => CreateTree(Path.GetFileName(treeFolder))).ToList();
+			return _rootFactory.CreateTreeRoots().Select(CreateTree).ToList();
 		}
 
-		protected virtual SfsTree GetTreeForPath(string path, string database)
+		protected virtual SerializationFileSystemTree GetTreeForPath(string path, string database)
 		{
-			// TODO: exclusionary processing would go here, yes? (but only in leaves style)
-
 			var trees = Trees.Where(tree => tree.DatabaseName.Equals(database) && tree.ContainsPath(path)).ToArray();
 
-			if (trees.Length == 0) return null;
+			if (trees.Length == 0)
+			{
+				return null;
+			}
 
 			if (trees.Length > 1) throw new InvalidOperationException("The trees {0} contained the global path {1} - overlapping trees are not allowed.".FormatWith(string.Join(", ", trees.Select(tree => tree.Name)), path));
 
 			return trees[0];
 		}
 
-		protected virtual SfsTree CreateTree(string databaseName)
+		protected virtual SerializationFileSystemTree CreateTree(TreeRoot root)
 		{
-			return new SfsTree(databaseName, string.Empty, databaseName, Path.Combine(_rootPath, databaseName), _formatter);
+			return new SerializationFileSystemTree(root.Name, root.Path, root.DatabaseName, Path.Combine(_rootPath, root.Name), _formatter);
 		}
 	}
 }

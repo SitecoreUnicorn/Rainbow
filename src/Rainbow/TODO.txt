@@ -1,5 +1,5 @@
-﻿// TODO: refactor evaluators and logging there to work correctly with comparison
-// TODO: 'default' root path semantic not supported
+﻿// TODO: fix formatting of unicorn exception messages. terrible.
+// TODO: refactor evaluators and logging there to work correctly with comparison, figure out what should get logged in evaluator vs deserializer - have some duplication there atm
 // TODO: formatting of security field values?
 // TODO: add consistency checking to unicorn control panel, and implement in SFS
 // TODO: Replace client serialize commands with unicorn config aware ones that conditionally use Uni configs

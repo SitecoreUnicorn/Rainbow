@@ -10,7 +10,7 @@ using Sitecore.Diagnostics;
 using Sitecore.IO;
 using Sitecore.StringExtensions;
 
-namespace Rainbow.Storage.SFS
+namespace Rainbow.Storage
 {
 	/*
 	- Deep FS b-tree store. Implements a filesystem based b-tree of n degree, and handles the pathing thereof. Does NOT handle file formatting. DOES handle streams.
@@ -56,7 +56,7 @@ namespace Rainbow.Storage.SFS
 	/// SFS is similar to Sitecore standard, but accounts for things that Sitecore does not do very well,
 	/// like items with the same name in the same path and the ability to use local vs global paths
 	/// </summary>
-	public class SfsTree
+	public class SerializationFileSystemTree
 	{
 		private readonly string _globalRootItemPath;
 		protected readonly string PhysicalRootPath;
@@ -70,8 +70,7 @@ namespace Rainbow.Storage.SFS
 		/// <param name="databaseName">Name of the database the items in this tree are from. This is for your reference and help when resolving this tree as a destination, and is not directly used.</param>
 		/// <param name="physicalRootPath">The physical root path to write items in this tree to. Will be created if it does not exist.</param>
 		/// <param name="formatter">The formatter to use when reading or writing items to disk</param>
-		public SfsTree(string name, string globalRootItemPath, string databaseName, string physicalRootPath,
-			ISerializationFormatter formatter)
+		public SerializationFileSystemTree(string name, string globalRootItemPath, string databaseName, string physicalRootPath, ISerializationFormatter formatter)
 		{
 			Assert.ArgumentNotNullOrEmpty(globalRootItemPath, "globalRootItemPath");
 			Assert.ArgumentNotNullOrEmpty(databaseName, "databaseName");
@@ -116,7 +115,7 @@ namespace Rainbow.Storage.SFS
 
 			var localPath = ConvertGlobalVirtualPathToTreeVirtualPath(globalPath);
 
-			return GetPhysicalFilePathsForVirtualPath(localPath).Select(ReadItem);
+			return GetPhysicalFilePathsForVirtualPath(localPath).Select(ReadItem).Where(item => item != null);
 		}
 
 		public IEnumerable<IItemData> GetChildren(IItemData parentItem)
@@ -191,7 +190,10 @@ namespace Rainbow.Storage.SFS
 
 				using (var reader = File.OpenRead(path))
 				{
-					return _formatter.ReadSerializedItem(reader, path);
+					var readItem = _formatter.ReadSerializedItem(reader, path);
+					readItem.DatabaseName = DatabaseName;
+
+					return readItem;
 				}
 			}
 		}
@@ -333,6 +335,8 @@ namespace Rainbow.Storage.SFS
 
 				foreach (var parentPath in startingParentPathsArray)
 				{
+					if (!File.Exists(parentPath)) continue;
+
 					// get children of all parent paths which match the expected path component
 					// e.g. if component is "foo" find "c:\bar\foo.yml" and "c:\bar\foo_0xA9f4.yml"
 					parentPaths.AddRange(

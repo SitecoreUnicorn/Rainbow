@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using Rainbow.Model;
 using Sitecore.Data.Fields;
 using Sitecore.Data.Items;
@@ -16,9 +17,13 @@ namespace Rainbow.Storage.Sc
 		private Item[] _itemVersions;
 		private bool _fieldsLoaded = false;
 
-		public ItemData(Item item, IDataStore sourceDataStore)
+		public ItemData(Item item)
 		{
 			_item = item;
+		}
+
+		public ItemData(Item item, IDataStore sourceDataStore) : this(item)
+		{
 			_sourceDataStore = sourceDataStore;
 		}
 
@@ -92,7 +97,10 @@ namespace Rainbow.Storage.Sc
 
 		public IEnumerable<IItemData> GetChildren()
 		{
-			return _sourceDataStore.GetChildren(this);
+			if(_sourceDataStore != null)
+				return _sourceDataStore.GetChildren(this);
+
+			return _item.GetChildren().Select(child => new ItemData(child));
 		}
 
 		protected void EnsureFields()
