@@ -248,7 +248,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 			AssertTemplate(database, new ID(serializedItemData.TemplateId), serializedItemData.Path);
 
-			Item targetItem = ItemManager.AddFromTemplate(serializedItemData.Name, new ID(serializedItemData.TemplateId), destinationParentItem, new ID(serializedItemData.TemplateId));
+			Item targetItem = ItemManager.AddFromTemplate(serializedItemData.Name, new ID(serializedItemData.TemplateId), destinationParentItem, new ID(serializedItemData.Id));
 
 			if(targetItem == null)
 				throw new DeserializationException("Creating " + serializedItemData.DatabaseName + ":" + serializedItemData.Path + " failed. API returned null.");
