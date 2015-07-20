@@ -306,6 +306,19 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 				if (!wasOwnerFieldParsed)
 					languageVersionItem.Fields[FieldIDs.Owner].Reset();
+
+				// if the item came with blank statistics, let's set some sane defaults - update revision, set last updated, etc
+				// ReSharper disable once SimplifyLinqExpression
+				if (!serializedVersion.Fields.Any(f => f.FieldId == FieldIDs.Revision.Guid))
+					languageVersionItem.Fields[FieldIDs.Revision].SetValue(Guid.NewGuid().ToString(), true);
+
+				// ReSharper disable once SimplifyLinqExpression
+				if (!serializedVersion.Fields.Any(f => f.FieldId == FieldIDs.Updated.Guid))
+					languageVersionItem[FieldIDs.Updated] = DateUtil.ToIsoDate(DateTime.UtcNow);
+
+				// ReSharper disable once SimplifyLinqExpression
+				if (!serializedVersion.Fields.Any(f => f.FieldId == FieldIDs.UpdatedBy.Guid))
+					languageVersionItem[FieldIDs.UpdatedBy] = @"sitecore\unicorn";
 			}
 
 			ClearCaches(languageVersionItem.Database, languageVersionItem.ID);
