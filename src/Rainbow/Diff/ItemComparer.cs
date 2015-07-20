@@ -49,12 +49,11 @@ namespace Rainbow.Diff
 		}
 
 		/// <summary>
-		/// Compares two items and determines if they are equal or not, without details of the differences.
+		/// Compares two items, and as soon as one difference is found returns the result with that single difference present (does not perform complete comparison thereafter)
 		/// </summary>
-		/// <returns>True if equal, false if not equal</returns>
-		public bool SimpleCompare(IItemData sourceItem, IItemData targetItem)
+		public virtual ItemComparisonResult FastCompare(IItemData sourceItem, IItemData targetItem)
 		{
-			return CompareInternal(sourceItem, targetItem, true).AreEqual;
+			return CompareInternal(sourceItem, targetItem, true);
 		}
 
 		protected virtual ItemComparisonResult CompareInternal(IItemData sourceItem, IItemData targetItem, bool abortOnChangeFound)

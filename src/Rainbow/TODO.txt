@@ -1,5 +1,8 @@
-﻿// TODO: fix formatting of unicorn exception messages. terrible.
-// TODO: refactor evaluators and logging there to work correctly with comparison, figure out what should get logged in evaluator vs deserializer - have some duplication there atm
+﻿// TODO: the tabs tree fail you have in console atm does not accurately reflect the yml file with the (intentional) parse error, sitecore/content/Public/home/integration-tests/tabs-example-page/Subcontent/Tabss/Tabs/New External Application Configuration
+// TODO: exception formatting for the logs or text is suboptimal. Make it not so.
+// TODO: allow data folder as a variable in rootpath, add comment in readme
+// TODO: moving is busted, as is renaming. get rid of hack putting remove/add in the data store and push that up to the data provider
+// TODO: more tests. yo dawg...
 // TODO: formatting of security field values?
 // TODO: add consistency checking to unicorn control panel, and implement in SFS
 // TODO: Replace client serialize commands with unicorn config aware ones that conditionally use Uni configs
