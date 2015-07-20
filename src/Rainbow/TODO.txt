@@ -1,14 +1,7 @@
-﻿// TODO: implement the hard part of SFS (get target path with looping)
-	- Implement unit tests for SFS
-// TODO: go looking for NotImplementedExceptions()
-// TODO: refactor evaluators and logging there to work correctly with comparison
-
-// TODO: if you edit the template value on E1EAE8FF-9FC8-43D4-8C52-477D07722F74, and save then sync, the template you set is PERMANENTLY DELETED from sitecore. WTFF?
-// TODO: need a way to ignore moving descendants of moves to ignored paths in the predicate
-	e.g. you move /foo/bar to /foot/bar. but /foot/bar/baz is on ignore list. the moved baz item should be deleted instead of moved. see movedescendants in the old serialization provider.
+﻿// TODO: refactor evaluators and logging there to work correctly with comparison
 // TODO: 'default' root path semantic not supported
 // TODO: formatting of security field values?
-// TODO: add consistency checking to unicorn control panel, 
+// TODO: add consistency checking to unicorn control panel, and implement in SFS
 // TODO: Replace client serialize commands with unicorn config aware ones that conditionally use Uni configs
 // TODO: updating items with a field when deleting a t-field and other TODO comments
 // TODO: SPE extensions
@@ -18,39 +11,7 @@
 	- Sync-UnicornConfiguration -Config "Default Configuration"
 	- Export-UnicornConfiguration (runs reserialize)
 
-// TODO: file name shown in unicorn error messages appears to be incorrect
+// TODO: logging review/file name shown in unicorn error messages appears to be incorrect
 
 // 3.1: roles support
-// 3.1: rejig unicorn sync into two-step 'compare, act' setup, with whatifs
 // 3.1: additional path providers/refactored path provider?
-
-Working architecture statements:
-- Project splits into three major components
-	- Rainbow (and Rainbow datastore types; at launch SitecoreDB and YAML, maybe Remoting) - generic storage APIs for serialized - or DB - or webservice - content. Any two datastores can be synced. Datastores know about deserialization. Datastores also know about security roles. Rainbow core knows about predicate filtering, as stores need to know about predicates when moving items.
-	DONE
-	- Unicorn - now a shell of its former self. contains data provider, UI elements for sync. Sync now calls the Sync lib, and performs field predicate filtering and deserialization handled by destination data store
-	MOSTLY DONE
-
-- Futures
-	- Tool to visualize the tree in any data store, remove items
-	- Rhino reborn, using Rainbow as a universal backend and requiring no syncing. Maybe.
-
-Pathing provider thoughts
-
-- Naming things by ID - sounds good, but means item names are 35 char long which makes depth before path length too short (4-5 levels)
-- Loopback by path length to a NEW TREE - sounds good; Sitecore puts each item on a hashpath, we restart the tree there, preserving hierarchy
-	e.g. master/$/{guid}-RootItemName/child/item/foo.yml
-	Note: can run into situation where some children of an item are short enough to fit and some go to long paths.
-		This means we'd want to loopback to the PARENT ID and place the child within it - then traversing children is equal to native FS children + loopback root children if any
-
-- What if we could organize by "snippet", removing the base paths from the equation? e.g. if serRoot is /sitecore/templates/Sites/MySite, root at "MySite" and ignore the rest
-	Would save a lot of path length but would be a paradigm change from a 'data store'
-
-- CHALLENGES:
-	Same named items in same tree location. Gets ugly when keying filenames by something non unique, for example if there are two /foo/bar what does it mean when you request /foo/bar/baz?
-	Sparse trees - e.g. /sitecore wont be actually in the store, but /sitecore/templates/Sites would be - traversal of whole tree with unknown parent nodes, hopefully without 'references'
-	Moving and renaming items
-	Efficient get item by ID - or at least 'by unambiguous path'
-	Path based hierarchy for humans
-	Cleanup after deleting items (e.g. empty folders)
-	Unlimited file path depth 

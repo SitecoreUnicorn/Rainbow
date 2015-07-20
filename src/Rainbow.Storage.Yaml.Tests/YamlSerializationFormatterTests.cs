@@ -1,10 +1,9 @@
 ﻿using System;
 using System.IO;
 using NUnit.Framework;
-using Rainbow.Storage.Yaml.Formatting;
-using Rainbow.Storage.Yaml.Formatting.OutputModel;
+using Rainbow.Storage.Yaml.OutputModel;
 
-namespace Rainbow.Storage.Yaml.Tests.Formatting
+namespace Rainbow.Storage.Yaml.Tests
 {
 	public class YamlSerializationFormatterTests
 	{

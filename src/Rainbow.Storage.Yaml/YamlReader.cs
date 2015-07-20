@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using Sitecore.Diagnostics;
 
-namespace Rainbow.Storage.Yaml.Formatting
+namespace Rainbow.Storage.Yaml
 {
 	public class YamlReader : IDisposable
 	{

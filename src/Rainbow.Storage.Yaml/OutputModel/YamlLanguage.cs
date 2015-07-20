@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Rainbow.Formatting.FieldFormatters;
 using Rainbow.Model;
 
-namespace Rainbow.Storage.Yaml.Formatting.OutputModel
+namespace Rainbow.Storage.Yaml.OutputModel
 {
 	public class YamlLanguage : IComparable<YamlLanguage>
 	{

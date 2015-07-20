@@ -2,9 +2,8 @@
 using System.IO;
 using System.Text;
 using NUnit.Framework;
-using Rainbow.Storage.Yaml.Formatting;
 
-namespace Rainbow.Storage.Yaml.Tests.Formatting
+namespace Rainbow.Storage.Yaml.Tests
 {
 	public class YamlReaderTests
 	{

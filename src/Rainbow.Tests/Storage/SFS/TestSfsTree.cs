@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using Rainbow.Storage.SFS;
-using Rainbow.Storage.Yaml.Formatting;
+using Rainbow.Storage.Yaml;
 
 namespace Rainbow.Tests.Storage.SFS
 {

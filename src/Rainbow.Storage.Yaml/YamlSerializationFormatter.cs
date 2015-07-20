@@ -9,11 +9,11 @@ using Rainbow.Filtering;
 using Rainbow.Formatting;
 using Rainbow.Formatting.FieldFormatters;
 using Rainbow.Model;
-using Rainbow.Storage.Yaml.Formatting.OutputModel;
+using Rainbow.Storage.Yaml.OutputModel;
 using Sitecore.Configuration;
 using Sitecore.Diagnostics;
 
-namespace Rainbow.Storage.Yaml.Formatting
+namespace Rainbow.Storage.Yaml
 {
 	public class YamlSerializationFormatter : ISerializationFormatter
 	{

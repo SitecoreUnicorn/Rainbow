@@ -67,8 +67,6 @@
     <Compile Include="Model\IItemFieldValue.cs" />
     <Compile Include="Model\IItemData.cs" />
     <Compile Include="Model\IItemVersion.cs" />
-    <None Include="Experimental\Pathing\IFileSystemPathProvider.csx" />
-    <None Include="Experimental\Pathing\IdBasedPathProvider.csx" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Storage\FileSystemDataStore.cs" />
     <Compile Include="Storage\SFS\SfsTree.cs" />

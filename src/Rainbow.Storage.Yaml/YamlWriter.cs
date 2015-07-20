@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace Rainbow.Storage.Yaml.Formatting
+namespace Rainbow.Storage.Yaml
 {
 	public class YamlWriter : IDisposable
 	{

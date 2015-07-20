@@ -4,7 +4,7 @@ using System.Linq;
 using Rainbow.Formatting.FieldFormatters;
 using Rainbow.Model;
 
-namespace Rainbow.Storage.Yaml.Formatting.OutputModel
+namespace Rainbow.Storage.Yaml.OutputModel
 {
 	public class YamlItem
 	{

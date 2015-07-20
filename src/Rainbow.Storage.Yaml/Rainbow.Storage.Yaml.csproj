@@ -43,15 +43,14 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Formatting\YamlSerializationFormatter.cs" />
+    <Compile Include="YamlSerializationFormatter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Formatting\OutputModel\YamlFieldValue.cs" />
-    <Compile Include="Formatting\OutputModel\YamlItem.cs" />
-    <Compile Include="Formatting\OutputModel\YamlLanguage.cs" />
-    <Compile Include="Formatting\YamlReader.cs" />
-    <Compile Include="Formatting\OutputModel\YamlVersion.cs" />
-    <Compile Include="Formatting\YamlWriter.cs" />
-    <None Include="YamlSerializationDataStore.csx" />
+    <Compile Include="OutputModel\YamlFieldValue.cs" />
+    <Compile Include="OutputModel\YamlItem.cs" />
+    <Compile Include="OutputModel\YamlLanguage.cs" />
+    <Compile Include="YamlReader.cs" />
+    <Compile Include="OutputModel\YamlVersion.cs" />
+    <Compile Include="YamlWriter.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Rainbow\Rainbow.csproj">
