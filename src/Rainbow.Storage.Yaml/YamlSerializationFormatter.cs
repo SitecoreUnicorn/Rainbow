@@ -62,6 +62,26 @@ namespace Rainbow.Storage.Yaml
 			}
 		}
 
+		public IItemMetadata ReadSerializedItemMetadata(Stream dataStream, string serializedItemId)
+		{
+			Assert.ArgumentNotNull(dataStream, "dataStream");
+
+			try
+			{
+				using (var reader = new YamlReader(dataStream, 4096, true))
+				{
+					var item = new YamlItemMetadata();
+					item.ReadYaml(reader, serializedItemId);
+
+					return item;
+				}
+			}
+			catch (Exception exception)
+			{
+				throw new FormatException("Error reading " + serializedItemId, exception);
+			}
+		}
+
 		public virtual void WriteSerializedItem(IItemData itemData, Stream outputStream)
 		{
 			Assert.ArgumentNotNull(itemData, "item");
@@ -81,6 +101,7 @@ namespace Rainbow.Storage.Yaml
 
 		public string FileExtension { get { return ".yml"; } }
 		public IDataStore ParentDataStore { get; set; }
+
 
 		[DebuggerDisplay("{Name} ({DatabaseName}::{Id}) [YAML - {SerializedItemId}]")]
 		protected class YamlItemData : IItemData

@@ -267,7 +267,7 @@ namespace Rainbow.Storage
 			// Determine if this item has any name-dupes in the source store.
 			var nameDupeCandidateItems = GetChildPaths(parentItem)
 				.Where(path => Path.GetFileName(path).StartsWith(strippedItemName))
-				.Select(ReadItem);
+				.Select(ReadItemMetadata);
 
 			// the base path is the path the item would be written to on the filesystem *if there were no length limitations*. Note that this is why we avoid using Path.X() on the base path, because those validate path lengths.
 			string basePath = null;
@@ -281,8 +281,7 @@ namespace Rainbow.Storage
 					break;
 				}
 
-				if (candidate.Id != item.Id && candidate.Name.Equals(item.Name, StringComparison.OrdinalIgnoreCase) &&
-					basePath == null)
+				if (candidate.Id != item.Id && candidate.Path.EndsWith(item.Name, StringComparison.OrdinalIgnoreCase) && basePath == null)
 				{
 					// we found an item with a different ID, and the same name - so we need to escape this item's name
 					basePath = string.Concat(Path.ChangeExtension(parentItem.SerializedItemId, null), Path.DirectorySeparatorChar, strippedItemName, "_", item.Id, _formatter.FileExtension);
@@ -339,7 +338,7 @@ namespace Rainbow.Storage
 					// get children of all parent paths which match the expected path component
 					// e.g. if component is "foo" find "c:\bar\foo.yml" and "c:\bar\foo_0xA9f4.yml"
 					parentPaths.AddRange(
-						GetChildPaths(ReadItem(parentPath))
+						GetChildPaths(ReadItemMetadata(parentPath))
 							.Where(childPath => Path.GetFileName(childPath).StartsWith(pathComponent))
 						);
 				}
@@ -360,32 +359,30 @@ namespace Rainbow.Storage
 			5. Note: unlike searching by path, this guarantees ONLY children of the correct item if multiple same named items are present
 		*/
 
-		protected virtual string[] GetChildPaths(IItemData item)
+		protected virtual string[] GetChildPaths(IItemMetadata item)
 		{
 			Assert.ArgumentNotNull(item, "item");
 
-			var localPath = ConvertGlobalVirtualPathToTreeVirtualPath(item.Path);
-
-			var serializedItem = GetItemForVirtualPath(localPath, item.Id);
+			IItemMetadata serializedItem = GetItemForGlobalPath(item.Path, item.Id);
 
 			if (serializedItem == null)
 				throw new InvalidOperationException("Item {0} does not exist on disk.".FormatWith(item.Path));
 
-			IEnumerable<string> children = Enumerable.Empty<string>();
+			IEnumerable<FileData> children = Enumerable.Empty<FileData>();
 
 			var childrenPath = Path.ChangeExtension(serializedItem.SerializedItemId, null);
 
 			if (Directory.Exists(childrenPath))
 			{
-				children = Directory.GetFiles(childrenPath, "*" + _formatter.FileExtension);
+				children = FastDirectoryEnumerator.GetFiles(childrenPath, "*" + _formatter.FileExtension, SearchOption.TopDirectoryOnly);
 			}
 
 			var shortPath = Path.Combine(PhysicalRootPath, item.Id.ToString());
 
 			if (Directory.Exists(shortPath))
-				children = children.Concat(Directory.GetFiles(shortPath, "*" + _formatter.FileExtension));
+				children = children.Concat(FastDirectoryEnumerator.GetFiles(shortPath, "*" + _formatter.FileExtension, SearchOption.TopDirectoryOnly));
 
-			return children.ToArray();
+			return children.Select(result => result.Path).ToArray();
 		}
 
 		protected virtual string PrepareItemNameForFileSystem(string name)
@@ -404,18 +401,17 @@ namespace Rainbow.Storage
 				.FirstOrDefault(candidateItem => candidateItem.Id == expectedItemId);
 		}
 
-		protected virtual IList<IItemData> GetDescendants(IItemData root, bool ignoreReadErrors)
+		protected virtual IList<IItemMetadata> GetDescendants(IItemData root, bool ignoreReadErrors)
 		{
 			Assert.ArgumentNotNull(root, "root");
 
-			var localPath = ConvertGlobalVirtualPathToTreeVirtualPath(root.Path);
-			var itemToRemove = GetItemForVirtualPath(localPath, root.Id);
+			IItemMetadata itemToRemove = GetItemForGlobalPath(root.Path, root.Id);
 
 			if (itemToRemove == null) return null;
 
-			var descendants = new List<IItemData>();
+			var descendants = new List<IItemMetadata>();
 
-			var childQueue = new Queue<IItemData>();
+			var childQueue = new Queue<IItemMetadata>();
 			childQueue.Enqueue(root);
 
 			while (childQueue.Count > 0)
@@ -426,7 +422,7 @@ namespace Rainbow.Storage
 				{
 					try
 					{
-						return ReadItem(physicalPath);
+						return ReadItemMetadata(physicalPath);
 					}
 					catch (Exception)
 					{
@@ -448,7 +444,7 @@ namespace Rainbow.Storage
 			return descendants;
 		}
 
-		protected virtual IItemData GetParentSerializedItem(IItemData item)
+		protected virtual IItemMetadata GetParentSerializedItem(IItemMetadata item)
 		{
 			Assert.ArgumentNotNull(item, "item");
 
@@ -467,15 +463,14 @@ namespace Rainbow.Storage
 			if (parentPhysicalPaths.Length > 1)
 			{
 				// find the expected parent's physical path
-				var parentItem =
-					parentPhysicalPaths.Select(ReadItem).FirstOrDefault(parentCandiate => parentCandiate.Id == item.ParentId);
+				var parentItem = parentPhysicalPaths.Select(ReadItemMetadata).FirstOrDefault(parentCandiate => parentCandiate.Id == item.ParentId);
 
 				if (parentItem == null) return null;
 
 				return parentItem;
 			}
 
-			return ReadItem(parentPhysicalPaths[0]);
+			return ReadItemMetadata(parentPhysicalPaths[0]);
 		}
 
 		/// <summary>

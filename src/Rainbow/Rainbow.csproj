@@ -69,6 +69,7 @@
     <Compile Include="Model\IItemData.cs" />
     <Compile Include="Model\IItemVersion.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Model\IItemMetadata.cs" />
     <Compile Include="Storage\SerializationFileSystemDataStore.cs" />
     <Compile Include="Storage\ITreeRootFactory.cs" />
     <Compile Include="Storage\SerializationFileSystemTree.cs" />
