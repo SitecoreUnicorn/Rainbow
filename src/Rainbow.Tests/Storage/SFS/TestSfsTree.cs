@@ -11,7 +11,7 @@ namespace Rainbow.Tests.Storage.SFS
 			: base("Unit Testing", globalRootItemPath, "UnitTesting", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()), new YamlSerializationFormatter(null, null))
 		{
 			GlobalRootItemPath = globalRootItemPath;
-			MaxPathLengthForTests = base.MaxPathLength;
+			MaxPathLengthForTests = base.MaxRelativePathLength;
 		}
 
 		public string ConvertGlobalPathToTreePathTest(string globalPath)
@@ -35,6 +35,6 @@ namespace Rainbow.Tests.Storage.SFS
 
 		public int MaxPathLengthForTests { get; set; }
 
-		protected override int MaxPathLength { get { return MaxPathLengthForTests; } }
+		protected override int MaxRelativePathLength { get { return MaxPathLengthForTests; } }
 	}
 }

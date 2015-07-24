@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using NUnit.Framework;
 
@@ -57,7 +56,7 @@ namespace Rainbow.Tests.Storage.SFS
 			using (var testTree = new TestSfsTree())
 			{
 				// force the tree to loopback after only 10 chars after the root path
-				testTree.MaxPathLengthForTests = testTree.PhysicalRootPathTest.Length + 10;
+				testTree.MaxPathLengthForTests = 10;
 				CreateTestTree("/sitecore/content", testTree);
 
 				var rootItem = testTree.GetRootItem();
@@ -76,7 +75,7 @@ namespace Rainbow.Tests.Storage.SFS
 			using (var testTree = new TestSfsTree())
 			{
 				// force the tree to loopback after only 50 chars after the root path
-				testTree.MaxPathLengthForTests = testTree.PhysicalRootPathTest.Length + 50;
+				testTree.MaxPathLengthForTests = 50;
 
 				// this tree is long enough to loopback, but the 'hello' is short enough to be a child of the first loopback at 'e'
 				CreateTestTree("/sitecore/content lorem/ipsum dolor/sit amet/e/hello", testTree);
@@ -97,7 +96,7 @@ namespace Rainbow.Tests.Storage.SFS
 			{
 				// force the tree to loopback after only 10 chars after the root path
 				// this also means that double loopback occurs each time because the loopback ID is 35 chars
-				testTree.MaxPathLengthForTests = testTree.PhysicalRootPathTest.Length + 10;
+				testTree.MaxPathLengthForTests = 10;
 
 				CreateTestTree("/sitecore/content/hello", testTree);
 
@@ -123,7 +122,7 @@ namespace Rainbow.Tests.Storage.SFS
 			using (var testTree = new TestSfsTree())
 			{
 				// force the tree to loopback after only 50 chars after the root path
-				testTree.MaxPathLengthForTests = testTree.PhysicalRootPathTest.Length + 50;
+				testTree.MaxPathLengthForTests = 50;
 
 				// this tree is long enough that it will loopback at 'elitr foo bar baz', and that '{id}+/elitr foo bar baz' will make it loopback again on 'h', leaving the final 'hello' a child of the second loopback
 				CreateTestTree("/sitecore/content lorem/ipsum dolor/sit amet/elitr foo bar baz/h/hello", testTree);

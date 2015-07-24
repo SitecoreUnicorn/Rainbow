@@ -295,11 +295,12 @@ namespace Rainbow.Storage
 			if (basePath == null)
 				basePath = string.Concat(Path.ChangeExtension(parentItem.SerializedItemId, null), Path.DirectorySeparatorChar, strippedItemName, _formatter.FileExtension);
 
-			// Determine if the base-string is over - length(which would be 240 -$(Serialization.SerializationFolderPathMaxLength))
-			int maxPathLength = MaxPathLength;
+			// Determine if the relative base-string is over - length(which would be 240 - $(Serialization.SerializationFolderPathMaxLength))
+			string relativeBasePath = basePath.Substring(PhysicalRootPath.Length);
+			int maxPathLength = MaxRelativePathLength;
 
 			// path not over length = return it and we're done here
-			if (basePath.Length < maxPathLength) return basePath;
+			if (relativeBasePath.Length < maxPathLength) return basePath;
 
 			// ok we have a path that will be too long for Windows once we combine the parent's physical path with the item's name (and/or name deduping ID)
 			// since we know it won't fit in the parent, we create a folder in the root named the parent's ID, and drop that as the item's base path
@@ -464,11 +465,11 @@ namespace Rainbow.Storage
 		}
 
 		/// <summary>
-		/// This is the 'effective' max physical path length before we start having to use loopback paths.
+		/// This is the 'effective' max relative physical path length before we start having to use loopback paths.
 		/// This is usually (Windows Path Max) - (Constant), where the constant is the maximum expected physical path length
 		/// to the SFS tree's root directory.
 		/// </summary>
-		protected virtual int MaxPathLength
+		protected virtual int MaxRelativePathLength
 		{
 			get
 			{
