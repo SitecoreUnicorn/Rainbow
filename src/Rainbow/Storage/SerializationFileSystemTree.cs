@@ -143,7 +143,7 @@ namespace Rainbow.Storage
 
 			if (itemToRemove == null) return false;
 
-			var descendants = GetDescendants(item).Concat(new[] { itemToRemove });
+			var descendants = GetDescendants(item, true).Concat(new[] { itemToRemove });
 
 			foreach (var descendant in descendants.OrderByDescending(desc => desc.Path))
 			{
@@ -406,7 +406,7 @@ namespace Rainbow.Storage
 				.FirstOrDefault(candidateItem => candidateItem.Id == expectedItemId);
 		}
 
-		protected virtual IList<IItemData> GetDescendants(IItemData root)
+		protected virtual IList<IItemData> GetDescendants(IItemData root, bool ignoreReadErrors)
 		{
 			Assert.ArgumentNotNull(root, "root");
 
@@ -424,7 +424,23 @@ namespace Rainbow.Storage
 			{
 				var parent = childQueue.Dequeue();
 
-				var children = GetChildPaths(parent).Select(ReadItem).ToArray();
+				var children = GetChildPaths(parent).Select(physicalPath =>
+				{
+					try
+					{
+						return ReadItem(physicalPath);
+					}
+					catch (Exception)
+					{
+						if (ignoreReadErrors)
+						{
+							return null;
+						}
+						throw;
+					}
+				})
+				.Where(item => item != null)
+				.ToArray();
 
 				descendants.AddRange(children);
 				foreach (var item in children)

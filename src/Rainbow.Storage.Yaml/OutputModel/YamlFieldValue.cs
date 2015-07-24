@@ -62,7 +62,6 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			}
 
 			Id = reader.ReadExpectedGuidMap("ID");
-			Debug.WriteLine("Read ID " + id);
 
 			var type = reader.PeekMap();
 			if (type.HasValue && type.Value.Key.Equals("Type"))
