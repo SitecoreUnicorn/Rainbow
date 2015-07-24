@@ -61,6 +61,7 @@ namespace Rainbow.Storage
 		private readonly string _globalRootItemPath;
 		protected readonly string PhysicalRootPath;
 		private readonly ISerializationFormatter _formatter;
+		private readonly Dictionary<Guid, IItemMetadata> _pathCache = new Dictionary<Guid, IItemMetadata>();
 
 		/// <summary>
 		/// 
@@ -196,6 +197,25 @@ namespace Rainbow.Storage
 			}
 		}
 
+		protected virtual IItemMetadata ReadItemMetadata(string path)
+		{
+			Assert.ArgumentNotNullOrEmpty(path, "path");
+
+			if (!path.EndsWith(_formatter.FileExtension)) path = path + _formatter.FileExtension;
+
+			lock (FileUtil.GetFileLock(path))
+			{
+				if (!File.Exists(path)) return null;
+
+				using (var reader = File.OpenRead(path))
+				{
+					var readItem = _formatter.ReadSerializedItemMetadata(reader, path);
+
+					return readItem;
+				}
+			}
+		}
+
 		protected virtual void WriteItem(IItemData item, string path)
 		{
 			Assert.ArgumentNotNull(item, "item");
@@ -211,6 +231,8 @@ namespace Rainbow.Storage
 					_formatter.WriteSerializedItem(item, writer);
 				}
 			}
+
+			_pathCache[item.Id] = new WrittenItemMetadata(item.Id, item.ParentId, item.Path, path);
 		}
 
 		protected virtual string ConvertGlobalVirtualPathToTreeVirtualPath(string globalPath)
@@ -392,13 +414,22 @@ namespace Rainbow.Storage
 			return Regex.Replace(name, @"[%\$\\/:\*\?<>\|""]+", "_", RegexOptions.Compiled);
 		}
 
-		protected virtual IItemData GetItemForVirtualPath(string virtualPath, Guid expectedItemId)
+		protected virtual IItemMetadata GetItemForGlobalPath(string globalPath, Guid expectedItemId)
 		{
-			Assert.ArgumentNotNullOrEmpty(virtualPath, "virtualPath");
+			Assert.ArgumentNotNullOrEmpty(globalPath, "virtualPath");
 
-			return GetPhysicalFilePathsForVirtualPath(virtualPath)
-				.Select(ReadItem)
+			var localPath = ConvertGlobalVirtualPathToTreeVirtualPath(globalPath);
+
+			IItemMetadata cached;
+			if (_pathCache.TryGetValue(expectedItemId, out cached) && File.Exists(cached.SerializedItemId) && globalPath.Equals(cached.Path)) return _pathCache[expectedItemId];
+
+			var result = GetPhysicalFilePathsForVirtualPath(localPath)
+				.Select(ReadItemMetadata)
 				.FirstOrDefault(candidateItem => candidateItem.Id == expectedItemId);
+
+			_pathCache.Add(result.Id, result);
+
+			return result;
 		}
 
 		protected virtual IList<IItemMetadata> GetDescendants(IItemData root, bool ignoreReadErrors)
@@ -489,6 +520,22 @@ namespace Rainbow.Storage
 
 				return windowsMaxPathLength - expectedPhysicalPathMaxConstant;
 			}
+		}
+
+		protected class WrittenItemMetadata : IItemMetadata
+		{
+			public WrittenItemMetadata(Guid id, Guid parentId, string path, string serializedItemId)
+			{
+				Id = id;
+				ParentId = parentId;
+				Path = path;
+				SerializedItemId = serializedItemId;
+			}
+
+			public Guid Id { get; private set; }
+			public Guid ParentId { get; private set; }
+			public string Path { get; private set; }
+			public string SerializedItemId { get; private set; }
 		}
 	}
 }
