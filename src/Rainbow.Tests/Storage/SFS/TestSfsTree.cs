@@ -1,11 +1,11 @@
 ﻿using System;
 using System.IO;
-using Rainbow.Storage.SFS;
+using Rainbow.Storage;
 using Rainbow.Storage.Yaml;
 
 namespace Rainbow.Tests.Storage.SFS
 {
-	internal class TestSfsTree : SfsTree, IDisposable
+	internal class TestSfsTree : SerializationFileSystemTree, IDisposable
 	{
 		public TestSfsTree(string globalRootItemPath = "/sitecore")
 			: base("Unit Testing", globalRootItemPath, "UnitTesting", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()), new YamlSerializationFormatter(null, null))
