@@ -46,13 +46,19 @@ namespace Rainbow.Storage.Yaml
 		{
 			Assert.ArgumentNotNull(dataStream, "dataStream");
 
-
-			using (var reader = new YamlReader(dataStream, 4096, true))
+			try
 			{
-				var item = new YamlItem();
-				item.ReadYaml(reader);
+				using (var reader = new YamlReader(dataStream, 4096, true))
+				{
+					var item = new YamlItem();
+					item.ReadYaml(reader);
 
-				return new YamlItemData(item, serializedItemId, FieldFormatters.ToArray(), ParentDataStore);
+					return new YamlItemData(item, serializedItemId, FieldFormatters.ToArray(), ParentDataStore);
+				}
+			}
+			catch (Exception exception)
+			{
+				throw new FormatException("Error reading " + serializedItemId, exception);
 			}
 		}
 
