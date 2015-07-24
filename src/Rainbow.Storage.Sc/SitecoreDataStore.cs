@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Rainbow.Model;
 using Rainbow.Storage.Sc.Deserialization;
+using Sitecore.Collections;
 using Sitecore.Configuration;
 using Sitecore.Data;
 using Sitecore.Data.Events;
@@ -64,7 +65,7 @@ namespace Rainbow.Storage.Sc
 
 			var item = db.GetItem(new ID(parentItem.Id));
 
-			return item.Children.Select(child => (IItemData)new ItemData(child, this)).ToArray();
+			return item.GetChildren(ChildListOptions.SkipSorting).Select(child => (IItemData)new ItemData(child, this)).ToArray();
 		}
 
 		public void CheckConsistency(string database, bool fixErrors, Action<string> logMessageReceiver)

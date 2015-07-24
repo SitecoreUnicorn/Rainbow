@@ -6,6 +6,7 @@ using System.Linq;
 using Rainbow.Model;
 using Sitecore.Data.Fields;
 using Sitecore.Data.Items;
+using Sitecore.Data.Managers;
 
 namespace Rainbow.Storage.Sc
 {
@@ -63,30 +64,58 @@ namespace Rainbow.Storage.Sc
 			get { return _item.TemplateID.Guid; }
 		}
 
+		private List<IItemFieldValue> _sharedFields;
 		public IEnumerable<IItemFieldValue> SharedFields
 		{
 			get
 			{
-				EnsureFields();
-
-				for (int i = 0; i < _item.Fields.Count; i++)
+				if (_sharedFields == null)
 				{
-					var field = _item.Fields[i];
-					if (field.Shared && !field.ContainsStandardValue)
-						yield return new ItemFieldValue(field);
+					EnsureFields();
+
+					var template = TemplateManager.GetTemplate(_item);
+
+					var fieldResults = new List<IItemFieldValue>();
+
+					for (int i = 0; i < _item.Fields.Count; i++)
+					{
+						var field = _item.Fields[i];
+
+						// no versioned fields or fields not on the template
+						if (!field.Shared || template.GetField(field.ID) == null) continue;
+
+						var value = field.GetValue(false, false);
+
+						if (value != null)
+							fieldResults.Add(new ItemFieldValue(field, value));
+					}
+
+					_sharedFields = fieldResults;
 				}
+
+				return _sharedFields;
 			}
 		}
 
+		private List<IItemVersion> _versions;
 		public IEnumerable<IItemVersion> Versions
 		{
 			get
 			{
-				var versions = GetVersions();
-				for (int i = 0; i < versions.Length; i++)
+				if (_versions == null)
 				{
-					yield return new ItemVersionValue(versions[i]);
+					var versionResults = new List<IItemVersion>();
+
+					var versions = GetVersions();
+					for (int i = 0; i < versions.Length; i++)
+					{
+						versionResults.Add(new ItemVersionValue(versions[i]));
+					}
+
+					_versions = versionResults;
 				}
+
+				return _versions;
 			}
 		}
 
@@ -97,7 +126,7 @@ namespace Rainbow.Storage.Sc
 
 		public IEnumerable<IItemData> GetChildren()
 		{
-			if(_sourceDataStore != null)
+			if (_sourceDataStore != null)
 				return _sourceDataStore.GetChildren(this);
 
 			return _item.GetChildren().Select(child => new ItemData(child));
@@ -124,10 +153,12 @@ namespace Rainbow.Storage.Sc
 		protected class ItemFieldValue : IItemFieldValue
 		{
 			private readonly Field _field;
+			private readonly string _retrievedStringValue;
 
-			public ItemFieldValue(Field field)
+			public ItemFieldValue(Field field, string retrievedStringValue)
 			{
 				_field = field;
+				_retrievedStringValue = retrievedStringValue;
 			}
 
 			public Guid FieldId
@@ -144,13 +175,13 @@ namespace Rainbow.Storage.Sc
 						using (var stream = _field.GetBlobStream())
 						{
 							var buf = new byte[stream.Length];
-							
+
 							stream.Read(buf, 0, (int)stream.Length);
 
 							return Convert.ToBase64String(buf);
 						}
 					}
-					return _field.Value;
+					return _retrievedStringValue;
 				}
 			}
 
@@ -176,18 +207,37 @@ namespace Rainbow.Storage.Sc
 				_version = version;
 			}
 
+			private List<IItemFieldValue> _fields;
+
 			public IEnumerable<IItemFieldValue> Fields
 			{
 				get
 				{
-					EnsureFields();
-
-					for (int i = 0; i < _version.Fields.Count; i++)
+					if (_fields == null)
 					{
-						var field = _version.Fields[i];
-						if (!field.Shared && !field.ContainsStandardValue) // unversioned fields may be duplicated across versions doing this?
-							yield return new ItemFieldValue(field);
+						EnsureFields();
+
+						var template = TemplateManager.GetTemplate(_version);
+
+						var fieldResults = new List<IItemFieldValue>();
+
+						for (int i = 0; i < _version.Fields.Count; i++)
+						{
+							var field = _version.Fields[i];
+
+							// no shared fields or fields not on the template
+							if (field.Shared || template.GetField(field.ID) == null) continue;
+
+							var value = field.GetValue(false, false);
+
+							if (value != null)
+								fieldResults.Add(new ItemFieldValue(field, value));
+						}
+
+						_fields = fieldResults;
 					}
+
+					return _fields;
 				}
 			}
 

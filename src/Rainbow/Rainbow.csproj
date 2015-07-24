@@ -63,6 +63,7 @@
     <Compile Include="Formatting\FieldFormatters\MultilistFormatter.cs" />
     <Compile Include="Formatting\FieldFormatters\XmlFieldFormatter.cs" />
     <Compile Include="Formatting\ISerializationFormatter.cs" />
+    <Compile Include="Storage\FastDirectoryEnumerator.cs" />
     <Compile Include="Storage\IDataStore.cs" />
     <Compile Include="Model\IItemFieldValue.cs" />
     <Compile Include="Model\IItemData.cs" />

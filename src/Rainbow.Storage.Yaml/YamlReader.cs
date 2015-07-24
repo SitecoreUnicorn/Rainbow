@@ -60,7 +60,7 @@ namespace Rainbow.Storage.Yaml
 			var guidString = mapFunction(expectedKey);
 			Guid result;
 
-			if (!Guid.TryParse(guidString, out result)) throw new InvalidOperationException(CreateErrorMessage("Map value was not a valid GUID. Got " + guidString));
+			if (!Guid.TryParseExact(guidString, "D", out result)) throw new InvalidOperationException(CreateErrorMessage("Map value was not a valid GUID. Got " + guidString));
 
 			return result;
 		}

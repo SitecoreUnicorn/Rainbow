@@ -137,9 +137,7 @@ namespace Rainbow.Storage
 		{
 			Assert.ArgumentNotNull(item, "item");
 
-			var localPath = ConvertGlobalVirtualPathToTreeVirtualPath(item.Path);
-
-			var itemToRemove = GetItemForVirtualPath(localPath, item.Id);
+			IItemMetadata itemToRemove = GetItemForGlobalPath(item.Path, item.Id);
 
 			if (itemToRemove == null) return false;
 
@@ -156,7 +154,7 @@ namespace Rainbow.Storage
 					if (Directory.Exists(childrenDirectory)) Directory.Delete(childrenDirectory, true);
 
 					var shortChildrenDirectory = Path.Combine(PhysicalRootPath, descendant.Id.ToString());
-					if(Directory.Exists(shortChildrenDirectory)) Directory.Delete(shortChildrenDirectory);
+					if (Directory.Exists(shortChildrenDirectory)) Directory.Delete(shortChildrenDirectory);
 				}
 			}
 
