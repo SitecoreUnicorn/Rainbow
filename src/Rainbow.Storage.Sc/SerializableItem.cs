@@ -7,6 +7,7 @@ using Rainbow.Model;
 using Sitecore.Data.Fields;
 using Sitecore.Data.Items;
 using Sitecore.Data.Managers;
+using Sitecore.StringExtensions;
 
 namespace Rainbow.Storage.Sc
 {
@@ -74,6 +75,12 @@ namespace Rainbow.Storage.Sc
 					EnsureFields();
 
 					var template = TemplateManager.GetTemplate(_item);
+
+					if (template == null)
+					{
+						Sitecore.Diagnostics.Log.Warn("Unable to read shared fields for {0} because template {1} did not exist.".FormatWith(_item.ID, _item.TemplateID), this);
+						return Enumerable.Empty<IItemFieldValue>();
+					}
 
 					var fieldResults = new List<IItemFieldValue>();
 
@@ -218,6 +225,12 @@ namespace Rainbow.Storage.Sc
 						EnsureFields();
 
 						var template = TemplateManager.GetTemplate(_version);
+
+						if (template == null)
+						{
+							Sitecore.Diagnostics.Log.Warn("Unable to read shared fields for {0} because template {1} did not exist.".FormatWith(_version.ID, _version.TemplateID), this);
+							return Enumerable.Empty<IItemFieldValue>();
+						}
 
 						var fieldResults = new List<IItemFieldValue>();
 
