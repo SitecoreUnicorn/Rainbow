@@ -1,8 +1,4 @@
-﻿// TODO: the tabs tree fail you have in console atm does not accurately reflect the yml file with the (intentional) parse error, sitecore/content/Public/home/integration-tests/tabs-example-page/Subcontent/Tabss/Tabs/New External Application Configuration
-// TODO: exception formatting for the logs or text is suboptimal. Make it not so.
-// TODO: allow data folder as a variable in rootpath, add comment in readme
-// TODO: moving is busted, as is renaming. get rid of hack putting remove/add in the data store and push that up to the data provider
-// TODO: WFFM can create items whose names are too long to fit on the FS. Need to detect this and force the item to be named by ID for that.
+﻿// TODO: WFFM can create items whose names are too long to fit on the FS. Need to detect this and force the item to be named by ID for that. #34
 // TODO: use BulkUpdateContext() during a sync - after testing perf - to speed up adding many items. Should be optional as this causes publish queue to not get updated.
 // TODO: more tests. yo dawg...
 // TODO: formatting of security field values?
