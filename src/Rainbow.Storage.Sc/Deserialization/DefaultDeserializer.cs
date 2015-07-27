@@ -88,6 +88,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 				ChangeTemplateIfNeeded(serializedItemData, targetItem);
 				RenameIfNeeded(serializedItemData, targetItem);
 				ResetTemplateEngineIfItemIsTemplate(targetItem);
+				UpdateFieldSharingIfNeeded(serializedItemData, targetItem);
 
 				using (new EditContext(targetItem))
 				{
@@ -232,6 +233,33 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 				_logger.ChangedTemplate(targetItem, oldTemplate);
 			}
+		}
+
+		/// <summary>
+		/// When you change a template field from versioned to shared or unversioned (or vice versa), the conversion of the values
+		/// in existing items with that field is NOT automatic. This method causes the requisite field updates (moving the values between db tables)
+		/// </summary>
+		protected void UpdateFieldSharingIfNeeded(IItemData serializedItemData, Item targetItem)
+		{
+			if (serializedItemData.TemplateId != TemplateIDs.TemplateField.Guid) return;
+
+			var shared = serializedItemData.SharedFields.FirstOrDefault(field => field.FieldId == TemplateFieldIDs.Shared.Guid);
+			var unversioned = serializedItemData.SharedFields.FirstOrDefault(field => field.FieldId == TemplateFieldIDs.Unversioned.Guid);
+
+			TemplateFieldSharing sharedness = TemplateFieldSharing.None;
+
+			if (shared != null && shared.Value.Equals("1")) sharedness = TemplateFieldSharing.Shared;
+			else if (unversioned != null && unversioned.Value.Equals("1")) sharedness = TemplateFieldSharing.Unversioned;
+
+			var templateField = TemplateManager.GetTemplateField(targetItem.ID, targetItem.Parent.Parent.ID, targetItem.Database);
+
+			TemplateFieldSharing templateSharedness = TemplateFieldSharing.None;
+			if(templateField.IsShared) templateSharedness = TemplateFieldSharing.Shared;
+			else if(templateField.IsUnversioned) templateSharedness = TemplateFieldSharing.Unversioned;
+
+			if (templateSharedness == sharedness) return;
+
+			TemplateManager.ChangeFieldSharing(templateField, sharedness, targetItem.Database);
 		}
 
 		protected Item CreateTargetItem(IItemData serializedItemData, Item destinationParentItem)
