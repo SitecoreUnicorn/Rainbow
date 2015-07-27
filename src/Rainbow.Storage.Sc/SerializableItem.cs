@@ -47,7 +47,7 @@ namespace Rainbow.Storage.Sc
 
 		public string Path
 		{
-			get { return _item.Paths.FullPath; }
+			get { return _item.Paths.Path; }
 		}
 
 		public string Name
