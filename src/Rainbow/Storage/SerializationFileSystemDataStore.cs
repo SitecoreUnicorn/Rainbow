@@ -94,7 +94,7 @@ namespace Rainbow.Storage
 		{
 			var tree = GetTreeForPath(path, database);
 
-			if (tree == null) throw new InvalidOperationException("No trees contained the global path " + path);
+			if (tree == null) return Enumerable.Empty<IItemData>();
 
 			return tree.GetItemsByPath(path);
 		}
