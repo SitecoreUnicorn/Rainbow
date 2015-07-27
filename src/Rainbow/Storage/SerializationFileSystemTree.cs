@@ -427,6 +427,8 @@ namespace Rainbow.Storage
 				.Select(ReadItemMetadata)
 				.FirstOrDefault(candidateItem => candidateItem.Id == expectedItemId);
 
+			if(_pathCache.ContainsKey(result.Id)) throw new InvalidOperationException("The item with ID {0} has duplicate item files serialized ({1}, {2}). Please remove the incorrect one and try again.".FormatWith(result.Id, _pathCache[result.Id].SerializedItemId, result.SerializedItemId));
+
 			_pathCache.Add(result.Id, result);
 
 			return result;
