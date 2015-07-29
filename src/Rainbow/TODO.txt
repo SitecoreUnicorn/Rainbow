@@ -1,5 +1,6 @@
 ﻿// TODO: WFFM can create items whose names are too long to fit on the FS. Need to detect this and force the item to be named by ID for that. #34
 // TODO: use BulkUpdateContext() during a sync - after testing perf - to speed up adding many items. Should be optional as this causes publish queue to not get updated.
+// TODO: parallel tree syncing, at a top level tree point and or config level- if it helps. may need to allow trees to opt out and load first eg templates
 // TODO: more tests. yo dawg...
 // TODO: formatting of security field values?
 // TODO: add consistency checking to unicorn control panel, and implement in SFS
