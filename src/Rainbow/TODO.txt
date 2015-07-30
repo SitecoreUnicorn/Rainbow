@@ -1,4 +1,4 @@
-﻿// TODO: WFFM can create items whose names are too long to fit on the FS. Need to detect this and force the item to be named by ID for that. #34
+﻿// TODO: WFFM can create items whose names are too long to fit on the FS. Need to detect this and force the item to be named by ID for that, or truncated name? #34
 // TODO: use BulkUpdateContext() during a sync - after testing perf - to speed up adding many items. Should be optional as this causes publish queue to not get updated.
 // TODO: more tests. yo dawg...
 // TODO: Replace client serialize commands with unicorn config aware ones that conditionally use Uni configs
@@ -10,7 +10,6 @@
 	- Export-UnicornConfiguration (runs reserialize)
 
 // 3.1: roles support
-// 3.1: additional path providers/refactored path provider?
 // 3.1: consistency checking (in unicorn control panel and SFS)
 // 3.1: parallel tree syncing, at a top level tree point and or config level- if it helps. may need to allow trees to opt out and load first eg templates
 // 3.2: formatting of security field values?
