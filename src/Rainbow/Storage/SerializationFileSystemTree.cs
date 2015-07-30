@@ -116,7 +116,7 @@ namespace Rainbow.Storage
 
 			var localPath = ConvertGlobalVirtualPathToTreeVirtualPath(globalPath);
 
-			return GetPhysicalFilePathsForVirtualPath(localPath).Select(ReadItem).Where(item => item != null);
+			return GetPhysicalFilePathsForVirtualPath(localPath).Select(ReadItem).Where(item => item != null && item.Path.Equals(globalPath, StringComparison.OrdinalIgnoreCase));
 		}
 
 		public IEnumerable<IItemData> GetChildren(IItemData parentItem)
@@ -303,7 +303,7 @@ namespace Rainbow.Storage
 					break;
 				}
 
-				if (candidate.Id != item.Id && candidate.Path.EndsWith(item.Name, StringComparison.OrdinalIgnoreCase) && basePath == null)
+				if (candidate.Id != item.Id && basePath == null)
 				{
 					// we found an item with a different ID, and the same name - so we need to escape this item's name
 					basePath = string.Concat(Path.ChangeExtension(parentItem.SerializedItemId, null), Path.DirectorySeparatorChar, strippedItemName, "_", item.Id, _formatter.FileExtension);
@@ -432,7 +432,7 @@ namespace Rainbow.Storage
 				.Select(ReadItemMetadata)
 				.FirstOrDefault(candidateItem => candidateItem.Id == expectedItemId);
 
-			if(_pathCache.ContainsKey(result.Id)) throw new InvalidOperationException("The item with ID {0} has duplicate item files serialized ({1}, {2}). Please remove the incorrect one and try again.".FormatWith(result.Id, _pathCache[result.Id].SerializedItemId, result.SerializedItemId));
+			if (_pathCache.ContainsKey(result.Id)) throw new InvalidOperationException("The item with ID {0} has duplicate item files serialized ({1}, {2}). Please remove the incorrect one and try again.".FormatWith(result.Id, _pathCache[result.Id].SerializedItemId, result.SerializedItemId));
 
 			_pathCache.Add(result.Id, result);
 
@@ -552,7 +552,7 @@ namespace Rainbow.Storage
 				{
 					var configSetting = Settings.GetIntSetting("Rainbow.SFS.MaxItemNameLengthBeforeTruncation", 100);
 					var maxLength = MaxRelativePathLength - Guid.Empty.ToString().Length - _formatter.FileExtension.Length;
-					if(configSetting > maxLength)
+					if (configSetting > maxLength)
 						throw new InvalidOperationException("The MaxItemNameLengthBeforeTruncation setting ({0}) is too long given the SerializationFolderPathMaxLength. Reduce the max name length to at or below {1}.".FormatWith(configSetting, maxLength));
 
 					_maxItemNameLength = configSetting;
