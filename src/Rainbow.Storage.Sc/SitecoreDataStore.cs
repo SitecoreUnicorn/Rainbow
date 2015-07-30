@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Rainbow.Model;
 using Rainbow.Storage.Sc.Deserialization;
 using Sitecore.Collections;
@@ -48,11 +49,39 @@ namespace Rainbow.Storage.Sc
 
 			Assert.IsNotNull(db, "Database " + database + " did not exist!");
 
-			var dbItem = db.GetItem(path);
+			// note: this is awfully slow. But the only way to get items by path that finds ALL matches of the path instead of the first.
+			// luckily most queries will use GetByMetadata with the ID, which is fast
+			var dbItems = db.SelectItems(path);
 
-			if (dbItem == null) yield break;
+			if (dbItems == null || dbItems.Length == 0) return Enumerable.Empty<IItemData>();
 
-			yield return new ItemData(dbItem, this);
+			return dbItems.Select(item => new ItemData(item, this));
+		}
+
+		public IItemData GetByMetadata(IItemMetadata metadata, string database)
+		{
+			Assert.ArgumentNotNullOrEmpty(database, "database");
+			Assert.ArgumentNotNull(metadata, "metadata");
+
+			Database db = GetDatabase(database);
+
+			Assert.IsNotNull(db, "Database " + database + " did not exist!");
+
+			if (metadata.Id != default(Guid))
+			{
+				var item = db.GetItem(new ID(metadata.Id));
+				return item == null ? null : new ItemData(item);
+			}
+
+			if (!string.IsNullOrWhiteSpace(metadata.Path))
+			{
+				var items = GetByPath(metadata.Path, database).ToArray();
+				if (items.Length == 0) return null;
+				if (items.Length == 1) return items[0];
+				if(items.Length > 1) throw new AmbiguousMatchException("The path " + metadata.Path + " matched more than one item. Reduce ambiguity by passing the ID as well, or use GetByPath() for multiple results.");
+			}
+
+			throw new AmbiguousMatchException("The metadata provided did not contain a path or ID. Unable to look up the item in the database without one of those.");
 		}
 
 		public IEnumerable<IItemData> GetChildren(IItemData parentItem)

@@ -16,7 +16,18 @@ namespace Rainbow.Storage
 		/// </remarks>
 		void MoveOrRenameItem(IItemData itemWithFinalPath, string oldPath);
 
+		/// <summary>
+		/// Gets an item - or items, if multiple names match the path - by its path.
+		/// If you have item metadata available (e.g. an item from a different store) you should favor GetByMetadata() over this,
+		/// as it is likely faster and more accurate for most data stores.
+		/// </summary>
 		IEnumerable<IItemData> GetByPath(string path, string database);
+
+		/// <summary>
+		/// Gets an item by its metadata. The data store will use the appropriate pieces of metadata to resolve your item, though you should at a minimum send path and preferably ID.
+		/// </summary>
+		/// <returns>The item or null if no item matches. Exception should be thrown if metadata is incomplete.</returns>
+		IItemData GetByMetadata(IItemMetadata metadata, string database);
 
 		IEnumerable<IItemData> GetChildren(IItemData parentItem);
 

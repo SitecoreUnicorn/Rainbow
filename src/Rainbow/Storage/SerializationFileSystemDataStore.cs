@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Web.Hosting;
 using Rainbow.Formatting;
 using Rainbow.Model;
@@ -95,6 +96,21 @@ namespace Rainbow.Storage
 			if (tree == null) return Enumerable.Empty<IItemData>();
 
 			return tree.GetItemsByPath(path);
+		}
+
+		public IItemData GetByMetadata(IItemMetadata metadata, string database)
+		{
+			Assert.ArgumentNotNull(metadata, "metadata");
+			Assert.ArgumentNotNullOrEmpty(database, "database");
+			Assert.IsNotNullOrEmpty(metadata.Path, "The path is required to get an item from the SFS data store.");
+
+			var items = GetByPath(metadata.Path, database);
+
+			if (metadata.Id != default(Guid)) return items.FirstOrDefault(item => item.Id == metadata.Id);
+
+			if (!items.Any()) return null;
+
+			throw new AmbiguousMatchException("The path " + metadata.Path + " matched more than one item. Reduce ambiguity by passing the ID as well, or use GetByPath() for multiple results.");
 		}
 
 		public IEnumerable<IItemData> GetChildren(IItemData parentItem)
