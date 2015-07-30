@@ -69,8 +69,6 @@ namespace Rainbow.Storage
 			// add new tree, if it's included (if it's moving to a non included path we simply delete it and are done)
 			if (newPathTree != null)
 			{
-				// TODO: this is unaware of any predicate restrictions - inclined to make that a Unicorn version injection
-				// TODO: or consider pushing this logic up into the data provider, which would let us remove the getchildren kinda hack
 				var saveQueue = new Queue<IItemData>();
 				saveQueue.Enqueue(itemWithFinalPath);
 

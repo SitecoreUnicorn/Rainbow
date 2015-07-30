@@ -30,7 +30,7 @@ namespace Rainbow.Storage.Sc
 
 		public void Save(IItemData item)
 		{
-			_deserializer.Deserialize(item, false);
+			_deserializer.Deserialize(item, true);
 		}
 
 		public void MoveOrRenameItem(IItemData itemWithFinalPath, string oldPath)
