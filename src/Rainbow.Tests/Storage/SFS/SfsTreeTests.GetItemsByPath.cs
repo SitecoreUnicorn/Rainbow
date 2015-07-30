@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using NUnit.Framework;
 
 namespace Rainbow.Tests.Storage.SFS
@@ -13,7 +12,7 @@ namespace Rainbow.Tests.Storage.SFS
 			{
 				CreateTestTree("/sitecore", testTree);
 
-				var root = testTree.GetItemsByPath("/sitecore");
+				var root = testTree.GetItemsByPath("/sitecore").ToArray();
 
 				Assert.IsNotNull(root);
 				Assert.IsNotEmpty(root);
@@ -28,7 +27,7 @@ namespace Rainbow.Tests.Storage.SFS
 			{
 				CreateTestTree("/sitecore/templates", testTree);
 
-				var root = testTree.GetItemsByPath("/sitecore/templates");
+				var root = testTree.GetItemsByPath("/sitecore/templates").ToArray();
 
 				Assert.IsNotNull(root);
 				Assert.IsNotEmpty(root);
@@ -43,7 +42,7 @@ namespace Rainbow.Tests.Storage.SFS
 			{
 				CreateTestTree("/sitecore/templates/User Defined", testTree);
 
-				var root = testTree.GetItemsByPath("/sitecore/templates/User Defined");
+				var root = testTree.GetItemsByPath("/sitecore/templates/User Defined").ToArray();
 
 				Assert.IsNotNull(root);
 				Assert.IsNotEmpty(root);
@@ -58,7 +57,7 @@ namespace Rainbow.Tests.Storage.SFS
 			{
 				CreateTestTree("/sitecore/templates/User Defined", testTree);
 
-				var root = testTree.GetItemsByPath("/sitecore/templates/User Defined");
+				var root = testTree.GetItemsByPath("/sitecore/templates/User Defined").ToArray();
 
 				Assert.IsNotNull(root);
 				Assert.IsNotEmpty(root);
@@ -73,7 +72,7 @@ namespace Rainbow.Tests.Storage.SFS
 			{
 				CreateTestTree("/?hello*/%there%", testTree);
 
-				var root = testTree.GetItemsByPath("/?hello*/%there%");
+				var root = testTree.GetItemsByPath("/?hello*/%there%").ToArray();
 
 				Assert.IsNotNull(root);
 				Assert.IsNotEmpty(root);
@@ -142,7 +141,7 @@ namespace Rainbow.Tests.Storage.SFS
 				testTree.MaxFileNameLengthForTests = 10;
 				CreateTestTree("/sitecore/hello hello", testTree);
 
-				var overlengthItem = testTree.GetItemsByPath("/sitecore/hello hello");
+				var overlengthItem = testTree.GetItemsByPath("/sitecore/hello hello").ToArray();
 
 				Assert.AreEqual(1, overlengthItem.Count());
 
@@ -159,7 +158,7 @@ namespace Rainbow.Tests.Storage.SFS
 				testTree.MaxFileNameLengthForTests = 10;
 				CreateTestTree("/sitecore/hello hello/goodbye", testTree);
 
-				var overlengthChild = testTree.GetItemsByPath("/sitecore/hello hello/goodbye");
+				var overlengthChild = testTree.GetItemsByPath("/sitecore/hello hello/goodbye").ToArray();
 
 				Assert.AreEqual(1, overlengthChild.Count());
 
@@ -178,7 +177,7 @@ namespace Rainbow.Tests.Storage.SFS
 
 				testTree.Save(CreateTestItem("/sitecore/hello hello hello", testTree.GetRootItem().Id));
 
-				var overlengthItem = testTree.GetItemsByPath("/sitecore/hello hello");
+				var overlengthItem = testTree.GetItemsByPath("/sitecore/hello hello").ToArray();
 
 				Assert.AreEqual(1, overlengthItem.Count());
 				Assert.AreEqual("/sitecore/hello hello", overlengthItem.First().Path);

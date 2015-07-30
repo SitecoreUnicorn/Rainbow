@@ -181,7 +181,7 @@ namespace Rainbow.Tests.Storage.SFS
 
 				testTree.Save(CreateTestItem("/sitecore/hello hello hello", testTree.GetRootItem().Id));
 
-				var overlengthItems = testTree.GetChildren(testTree.GetRootItem());
+				var overlengthItems = testTree.GetChildren(testTree.GetRootItem()).ToArray();
 
 				Assert.AreEqual(2, overlengthItems.Count());
 				Assert.IsTrue(overlengthItems.Any(item => item.Path == "/sitecore/hello hello"));

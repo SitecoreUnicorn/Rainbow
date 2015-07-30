@@ -333,6 +333,7 @@ namespace Rainbow.Storage
 		/// <summary>
 		///     Wraps a FindFirstFile handle.
 		/// </summary>
+		// ReSharper disable once ClassNeverInstantiated.Local
 		private sealed class SafeFindHandle : SafeHandleZeroOrMinusOneIsInvalid
 		{
 			/// <summary>

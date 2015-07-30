@@ -11,8 +11,7 @@ namespace Rainbow.Diff
 		{
 			SourceVersion = sourceVersion;
 			TargetVersion = targetVersion;
-			ChangedFields = changedFields;
-			if (ChangedFields == null) ChangedFields = new FieldComparisonResult[] {};
+			ChangedFields = changedFields ?? new FieldComparisonResult[] {};
 		}
 
 		public int VersionNumber

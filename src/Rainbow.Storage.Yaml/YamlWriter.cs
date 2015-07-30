@@ -102,7 +102,14 @@ namespace Rainbow.Storage.Yaml
 
 		public void Dispose()
 		{
-			_writer.Dispose();
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if(disposing)
+				_writer.Dispose();
 		}
 	}
 }

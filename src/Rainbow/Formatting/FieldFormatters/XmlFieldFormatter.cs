@@ -36,10 +36,12 @@ namespace Rainbow.Formatting.FieldFormatters
 
 			var element = XElement.Parse(value);
 
-			var settings = new XmlWriterSettings();
-			settings.OmitXmlDeclaration = true;
-			settings.Indent = false;
-			settings.NewLineOnAttributes = false;
+			var settings = new XmlWriterSettings
+			{
+				OmitXmlDeclaration = true,
+				Indent = false,
+				NewLineOnAttributes = false
+			};
 
 			using (var xmlWriter = XmlWriter.Create(stringBuilder, settings))
 			{

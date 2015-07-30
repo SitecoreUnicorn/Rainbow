@@ -176,7 +176,14 @@ namespace Rainbow.Storage.Yaml
 
 		public void Dispose()
 		{
-			_reader.Dispose();
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if(disposing)
+				_reader.Dispose();
 		}
 
 		protected class PeekableStreamReaderAdapter

@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using Rainbow.Filtering;
 using Sitecore.Diagnostics;
 
 namespace Rainbow.Model

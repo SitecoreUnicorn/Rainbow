@@ -109,16 +109,20 @@ Path: /sitecore/content/test
 
 		private void DecorateVersionsTestData(YamlItem item)
 		{
-			var field = new YamlFieldValue();
-			field.Id = new Guid("9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf");
-			field.Value = "Hello \"silly\" world.";
+			var field = new YamlFieldValue
+			{
+				Id = new Guid("9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf"),
+				Value = "Hello \"silly\" world."
+			};
 
-			var field2 = new YamlFieldValue();
-			field2.Id = new Guid("badd9cf9-53e0-4d0c-bcc0-2d784c282f6a");
-			field2.NameHint = "Test Field";
-			field2.Value = @"Lorem thine ipsum
+			var field2 = new YamlFieldValue
+			{
+				Id = new Guid("badd9cf9-53e0-4d0c-bcc0-2d784c282f6a"),
+				NameHint = "Test Field",
+				Value = @"Lorem thine ipsum
 <p>forsooth thy sit amet</p>
-<div class=""simian"">Chimpanzee.</div>";
+<div class=""simian"">Chimpanzee.</div>"
+			};
 
 			var testVersion1 = new YamlVersion();
 			testVersion1.VersionNumber = 1;
