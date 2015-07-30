@@ -12,6 +12,7 @@ namespace Rainbow.Tests.Storage.SFS
 		{
 			GlobalRootItemPath = globalRootItemPath;
 			MaxPathLengthForTests = base.MaxRelativePathLength;
+			MaxFileNameLengthForTests = base.MaxItemNameLengthBeforeTruncation;
 		}
 
 		public string ConvertGlobalPathToTreePathTest(string globalPath)
@@ -34,7 +35,9 @@ namespace Rainbow.Tests.Storage.SFS
 		}
 
 		public int MaxPathLengthForTests { get; set; }
+		public int MaxFileNameLengthForTests { get; set; }
 
 		protected override int MaxRelativePathLength { get { return MaxPathLengthForTests; } }
+		protected override int MaxItemNameLengthBeforeTruncation { get { return MaxFileNameLengthForTests; } }
 	}
 }

@@ -411,7 +411,12 @@ namespace Rainbow.Storage
 		{
 			Assert.ArgumentNotNullOrEmpty(name, "name");
 
-			return Regex.Replace(name, @"[%\$\\/:\*\?<>\|""]+", "_", RegexOptions.Compiled);
+			var validifiedName = Regex.Replace(name, @"[%\$\\/:\*\?<>\|""]+", "_", RegexOptions.Compiled);
+
+			if (validifiedName.Length > MaxItemNameLengthBeforeTruncation)
+				return validifiedName.Substring(0, MaxItemNameLengthBeforeTruncation);
+
+			return validifiedName;
 		}
 
 		protected virtual IItemMetadata GetItemForGlobalPath(string globalPath, Guid expectedItemId)
@@ -506,6 +511,7 @@ namespace Rainbow.Storage
 			return ReadItemMetadata(parentPhysicalPaths[0]);
 		}
 
+		private int? _maxRelativePathLength;
 		/// <summary>
 		/// This is the 'effective' max relative physical path length before we start having to use loopback paths.
 		/// This is usually (Windows Path Max) - (Constant), where the constant is the maximum expected physical path length
@@ -515,12 +521,44 @@ namespace Rainbow.Storage
 		{
 			get
 			{
-				const int windowsMaxPathLength = 240; // 260 - sundry directory chars, separators, file extension allowance, etc
-				int expectedPhysicalPathMaxConstant = Settings.GetIntSetting("Serialization.SerializationFolderPathMaxLength", 80);
+				if (_maxRelativePathLength == null)
+				{
+					const int windowsMaxPathLength = 240; // 260 - sundry directory chars, separators, file extension allowance, etc
+					int expectedPhysicalPathMaxConstant = Settings.GetIntSetting("Rainbow.SFS.SerializationFolderPathMaxLength", 80);
 
-				if (PhysicalRootPath.Length > expectedPhysicalPathMaxConstant) throw new InvalidOperationException("The physical root path of this SFS tree, {0}, is longer than the configured max base path length {1}. If the tree contains any loopback paths, unexpected behavior may occur. You should increase the Serialization.SerializationFolderPathMaxLength setting to greater than {2} and perform a reserialization from a master content database.".FormatWith(PhysicalRootPath, expectedPhysicalPathMaxConstant, PhysicalRootPath.Length));
+					if (PhysicalRootPath.Length > expectedPhysicalPathMaxConstant)
+						throw new InvalidOperationException(
+							"The physical root path of this SFS tree, {0}, is longer than the configured max base path length {1}. If the tree contains any loopback paths, unexpected behavior may occur. You should increase the Serialization.SerializationFolderPathMaxLength setting to greater than {2} and perform a reserialization from a master content database."
+								.FormatWith(PhysicalRootPath, expectedPhysicalPathMaxConstant, PhysicalRootPath.Length));
 
-				return windowsMaxPathLength - expectedPhysicalPathMaxConstant;
+					_maxRelativePathLength = windowsMaxPathLength - expectedPhysicalPathMaxConstant;
+				}
+
+				return _maxRelativePathLength.Value;
+			}
+		}
+
+		private int? _maxItemNameLength;
+		/// <summary>
+		/// Sitecore item names can become so long that they will not fit on the filesystem without hitting the max path length.
+		/// This setting controls when Rainbow truncates item file names that are extremely long so they will fit on the filesystem.
+		/// The value must be less than MAX_PATH - SerializationFolderPathMaxLength - Length of GUID - length of file extension.
+		/// </summary>
+		protected virtual int MaxItemNameLengthBeforeTruncation
+		{
+			get
+			{
+				if (_maxItemNameLength == null)
+				{
+					var configSetting = Settings.GetIntSetting("Rainbow.SFS.MaxItemNameLengthBeforeTruncation", 100);
+					var maxLength = MaxRelativePathLength - Guid.Empty.ToString().Length - _formatter.FileExtension.Length;
+					if(configSetting > maxLength)
+						throw new InvalidOperationException("The MaxItemNameLengthBeforeTruncation setting ({0}) is too long given the SerializationFolderPathMaxLength. Reduce the max name length to at or below {1}.".FormatWith(configSetting, maxLength));
+
+					_maxItemNameLength = configSetting;
+				}
+
+				return _maxItemNameLength.Value;
 			}
 		}
 

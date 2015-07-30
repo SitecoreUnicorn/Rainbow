@@ -15,12 +15,24 @@ namespace Rainbow.Tests.Storage.SFS
 		[TestCase("hello | %", "hello _ _")]
 		[TestCase("woo*", "woo_")]
 		[TestCase("yes \"sir\"", "yes _sir_")]
-		public void PrepareItemNameForFileSystem_FiltersIllegalCharacters(string input, string exptectedOutput)
+		public void PrepareItemNameForFileSystem_FiltersIllegalCharacters(string input, string expectedOutput)
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				Assert.AreEqual(exptectedOutput, testTree.PrepareItemNameForFileSystemTest(input));
+				Assert.AreEqual(expectedOutput, testTree.PrepareItemNameForFileSystemTest(input));
 			}
 		}
-    }
+
+		[Test]
+		[TestCase("hello", "hello")]
+		[TestCase("hello hello", "hello hell")]
+		public void PrepareItemNameForFileSystem_TruncatesLongFileNames(string input, string expectedOutput)
+		{
+			using (var testTree = new TestSfsTree())
+			{
+				testTree.MaxFileNameLengthForTests = 10;
+				Assert.AreEqual(expectedOutput, testTree.PrepareItemNameForFileSystemTest(input));
+			}
+		}
+	}
 }

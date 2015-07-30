@@ -150,5 +150,43 @@ namespace Rainbow.Tests.Storage.SFS
 				Assert.AreEqual("/sitecore/%<html>?*", charsItem.Path);
 			}
 		}
+
+		[Test]
+		public void Save_WritesItem_WhenItemNameIsTooLong()
+		{
+			using (var testTree = new TestSfsTree())
+			{
+				// force the tree to shorten after 10 char names
+				testTree.MaxFileNameLengthForTests = 10;
+				CreateTestTree("/sitecore/hello hello", testTree);
+
+				var rootItem = testTree.GetRootItem();
+
+				var overlengthItem = testTree.GetChildren(rootItem).First();
+
+				Assert.AreEqual("/sitecore/hello hello", overlengthItem.Path);
+				// name should be truncated
+				Assert.IsTrue(overlengthItem.SerializedItemId.EndsWith("hello hell.yml"));
+			}
+		}
+
+		[Test]
+		public void Save_WritesExpectedItems_WhenItemNameIsTooLong_AndItemsWithSameShortenedNameExist()
+		{
+			using (var testTree = new TestSfsTree())
+			{
+				// force the tree to shorten after 10 char names
+				testTree.MaxFileNameLengthForTests = 10;
+				CreateTestTree("/sitecore/hello hello", testTree);
+
+				testTree.Save(CreateTestItem("/sitecore/hello hello hello", testTree.GetRootItem().Id));
+
+				var overlengthItems = testTree.GetChildren(testTree.GetRootItem());
+
+				Assert.AreEqual(2, overlengthItems.Count());
+				Assert.IsTrue(overlengthItems.Any(item => item.Path == "/sitecore/hello hello"));
+				Assert.IsTrue(overlengthItems.Any(item => item.Path == "/sitecore/hello hello hello"));
+			}
+		}
 	}
 }

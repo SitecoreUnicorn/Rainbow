@@ -132,5 +132,57 @@ namespace Rainbow.Tests.Storage.SFS
 				Assert.IsTrue(results.Any(result => result.Id == templates2.Id));
 			}
 		}
+
+		[Test]
+		public void GetItemByPath_GetsExpectedItem_WhenItemNameIsTooLong()
+		{
+			using (var testTree = new TestSfsTree())
+			{
+				// force the tree to shorten after 10 char names
+				testTree.MaxFileNameLengthForTests = 10;
+				CreateTestTree("/sitecore/hello hello", testTree);
+
+				var overlengthItem = testTree.GetItemsByPath("/sitecore/hello hello");
+
+				Assert.AreEqual(1, overlengthItem.Count());
+
+				Assert.AreEqual("/sitecore/hello hello", overlengthItem.First().Path);
+			}
+		}
+
+		[Test]
+		public void GetItemByPath_GetsExpectedItem_WhenPathIsAChildOfShortenedName()
+		{
+			using (var testTree = new TestSfsTree())
+			{
+				// force the tree to shorten after 10 char names
+				testTree.MaxFileNameLengthForTests = 10;
+				CreateTestTree("/sitecore/hello hello/goodbye", testTree);
+
+				var overlengthChild = testTree.GetItemsByPath("/sitecore/hello hello/goodbye");
+
+				Assert.AreEqual(1, overlengthChild.Count());
+
+				Assert.AreEqual("/sitecore/hello hello/goodbye", overlengthChild.First().Path);
+			}
+		}
+
+		[Test]
+		public void GetItemByPath_GetsExpectedItem_WhenItemNameIsTooLong_AndItemsWithSameShortenedNameExist()
+		{
+			using (var testTree = new TestSfsTree())
+			{
+				// force the tree to shorten after 10 char names
+				testTree.MaxFileNameLengthForTests = 10;
+				CreateTestTree("/sitecore/hello hello", testTree);
+
+				testTree.Save(CreateTestItem("/sitecore/hello hello hello", testTree.GetRootItem().Id));
+
+				var overlengthItem = testTree.GetItemsByPath("/sitecore/hello hello");
+
+				Assert.AreEqual(1, overlengthItem.Count());
+				Assert.AreEqual("/sitecore/hello hello", overlengthItem.First().Path);
+			}
+		}
 	}
 }
