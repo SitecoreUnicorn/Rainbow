@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -90,6 +91,7 @@ namespace Rainbow.Storage
 		}
 
 		public string DatabaseName { get; private set; }
+		[ExcludeFromCodeCoverage]
 		public string Name { get; private set; }
 
 		public bool ContainsPath(string globalPath)
@@ -181,8 +183,6 @@ namespace Rainbow.Storage
 		{
 			Assert.ArgumentNotNullOrEmpty(path, "path");
 
-			if (!path.EndsWith(_formatter.FileExtension)) path = path + _formatter.FileExtension;
-
 			lock (FileUtil.GetFileLock(path))
 			{
 				if (!File.Exists(path)) return null;
@@ -200,8 +200,6 @@ namespace Rainbow.Storage
 		protected virtual IItemMetadata ReadItemMetadata(string path)
 		{
 			Assert.ArgumentNotNullOrEmpty(path, "path");
-
-			if (!path.EndsWith(_formatter.FileExtension)) path = path + _formatter.FileExtension;
 
 			lock (FileUtil.GetFileLock(path))
 			{
@@ -464,10 +462,8 @@ namespace Rainbow.Storage
 					}
 					catch (Exception)
 					{
-						if (ignoreReadErrors)
-						{
-							return null;
-						}
+						if (ignoreReadErrors) return null;
+				
 						throw;
 					}
 				})
@@ -527,8 +523,7 @@ namespace Rainbow.Storage
 					int expectedPhysicalPathMaxConstant = Settings.GetIntSetting("Rainbow.SFS.SerializationFolderPathMaxLength", 80);
 
 					if (PhysicalRootPath.Length > expectedPhysicalPathMaxConstant)
-						throw new InvalidOperationException(
-							"The physical root path of this SFS tree, {0}, is longer than the configured max base path length {1}. If the tree contains any loopback paths, unexpected behavior may occur. You should increase the Serialization.SerializationFolderPathMaxLength setting to greater than {2} and perform a reserialization from a master content database."
+						throw new InvalidOperationException("The physical root path of this SFS tree, {0}, is longer than the configured max base path length {1}. If the tree contains any loopback paths, unexpected behavior may occur. You should increase the Serialization.SerializationFolderPathMaxLength setting to greater than {2} and perform a reserialization from a master content database."
 								.FormatWith(PhysicalRootPath, expectedPhysicalPathMaxConstant, PhysicalRootPath.Length));
 
 					_maxRelativePathLength = windowsMaxPathLength - expectedPhysicalPathMaxConstant;
@@ -560,6 +555,11 @@ namespace Rainbow.Storage
 
 				return _maxItemNameLength.Value;
 			}
+		}
+
+		protected void ClearPathCache()
+		{
+			_pathCache.Clear();
 		}
 
 		protected class WrittenItemMetadata : IItemMetadata

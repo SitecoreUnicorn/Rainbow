@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace Rainbow.Model
 {
+	[ExcludeFromCodeCoverage]
 	public abstract class VersionDecorator : IItemVersion
 	{
 		protected readonly IItemVersion InnerVersion;

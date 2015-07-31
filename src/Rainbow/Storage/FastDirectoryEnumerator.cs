@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
@@ -17,6 +19,7 @@ namespace Rainbow.Storage
 	///     <see cref="FastDirectoryEnumerator" /> class.
 	/// </summary>
 	[Serializable]
+	[DebuggerDisplay("{Name}")]
 	public class FileData
 	{
 		/// <summary>
@@ -82,37 +85,26 @@ namespace Rainbow.Storage
 			Path = System.IO.Path.Combine(dir, findData.cFileName);
 		}
 
-		public DateTime CreationTime
-		{
-			get { return CreationTimeUtc.ToLocalTime(); }
-		}
+		//public DateTime CreationTime
+		//{
+		//	get { return CreationTimeUtc.ToLocalTime(); }
+		//}
 
-		/// <summary>
-		///     Gets the last access time in local time.
-		/// </summary>
-		public DateTime LastAccesTime
-		{
-			get { return LastAccessTimeUtc.ToLocalTime(); }
-		}
+		///// <summary>
+		/////     Gets the last access time in local time.
+		///// </summary>
+		//public DateTime LastAccesTime
+		//{
+		//	get { return LastAccessTimeUtc.ToLocalTime(); }
+		//}
 
-		/// <summary>
-		///     Gets the last access time in local time.
-		/// </summary>
-		public DateTime LastWriteTime
-		{
-			get { return LastWriteTimeUtc.ToLocalTime(); }
-		}
-
-		/// <summary>
-		///     Returns a <see cref="T:System.String" /> that represents the current <see cref="T:System.Object" />.
-		/// </summary>
-		/// <returns>
-		///     A <see cref="T:System.String" /> that represents the current <see cref="T:System.Object" />.
-		/// </returns>
-		public override string ToString()
-		{
-			return Name;
-		}
+		///// <summary>
+		/////     Gets the last access time in local time.
+		///// </summary>
+		//public DateTime LastWriteTime
+		//{
+		//	get { return LastWriteTimeUtc.ToLocalTime(); }
+		//}
 
 		private static long CombineHighLowInts(uint high, uint low)
 		{
@@ -130,7 +122,7 @@ namespace Rainbow.Storage
 	///     Contains information about the file that is found
 	///     by the FindFirstFile or FindNextFile functions.
 	/// </summary>
-	[Serializable, StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto), BestFitMapping(false)]
+	[Serializable, StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto), BestFitMapping(false), ExcludeFromCodeCoverage]
 	internal class WIN32_FIND_DATA
 	{
 		public FileAttributes dwFileAttributes;
@@ -169,42 +161,9 @@ namespace Rainbow.Storage
 	///     will need to look at the attibutes of each file returned (for example, you need
 	///     to check each file in a directory to see if it was modified after a specific date).
 	/// </remarks>
+	[ExcludeFromCodeCoverage]
 	public static class FastDirectoryEnumerator
 	{
-		/// <summary>
-		///     Gets <see cref="FileData" /> for all the files in a directory.
-		/// </summary>
-		/// <param name="path">The path to search.</param>
-		/// <returns>
-		///     An object that implements <see cref="IEnumerable{FileData}" /> and
-		///     allows you to enumerate the files in the given directory.
-		/// </returns>
-		/// <exception cref="ArgumentNullException">
-		///     <paramref name="path" /> is a null reference (Nothing in VB)
-		/// </exception>
-		public static IEnumerable<FileData> EnumerateFiles(string path)
-		{
-			return EnumerateFiles(path, "*");
-		}
-
-		/// <summary>
-		///     Gets <see cref="FileData" /> for all the files in a directory that match a
-		///     specific filter.
-		/// </summary>
-		/// <param name="path">The path to search.</param>
-		/// <param name="searchPattern">The search string to match against files in the path.</param>
-		/// <returns>
-		///     An object that implements <see cref="IEnumerable{FileData}" /> and
-		///     allows you to enumerate the files in the given directory.
-		/// </returns>
-		/// <exception cref="ArgumentNullException">
-		///     <paramref name="path" /> is a null reference (Nothing in VB)
-		/// </exception>
-		public static IEnumerable<FileData> EnumerateFiles(string path, string searchPattern)
-		{
-			return EnumerateFiles(path, searchPattern, SearchOption.TopDirectoryOnly);
-		}
-
 		/// <summary>
 		///     Gets <see cref="FileData" /> for all the files in a directory that
 		///     match a specific filter, optionally including all sub directories.
@@ -367,7 +326,7 @@ namespace Rainbow.Storage
 		///     Provides the implementation of the
 		///     <see cref="T:System.Collections.Generic.IEnumerator`1" /> interface
 		/// </summary>
-		[SuppressUnmanagedCodeSecurity]
+		[SuppressUnmanagedCodeSecurity, ExcludeFromCodeCoverage]
 		private class FileEnumerator : IEnumerator<FileData>
 		{
 			private readonly Stack<SearchContext> _mContextStack;
@@ -513,11 +472,6 @@ namespace Rainbow.Storage
 				}
 				else if (_mSearchOption == SearchOption.AllDirectories)
 				{
-					//SearchContext context = new SearchContext(m_hndFindFile, m_path);
-					//m_contextStack.Push(context);
-					//m_path = Path.Combine(m_path, m_win_find_data.cFileName);
-					//m_hndFindFile = null;
-
 					if (_mCurrentContext.SubdirectoriesToProcess == null)
 					{
 						var subDirectories = Directory.GetDirectories(_mPath);

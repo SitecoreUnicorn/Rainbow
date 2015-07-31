@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Sitecore.Diagnostics;
 
 namespace Rainbow.Model
@@ -7,6 +8,7 @@ namespace Rainbow.Model
 	/// <summary>
 	/// Wraps any serializable item so you can add behaviours
 	/// </summary>
+	[ExcludeFromCodeCoverage]
 	public abstract class ItemDecorator : IItemData
 	{
 		protected readonly IItemData InnerItem;

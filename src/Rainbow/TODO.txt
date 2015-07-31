@@ -1,4 +1,7 @@
 ﻿// TODO: more tests. yo dawg...
+	- FakeDb + rainbow.sc?
+	- Unicorn w/fakedb?
+
 // TODO: Replace client serialize commands with unicorn config aware ones that conditionally use Uni configs
 // TODO: documentation/commenting/code review
 // TODO: final nuget setup and install tests

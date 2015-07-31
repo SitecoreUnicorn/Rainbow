@@ -1,5 +1,8 @@
-﻿namespace Rainbow.Storage
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Rainbow.Storage
 {
+	[ExcludeFromCodeCoverage]
 	public class TreeRoot
 	{
 		public TreeRoot(string name, string path, string databaseName)

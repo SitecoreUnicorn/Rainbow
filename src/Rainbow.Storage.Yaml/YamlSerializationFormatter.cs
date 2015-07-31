@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -100,6 +101,7 @@ namespace Rainbow.Storage.Yaml
 		}
 
 		public string FileExtension { get { return ".yml"; } }
+		[ExcludeFromCodeCoverage]
 		public IDataStore ParentDataStore { get; set; }
 
 
@@ -122,6 +124,7 @@ namespace Rainbow.Storage.Yaml
 			public Guid Id { get { return _item.Id; } }
 
 			/// <remarks>The storage provider should set this automatically.</remarks>
+			[ExcludeFromCodeCoverage]
 			public string DatabaseName { get; set; }
 
 			public Guid ParentId { get { return _item.ParentId; } }
@@ -144,11 +147,13 @@ namespace Rainbow.Storage.Yaml
 				}
 			}
 
+			[ExcludeFromCodeCoverage]
 			public Guid BranchId
 			{
 				get { return _item.BranchId; }
 			}
 
+			[ExcludeFromCodeCoverage]
 			public Guid TemplateId { get { return _item.TemplateId; } }
 
 			public IEnumerable<IItemFieldValue> SharedFields
@@ -178,12 +183,14 @@ namespace Rainbow.Storage.Yaml
 				get { return _serializedItemId; }
 			}
 
+			[ExcludeFromCodeCoverage]
 			public IEnumerable<IItemData> GetChildren()
 			{
 				return _sourceDataStore.GetChildren(this);
 			}
 		}
 
+		[ExcludeFromCodeCoverage]
 		protected class YamlSerializableVersion : IItemVersion
 		{
 			private readonly YamlVersion _version;
@@ -224,6 +231,7 @@ namespace Rainbow.Storage.Yaml
 				_formatters = formatters;
 			}
 
+			[ExcludeFromCodeCoverage]
 			public Guid FieldId
 			{
 				get { return _field.Id; }
@@ -252,11 +260,13 @@ namespace Rainbow.Storage.Yaml
 				}
 			}
 
+			[ExcludeFromCodeCoverage]
 			public string FieldType
 			{
 				get { return _field.Type; }
 			}
 
+			[ExcludeFromCodeCoverage]
 			public string NameHint
 			{
 				get { return _field.NameHint; }

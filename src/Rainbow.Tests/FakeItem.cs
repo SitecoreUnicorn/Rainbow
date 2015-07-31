@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Rainbow.Model;
 
 namespace Rainbow.Tests
 {
+	[ExcludeFromCodeCoverage]
 	public class FakeItem : IItemData
 	{
 		private readonly IItemData[] _children;

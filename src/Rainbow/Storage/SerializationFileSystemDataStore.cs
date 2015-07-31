@@ -13,19 +13,19 @@ namespace Rainbow.Storage
 {
 	public class SerializationFileSystemDataStore : IDataStore
 	{
-		private readonly string _rootPath;
+		protected readonly string PhysicalRootPath;
 		private readonly ITreeRootFactory _rootFactory;
 		private readonly ISerializationFormatter _formatter;
 		protected readonly List<SerializationFileSystemTree> Trees;
 
-		public SerializationFileSystemDataStore(string rootPath, ITreeRootFactory rootFactory, ISerializationFormatter formatter)
+		public SerializationFileSystemDataStore(string physicalRootPath, ITreeRootFactory rootFactory, ISerializationFormatter formatter)
 		{
-			Assert.ArgumentNotNullOrEmpty(rootPath, "rootPath");
+			Assert.ArgumentNotNullOrEmpty(physicalRootPath, "rootPath");
 			Assert.ArgumentNotNull(formatter, "formatter");
 			Assert.ArgumentNotNull(rootFactory, "rootFactory");
 
 			// ReSharper disable once DoNotCallOverridableMethodsInConstructor
-			_rootPath = InitializeRootPath(rootPath);
+			PhysicalRootPath = InitializeRootPath(physicalRootPath);
 
 			_rootFactory = rootFactory;
 			_formatter = formatter;
@@ -104,11 +104,13 @@ namespace Rainbow.Storage
 			Assert.ArgumentNotNullOrEmpty(database, "database");
 			Assert.IsNotNullOrEmpty(metadata.Path, "The path is required to get an item from the SFS data store.");
 
-			var items = GetByPath(metadata.Path, database);
+			var items = GetByPath(metadata.Path, database).ToArray();
 
 			if (metadata.Id != default(Guid)) return items.FirstOrDefault(item => item.Id == metadata.Id);
 
-			if (!items.Any()) return null;
+			if (items.Length == 0) return null;
+
+			if (items.Length == 1) return items[0];
 
 			throw new AmbiguousMatchException("The path " + metadata.Path + " matched more than one item. Reduce ambiguity by passing the ID as well, or use GetByPath() for multiple results.");
 		}
@@ -175,7 +177,7 @@ namespace Rainbow.Storage
 
 		protected virtual SerializationFileSystemTree CreateTree(TreeRoot root)
 		{
-			return new SerializationFileSystemTree(root.Name, root.Path, root.DatabaseName, Path.Combine(_rootPath, root.Name), _formatter);
+			return new SerializationFileSystemTree(root.Name, root.Path, root.DatabaseName, Path.Combine(PhysicalRootPath, root.Name), _formatter);
 		}
 	}
 }

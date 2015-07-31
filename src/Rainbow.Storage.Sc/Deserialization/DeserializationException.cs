@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using Rainbow.Model;
 
 namespace Rainbow.Storage.Sc.Deserialization
 {
 	[Serializable]
+	[ExcludeFromCodeCoverage]
 	public class DeserializationException : Exception
 	{
 		public string SerializedItemId { get; private set; }

@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using NUnit.Framework;
 
-namespace Rainbow.Tests.Storage.SFS
+namespace Rainbow.Tests.Storage
 {
 	partial class SfsTreeTests
 	{

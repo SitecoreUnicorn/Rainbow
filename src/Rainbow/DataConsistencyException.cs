@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 
 namespace Rainbow
 {
-	[Serializable]
+	[Serializable, ExcludeFromCodeCoverage]
 	public class DataConsistencyException : Exception
 	{
 		public DataConsistencyException()

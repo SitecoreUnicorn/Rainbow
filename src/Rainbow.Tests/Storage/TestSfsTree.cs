@@ -3,7 +3,7 @@ using System.IO;
 using Rainbow.Storage;
 using Rainbow.Storage.Yaml;
 
-namespace Rainbow.Tests.Storage.SFS
+namespace Rainbow.Tests.Storage
 {
 	internal class TestSfsTree : SerializationFileSystemTree, IDisposable
 	{
@@ -32,6 +32,11 @@ namespace Rainbow.Tests.Storage.SFS
 		{
 			if (PhysicalRootPath != null && Directory.Exists(PhysicalRootPath))
 				Directory.Delete(PhysicalRootPath, true);
+		}
+
+		public void ClearCaches()
+		{
+			ClearPathCache();
 		}
 
 		public int MaxPathLengthForTests { get; set; }

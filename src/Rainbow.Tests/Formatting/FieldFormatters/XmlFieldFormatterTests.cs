@@ -14,7 +14,7 @@ namespace Rainbow.Tests.Formatting.FieldFormatters
 </r>";
 		
 		[Test]
-		public void MultilistFormatter_FormatsValues_AsExpected()
+		public void XmlFieldFormatter_FormatsValues_AsExpected()
 		{
 			var formatter = new XmlFieldFormatter();
 
@@ -24,13 +24,23 @@ namespace Rainbow.Tests.Formatting.FieldFormatters
 		}
 
 		[Test]
-		public void MultilistFormatter_ReturnsValues_AsExpected()
+		public void XmlFieldFormatter_ReturnsValues_AsExpected()
 		{
 			var formatter = new XmlFieldFormatter();
 
 			var result = formatter.Unformat(FormattedValueExpectation);
 
 			Assert.AreEqual(result, SourceValueExpectation);
+		}
+
+		[Test,
+			TestCase("Layout", true),
+			TestCase("Multilist", false)]
+		public void XmlFieldFormatter_Formats_XmlFieldTypes(string fieldType, bool expected)
+		{
+			var formatter = new XmlFieldFormatter();
+
+			Assert.AreEqual(expected, formatter.CanFormat(new FakeFieldValue("foo", fieldType)));
 		}
 	}
 }

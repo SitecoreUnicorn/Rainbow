@@ -44,8 +44,10 @@
     </Compile>
     <Compile Include="Diff\Fields\DefaultComparisonTests.cs" />
     <Compile Include="Diff\Fields\FieldComparerTest.cs" />
+    <Compile Include="Diff\Fields\MultilineTextComparisonTests.cs" />
     <Compile Include="Diff\Fields\XmlComparisonTests.cs" />
     <Compile Include="Diff\ItemComparerTests.cs" />
+    <Compile Include="Diff\ItemVersionComparisonResultTests.cs" />
     <Compile Include="FakeFieldValue.cs" />
     <Compile Include="FakeItem.cs" />
     <Compile Include="FakeItemVersion.cs" />
@@ -54,19 +56,21 @@
     <Compile Include="Formatting\FieldFormatters\MultilistFormatterTests.cs" />
     <Compile Include="Formatting\FieldFormatters\XmlFieldFormatterTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Storage\SFS\SfsTreeTests.ConvertGlobalVirtualPathToTreeVirtualPath.cs" />
-    <Compile Include="Storage\SFS\SfsTreeTests.cs" />
-    <Compile Include="Storage\SFS\SfsTreeTests.GetChildren.cs" />
-    <Compile Include="Storage\SFS\SfsTreeTests.GetItemsByPath.cs" />
-    <Compile Include="Storage\SFS\SfsTreeTests.GetRootItem.cs" />
-    <Compile Include="Storage\SFS\SfsTreeTests.PrepareItemNameForFileSystem.cs" />
-    <Compile Include="Storage\SFS\SfsTreeTests.Save.cs" />
-    <Compile Include="Storage\SFS\SfsTreeTests.Remove.cs" />
-    <Compile Include="Storage\SFS\TestSfsTree.cs" />
+    <Compile Include="Storage\SfsDataStoreTests.cs" />
+    <Compile Include="Storage\SfsTreeTests.ConvertGlobalVirtualPathToTreeVirtualPath.cs" />
+    <Compile Include="Storage\SfsTreeTests.cs" />
+    <Compile Include="Storage\SfsTreeTests.GetChildren.cs" />
+    <Compile Include="Storage\SfsTreeTests.GetItemsByPath.cs" />
+    <Compile Include="Storage\SfsTreeTests.GetRootItem.cs" />
+    <Compile Include="Storage\SfsTreeTests.PrepareItemNameForFileSystem.cs" />
+    <Compile Include="Storage\SfsTreeTests.Save.cs" />
+    <Compile Include="Storage\SfsTreeTests.Remove.cs" />
+    <Compile Include="Storage\TestSfsDataStore.cs" />
+    <Compile Include="Storage\TestSfsTree.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <Compile Include="Storage\SFS\SfsTreeTests.ContainsPath.cs" />
+    <Compile Include="Storage\SfsTreeTests.ContainsPath.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Rainbow.Storage.Yaml\Rainbow.Storage.Yaml.csproj">

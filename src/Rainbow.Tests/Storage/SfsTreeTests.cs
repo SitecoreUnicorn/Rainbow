@@ -1,7 +1,7 @@
 ﻿using System;
 using Rainbow.Model;
 
-namespace Rainbow.Tests.Storage.SFS
+namespace Rainbow.Tests.Storage
 {
 	public partial class SfsTreeTests
 	{

@@ -27,5 +27,17 @@ namespace Rainbow.Tests.Formatting.FieldFormatters
 
 			Assert.AreEqual(result, SourceValueExpectation);
 		}
+
+		[Test,
+			TestCase("Layout", false),
+			TestCase("Multilist", true),
+			TestCase("TreelistEx", true),
+			TestCase("Treelist", true)]
+		public void MultilistFormatter_Formats_ListFieldTypes(string fieldType, bool expected)
+		{
+			var formatter = new MultilistFormatter();
+
+			Assert.AreEqual(expected, formatter.CanFormat(new FakeFieldValue("foo", fieldType)));
+		}
 	}
 }

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Xml;
 using NUnit.Framework;
 using Rainbow.Diff;
 using Rainbow.Diff.Fields;
@@ -39,6 +41,19 @@ namespace Rainbow.Tests.Diff
 			Assert.AreEqual(1, comparison.ChangedSharedFields.Length);
 			Assert.AreEqual("Hello", comparison.ChangedSharedFields[0].SourceField.Value);
 			Assert.AreEqual("Goodbye", comparison.ChangedSharedFields[0].TargetField.Value);
+		}
+
+		[Test]
+		public void FastCompare_IsNotEqual_WhenSharedFieldsAreUnequal()
+		{
+			var comparer = new TestItemComparer();
+
+			var sourceItem = new FakeItem(sharedFields: new[] { new FakeFieldValue("Hello") });
+			var targetItem = new FakeItem(sharedFields: new[] { new FakeFieldValue("Goodbye") });
+
+			var comparison = comparer.FastCompare(sourceItem, targetItem);
+
+			Assert.IsFalse(comparison.AreEqual);
 		}
 
 		[Test]
@@ -193,12 +208,36 @@ namespace Rainbow.Tests.Diff
 			Assert.IsFalse(comparison.IsMoved || comparison.IsRenamed || comparison.IsTemplateChanged);
 		}
 
+		[Test]
+		public void ItemComparer_AddsComparerFromXmlConfig()
+		{
+			var xmlConfigNode = @"<itemComparer>
+					<fieldComparer type=""Rainbow.Diff.Fields.XmlComparison, Rainbow"" />
+				</itemComparer>";
+
+			var configDoc = new XmlDocument();
+			configDoc.LoadXml(xmlConfigNode);
+
+			var comparer = new TestComparisonItemComparer(configDoc.DocumentElement);
+
+			Assert.IsTrue(comparer.Comparers.Any(c => c.GetType() == typeof(XmlComparison)));
+		}
+
 		private class TestItemComparer : ItemComparer
 		{
 			public TestItemComparer() : base(new List<IFieldComparer> { new DefaultComparison() })
 			{
 
 			}
+		}
+
+		private class TestComparisonItemComparer: ItemComparer
+		{
+			public TestComparisonItemComparer(XmlNode configNode) : base(configNode)
+			{
+			}
+
+			public IFieldComparer[] Comparers {  get { return FieldComparers.ToArray(); } }
 		}
 	}
 }

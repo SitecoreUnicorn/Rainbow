@@ -2,7 +2,7 @@
 using System.Linq;
 using NUnit.Framework;
 
-namespace Rainbow.Tests.Storage.SFS
+namespace Rainbow.Tests.Storage
 {
 	partial class SfsTreeTests
 	{
@@ -47,6 +47,24 @@ namespace Rainbow.Tests.Storage.SFS
 				CreateTestTree("/sitecore/content/foo/bar/baz/boing", testTree);
 
 				var item = testTree.GetItemsByPath("/sitecore/content").First();
+
+				testTree.Remove(item);
+
+				Assert.IsEmpty(Directory.GetFileSystemEntries(Path.GetDirectoryName(item.SerializedItemId)));
+				Assert.IsEmpty(testTree.GetItemsByPath("/sitecore/content"));
+			}
+		}
+
+		[Test]
+		public void Remove_DeletesItem_WhenItemHasChildren_AndCacheIsEmpty()
+		{
+			using (var testTree = new TestSfsTree())
+			{
+				CreateTestTree("/sitecore/content/foo/bar/baz/boing", testTree);
+
+				var item = testTree.GetItemsByPath("/sitecore/content").First();
+
+				testTree.ClearCaches();
 
 				testTree.Remove(item);
 

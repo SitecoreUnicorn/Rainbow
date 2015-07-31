@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using NUnit.Framework;
 
-namespace Rainbow.Tests.Storage.SFS
+namespace Rainbow.Tests.Storage
 {
 	partial class SfsTreeTests
 	{
@@ -30,6 +30,25 @@ namespace Rainbow.Tests.Storage.SFS
 				CreateTestTree("/sitecore/templates/User Defined", testTree);
 
 				var root = testTree.GetItemsByPath("/sitecore/templates").First();
+
+				var children = testTree.GetChildren(root).ToArray();
+
+				Assert.IsNotNull(children);
+				Assert.AreEqual(1, children.Length);
+				Assert.AreEqual(children[0].Name, "User Defined");
+			}
+		}
+
+		[Test]
+		public void GetChildren_ReturnsExpectedItem_WhenRootPathIsParent_AndTreeIsNested_AndCacheIsCleared()
+		{
+			using (var testTree = new TestSfsTree("/sitecore/templates"))
+			{
+				CreateTestTree("/sitecore/templates/User Defined", testTree);
+
+				var root = testTree.GetItemsByPath("/sitecore/templates").First();
+
+				testTree.ClearCaches();
 
 				var children = testTree.GetChildren(root).ToArray();
 

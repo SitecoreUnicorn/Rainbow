@@ -61,6 +61,8 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			writer.WriteMap("Template", TemplateId.ToString("D"));
 			writer.WriteMap("Path", Path);
 
+			if(BranchId != default(Guid)) writer.WriteMap("BranchID", BranchId.ToString());
+
 			if (SharedFields.Any())
 			{
 				writer.WriteMap("SharedFields");
@@ -94,6 +96,13 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			ParentId = reader.ReadExpectedGuidMap("Parent");
 			TemplateId = reader.ReadExpectedGuidMap("Template");
 			Path = reader.ReadExpectedMap("Path");
+
+			var branch = reader.PeekMap();
+			if (branch.HasValue && branch.Value.Key.Equals("BranchID"))
+			{
+				reader.ReadMap();
+				BranchId = Guid.Parse(branch.Value.Value);
+			}
 
 			var sharedFields = reader.PeekMap();
 			if (sharedFields.HasValue && sharedFields.Value.Key.Equals("SharedFields"))
