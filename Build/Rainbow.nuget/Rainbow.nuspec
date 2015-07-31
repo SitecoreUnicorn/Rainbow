@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package >
+<package>
 	<metadata>
 		<id>Rainbow</id>
 		<version>$version$</version>
@@ -7,6 +7,7 @@
 		<owners>Kam Figy</owners>
 		<licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
 		<projectUrl>https://github.com/kamsar/Rainbow</projectUrl>
+		<iconUrl>http://kamsar.net/nuget/rainbow/logo.png</iconUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>Rainbow is an advanced serialization library for Sitecore. This package contains both the core library and the configuration file, which is appropriate for web projects. Install Rainbow.Core if you only want the library.</description>
 		<copyright>Copyright 2015</copyright>

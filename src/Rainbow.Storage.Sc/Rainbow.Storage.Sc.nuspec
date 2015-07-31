@@ -7,6 +7,7 @@
     <owners>Kam Figy</owners>
     <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
     <projectUrl>https://github.com/kamsar/Rainbow</projectUrl>
+    <iconUrl>http://kamsar.net/nuget/rainbow/sc.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Implements the Sitecore database as a Rainbow data store</description>
     <tags>sitecore</tags>

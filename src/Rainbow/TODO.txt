@@ -3,6 +3,7 @@
 	- Unicorn w/fakedb?
 
 // TODO: Replace client serialize commands with unicorn config aware ones that conditionally use Uni configs
+// TODO: Unicorn.Deployed.config.disabled Throw an error when saving an item that Unicorn controls when not on a dev environment (config mixin), also place configs in their own folder
 // TODO: documentation/commenting/code review
 // TODO: final nuget setup and install tests
 // TODO: SPE extensions
@@ -12,6 +13,7 @@
 	- Sync-UnicornConfiguration -Config "Default Configuration"
 	- Export-UnicornConfiguration (runs reserialize)
 
+// 3.1: remoting
 // 3.1: roles support
 // 3.1: consistency checking (in unicorn control panel and SFS)
 // 3.1: parallel tree syncing, at a top level tree point and or config level- if it helps. may need to allow trees to opt out and load first eg templates
