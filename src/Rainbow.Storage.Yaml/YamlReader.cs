@@ -12,7 +12,7 @@ namespace Rainbow.Storage.Yaml
 		private const int IndentSpaces = 2;
 		private const char IndentCharacter = ' ';
 		private readonly PeekableStreamReaderAdapter _readerAdapter;
-		private KeyValuePair<string, string>? _peek; 
+		private KeyValuePair<string, string>? _peek;
 
 		public YamlReader(Stream stream, int bufferSize, bool leaveStreamOpen)
 		{
@@ -90,7 +90,10 @@ namespace Rainbow.Storage.Yaml
 
 			var mapKey = initialValue.Substring(currentIndent, mapIndex - currentIndent);
 
-			var mapValue = initialValue.Substring(mapIndex + 1).Trim();
+			// if the map has no value return it without parsing
+			if (initialValue.Length < mapIndex + 2) return new KeyValuePair<string, string>(mapKey, string.Empty);
+
+			var mapValue = initialValue.Substring(mapIndex + 2);
 
 			if (mapValue.Equals("|"))
 			{
@@ -182,7 +185,7 @@ namespace Rainbow.Storage.Yaml
 
 		protected virtual void Dispose(bool disposing)
 		{
-			if(disposing)
+			if (disposing)
 				_reader.Dispose();
 		}
 
@@ -199,7 +202,7 @@ namespace Rainbow.Storage.Yaml
 
 			public string PeekLine()
 			{
-				if(_peekedLine != null) return _peekedLine;
+				if (_peekedLine != null) return _peekedLine;
 
 				string line = _underlying.ReadLine();
 

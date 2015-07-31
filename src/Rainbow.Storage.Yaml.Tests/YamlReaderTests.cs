@@ -33,6 +33,16 @@ namespace Rainbow.Storage.Yaml.Tests
 		}
 
 		[Test]
+		public void YamlReader_PreservesMapValueWhitespace_AtRoot()
+		{
+			ExecuteYamlReader("---\r\nHello:  hi  \r\n", reader =>
+			{
+				var value = reader.ReadExpectedMap("Hello");
+				Assert.AreEqual(" hi  ", value);
+			});
+		}
+
+		[Test]
 		public void YamlReader_ReadsMap_WithEscaping_AtRoot()
 		{
 			ExecuteYamlReader("---\r\nHello: \"Whirled: \\\"Peas\\\"\"\r\n", reader =>
