@@ -11,7 +11,7 @@
     <description>Implements a YAML-based serialization format as a Rainbow data store</description>
     <tags>sitecore</tags>
     <dependencies>
-        <dependency id="Rainbow" version="$version$" />
+        <dependency id="Rainbow.Core" version="$version$" />
     </dependencies>
   </metadata>
 </package>

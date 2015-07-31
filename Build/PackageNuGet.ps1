@@ -10,7 +10,7 @@ $solution = "$scriptRoot\..\Rainbow.sln"
 $synthesisAssembly = Get-Item "$scriptRoot\..\src\Rainbow\bin\Release\Rainbow.dll" | Select-Object -ExpandProperty VersionInfo
 $targetAssemblyVersion = $synthesisAssembly.ProductVersion
 
+& $nuGet pack "$scriptRoot\Rainbow.nuget\Rainbow.nuspec" -version $targetAssemblyVersion
 & $nuGet pack "$scriptRoot\..\src\Rainbow\Rainbow.csproj" -Symbols -Prop Configuration=Release
 & $nuGet pack "$scriptRoot\..\src\Rainbow.Storage.Sc\Rainbow.Storage.Sc.csproj" -Symbols -Prop Configuration=Release
 & $nuGet pack "$scriptRoot\..\src\Rainbow.Storage.Yaml\Rainbow.Storage.Yaml.csproj" -Symbols -Prop Configuration=Release
-& $nuGet pack "$scriptRoot\..\src\Rainbow.Diff\Rainbow.Diff.csproj" -Symbols -Prop Configuration=Release

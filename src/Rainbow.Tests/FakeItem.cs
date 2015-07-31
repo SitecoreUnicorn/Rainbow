@@ -26,16 +26,16 @@ namespace Rainbow.Tests
 			_children = children != null ? children.ToArray() : new IItemData[0];
 		}
 
-		public Guid Id { get; }
+		public Guid Id { get; private set; }
 		public string DatabaseName { get; set; }
-		public Guid ParentId { get; }
-		public string Path { get; }
-		public string Name { get; }
-		public Guid BranchId { get; }
-		public Guid TemplateId { get; }
-		public IEnumerable<IItemFieldValue> SharedFields { get; }
-		public IEnumerable<IItemVersion> Versions { get; }
-		public string SerializedItemId { get; }
+		public Guid ParentId { get; private set; }
+		public string Path { get; private set; }
+		public string Name { get; private set; }
+		public Guid BranchId { get; private set; }
+		public Guid TemplateId { get; private set; }
+		public IEnumerable<IItemFieldValue> SharedFields { get; private set; }
+		public IEnumerable<IItemVersion> Versions { get; private set; }
+		public string SerializedItemId { get; private set; }
 		public IEnumerable<IItemData> GetChildren()
 		{
 			return _children;
