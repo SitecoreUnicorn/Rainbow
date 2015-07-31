@@ -40,6 +40,15 @@ namespace Rainbow.Storage.Yaml.Tests
 		}
 
 		[Test]
+		public void YamlWriter_WritesMap_WithEscaping_AroundWholeValue_AtRoot()
+		{
+			ExecuteYamlWriter(writer =>
+			{
+				writer.WriteMap("Hello", "\"What a nice world this is\"");
+			}, "---\r\nHello: \"\\\"What a nice world this is\\\"\"\r\n", "Written map was not in expected format!");
+		}
+
+		[Test]
 		public void YamlWriter_WritesMultilineMap_AtRoot()
 		{
 			ExecuteYamlWriter(writer =>

@@ -65,7 +65,7 @@ namespace Rainbow.Storage.Yaml
 				return;
 			}
 
-			_writer.WriteLine("{0}: {1}", key, value.IndexOf('"') > 0 ? Encode(value) : value);
+			_writer.WriteLine("{0}: {1}", key, value.IndexOf('"') > -1 ? Encode(value) : value);
 		}
 
 		protected virtual string Encode(string value)
