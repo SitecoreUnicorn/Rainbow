@@ -17,7 +17,7 @@ namespace Rainbow.Diff.Fields
 
 		public override string[] SupportedFieldTypes
 		{
-			get { return new[] { "Layout" }; }
+			get { return new[] { "Layout", "Tracking", "Rules" }; }
 		}
 	}
 }

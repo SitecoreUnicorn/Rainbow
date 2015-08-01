@@ -12,7 +12,9 @@ namespace Rainbow.Formatting.FieldFormatters
 		{
 			if (field.FieldType == null) return false;
 
-			return field.FieldType.Equals("Layout", StringComparison.OrdinalIgnoreCase);
+			return field.FieldType.Equals("Layout", StringComparison.OrdinalIgnoreCase) ||
+				field.FieldType.Equals("Tracking", StringComparison.OrdinalIgnoreCase) ||
+				field.FieldType.Equals("Rules", StringComparison.OrdinalIgnoreCase);
 		}
 
 		public virtual string Format(IItemFieldValue field)
