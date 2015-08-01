@@ -15,7 +15,17 @@ namespace Rainbow.Tests.Formatting.FieldFormatters
 
 			var result = formatter.Format(new FakeFieldValue(SourceValueExpectation));
 
-			Assert.AreEqual(result, FormattedValueExpectation);
+			Assert.AreEqual(FormattedValueExpectation, result);
+		}
+
+		[Test]
+		public void MultilistFormatter_FormatsInvalidValues_AsExpected()
+		{
+			var formatter = new MultilistFormatter();
+
+			var result = formatter.Format(new FakeFieldValue("*"));
+
+			Assert.AreEqual("*", result);
 		}
 
 		[Test]
@@ -26,6 +36,16 @@ namespace Rainbow.Tests.Formatting.FieldFormatters
 			var result = formatter.Unformat(FormattedValueExpectation);
 
 			Assert.AreEqual(result, SourceValueExpectation);
+		}
+
+		[Test]
+		public void MultilistFormatter_ReturnsInvalidValues_AsExpected()
+		{
+			var formatter = new MultilistFormatter();
+
+			var result = formatter.Unformat("*");
+
+			Assert.AreEqual("*", result);
 		}
 
 		[Test,

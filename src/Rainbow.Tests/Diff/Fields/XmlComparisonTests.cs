@@ -34,6 +34,8 @@ xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" >
 
 		[Test,
 			TestCase("Layout", true),
+			TestCase("Rules", true),
+			TestCase("Tracking", true),
 			TestCase("Single-Line Text", false)]
 		public void XmlComparison_CanCompare_XmlFieldTypes(string fieldType, bool expected)
 		{

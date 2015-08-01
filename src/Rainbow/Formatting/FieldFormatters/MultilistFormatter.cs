@@ -23,6 +23,9 @@ namespace Rainbow.Formatting.FieldFormatters
 		{
 			var values = ID.ParseArray(field.Value);
 
+			if(values.Length == 0 && field.Value.Length > 0)
+				return field.Value;
+
 			return string.Join(Environment.NewLine, (IEnumerable<ID>)values);
 		}
 
