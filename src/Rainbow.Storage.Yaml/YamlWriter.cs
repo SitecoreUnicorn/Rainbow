@@ -59,7 +59,7 @@ namespace Rainbow.Storage.Yaml
 
 		protected virtual void WriteMapInternal(string key, string value)
 		{
-			if (value.IndexOf('\n') > -1) // \n captures both Unix-style \n endlines and Windows-style \r\n - we only care if endlines exist
+			if (value.IndexOfAny(new [] { '\n', '\r' }) > -1) // captures any style of endline, cr, lf, or crlf
 			{
 				_writer.WriteLine("{0}: |{1}{2}", key, Environment.NewLine, IndentMultilineString(Indent + IndentSpaces, value));
 				return;
@@ -79,12 +79,18 @@ namespace Rainbow.Storage.Yaml
 
 			var charBuffer = new StringBuilder(indentValue);
 
-			foreach (char c in value)
+			for(int index = 0; index < value.Length; index++)
 			{
+				char c = value[index];
 				switch (c)
 				{
-					case '\r': 
-						break; // ignore \r as that by itself is no newline
+					case '\r':
+						// ignore \r as that by itself is no newline, UNLESS the following char is not \n
+						if (index < value.Length - 1 && value[index + 1] != '\n')
+						{
+							charBuffer.Append(Environment.NewLine + indentValue);
+						}
+						break; 
 					case '\n': 
 						// if we find \n we know it's either \n (Unix-style) or \r\n (Windows-style) so we normalize it to the environment endline
 						// and add the appropriate indent to the next line for the multline YAML expression

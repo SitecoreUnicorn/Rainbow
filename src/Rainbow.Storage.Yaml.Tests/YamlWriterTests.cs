@@ -67,6 +67,24 @@ namespace Rainbow.Storage.Yaml.Tests
 		}
 
 		[Test]
+		public void YamlWriter_WritesMultilineMap_WithCrEndLines_AtRoot()
+		{
+			ExecuteYamlWriter(writer =>
+			{
+				writer.WriteMap("Hello", "World\rit's me!");
+			}, "---\r\nHello: |\r\n  World\r\n  it's me!\r\n", "Written multiline map was not in expected format!");
+		}
+
+		[Test]
+		public void YamlWriter_WritesMultilineMap_WithCrEndLinesAtEnd_AtRoot()
+		{
+			ExecuteYamlWriter(writer =>
+			{
+				writer.WriteMap("Hello", "World\r");
+			}, "---\r\nHello: |\r\n  World\r\n", "Written multiline map was not in expected format!");
+		}
+
+		[Test]
 		public void YamlWriter_WritesMultilineMap_WithLinuxEndLines_AndBlankStartLine_AtRoot()
 		{
 			ExecuteYamlWriter(writer =>
