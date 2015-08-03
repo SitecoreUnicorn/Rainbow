@@ -78,7 +78,7 @@
     <Compile Include="Storage\TreeRoot.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="TODO.txt" />
+    <None Include="TODO.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Rainbow.config" />
