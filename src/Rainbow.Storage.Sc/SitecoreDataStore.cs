@@ -12,7 +12,7 @@ using Sitecore.Diagnostics;
 
 namespace Rainbow.Storage.Sc
 {
-	public class SitecoreDataStore : IDataStore
+	public class SitecoreDataStore : IDataStore, IDocumentable
 	{
 		private readonly IDeserializer _deserializer;
 
@@ -137,6 +137,13 @@ namespace Rainbow.Storage.Sc
 		protected virtual Database GetDatabase(string databaseName)
 		{
 			return Factory.GetDatabase(databaseName);
+		}
+
+		public string FriendlyName { get { return "Sitecore Data Store"; } }
+		public string Description { get { return "Reads and writes data from a Sitecore database."; } }
+		public KeyValuePair<string, string>[] GetConfigurationDetails()
+		{
+			return new [] { new KeyValuePair<string, string>("Deserializer", DocumentationUtility.GetFriendlyName(_deserializer)) };
 		}
 	}
 }

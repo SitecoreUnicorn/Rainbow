@@ -16,7 +16,7 @@ using Sitecore.Diagnostics;
 
 namespace Rainbow.Storage.Yaml
 {
-	public class YamlSerializationFormatter : ISerializationFormatter
+	public class YamlSerializationFormatter : ISerializationFormatter, IDocumentable
 	{
 		private readonly IFieldFilter _fieldFilter;
 
@@ -271,6 +271,20 @@ namespace Rainbow.Storage.Yaml
 			{
 				get { return _field.NameHint; }
 			}
+		}
+
+		public string FriendlyName { get { return "YAML Serialization Formatter"; } }
+		public string Description { get { return "Stores serialized items in an easy to read, easy to merge dialect of YAML."; } }
+		public KeyValuePair<string, string>[] GetConfigurationDetails()
+		{
+			var configs = new List<KeyValuePair<string, string>>();
+
+			foreach (var item in FieldFormatters)
+			{
+				configs.Add(new KeyValuePair<string, string>("Field formatter", DocumentationUtility.GetFriendlyName(item)));
+			}
+
+			return configs.ToArray();
 		}
 	}
 }

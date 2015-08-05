@@ -56,6 +56,7 @@
     <Compile Include="Diff\ItemComparer.cs" />
     <Compile Include="Diff\ItemComparisonResult.cs" />
     <Compile Include="Diff\ItemVersionComparisonResult.cs" />
+    <Compile Include="DocumentationUtility.cs" />
     <Compile Include="Filtering\ConfigurationFieldFilter.cs" />
     <Compile Include="Filtering\FilteredItem.cs" />
     <Compile Include="Filtering\IFieldFilter.cs" />
@@ -63,6 +64,7 @@
     <Compile Include="Formatting\FieldFormatters\MultilistFormatter.cs" />
     <Compile Include="Formatting\FieldFormatters\XmlFieldFormatter.cs" />
     <Compile Include="Formatting\ISerializationFormatter.cs" />
+    <Compile Include="IDocumentable.cs" />
     <Compile Include="Model\ItemDecorator.cs" />
     <Compile Include="Model\VersionDecorator.cs" />
     <Compile Include="Storage\FastDirectoryEnumerator.cs" />

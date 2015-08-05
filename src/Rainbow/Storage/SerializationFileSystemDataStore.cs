@@ -11,7 +11,7 @@ using Sitecore.StringExtensions;
 
 namespace Rainbow.Storage
 {
-	public class SerializationFileSystemDataStore : IDataStore
+	public class SerializationFileSystemDataStore : IDataStore, IDocumentable
 	{
 		protected readonly string PhysicalRootPath;
 		private readonly ITreeRootFactory _rootFactory;
@@ -178,6 +178,18 @@ namespace Rainbow.Storage
 		protected virtual SerializationFileSystemTree CreateTree(TreeRoot root)
 		{
 			return new SerializationFileSystemTree(root.Name, root.Path, root.DatabaseName, Path.Combine(PhysicalRootPath, root.Name), _formatter);
+		}
+
+		public string FriendlyName { get { return "Serialization File System Data Store"; } }
+		public string Description { get { return "Stores serialized items on disk using the SFS tree format, where each root is a separate tree."; } }
+		public KeyValuePair<string, string>[] GetConfigurationDetails()
+		{
+			return new[]
+			{
+				new KeyValuePair<string, string>("Serialization formatter", DocumentationUtility.GetFriendlyName(_formatter)),
+				new KeyValuePair<string, string>("Physical root path", PhysicalRootPath),
+				new KeyValuePair<string, string>("Total internal SFS trees", Trees.Count.ToString())
+			};
 		}
 	}
 }
