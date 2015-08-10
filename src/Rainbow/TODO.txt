@@ -2,9 +2,7 @@
 	- FakeDb + rainbow.sc?
 	- Unicorn w/fakedb?
 
-// TODO: Replace client serialize commands with unicorn config aware ones that conditionally use Uni configs
-// TODO: Get something IDocumentable-like through to Rainbow to restore utility to the control panel, add name - if present - to the root list on the predicate
-// TODO: Unicorn.Deployed.config.disabled Throw an error when saving an item that Unicorn controls when not on a dev environment (config mixin), also place configs in their own folder
+// TODO: memory profiling on sync, another perf profiler review (esp on large syncs, that sync complete collector saving all the IItemData in ram for the end may be suboptimal)
 // TODO: documentation/commenting/code review
 // TODO: final nuget setup and install tests
 // TODO: SPE extensions
