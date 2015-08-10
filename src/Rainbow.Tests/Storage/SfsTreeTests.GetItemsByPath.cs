@@ -51,6 +51,23 @@ namespace Rainbow.Tests.Storage
 		}
 
 		[Test]
+		public void GetItemsByPath_ReturnsExpectedItem_WhenChildPathIsRequested_AndTreeIsAtRoot_CaseInsensitive()
+		{
+			using (var testTree = new TestSfsTree())
+			{
+				CreateTestTree("/sitecore/templates/User Defined", testTree);
+
+				testTree.ClearCaches();
+
+				var root = testTree.GetItemsByPath("/sitecore/templates/uSer dEfiNed").ToArray();
+
+				Assert.IsNotNull(root);
+				Assert.IsNotEmpty(root);
+				Assert.AreEqual(root.First().Name, "User Defined");
+			}
+		}
+
+		[Test]
 		public void GetItemsByPath_ReturnsExpectedItem_WhenChildPathIsRequested_AndTreeIsNested()
 		{
 			using (var testTree = new TestSfsTree("/sitecore/templates"))

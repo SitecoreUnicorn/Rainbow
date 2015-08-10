@@ -237,7 +237,7 @@ namespace Rainbow.Storage
 		{
 			Assert.ArgumentNotNullOrEmpty(globalPath, "globalPath");
 
-			if (!globalPath.StartsWith(_globalRootItemPath))
+			if (!globalPath.StartsWith(_globalRootItemPath, StringComparison.OrdinalIgnoreCase))
 				throw new InvalidOperationException("The global path {0} was not rooted under the local item root path {1}. This means you tried to put an item where it didn't belong.".FormatWith(globalPath, _globalRootItemPath));
 
 			// we want to preserve the last segment in the global path because the root virtual path is considered to contain that
@@ -286,7 +286,7 @@ namespace Rainbow.Storage
 
 			// Determine if this item has any name-dupes in the source store.
 			var nameDupeCandidateItems = GetChildPaths(parentItem)
-				.Where(path => Path.GetFileName(path).StartsWith(strippedItemName))
+				.Where(path => Path.GetFileName(path).StartsWith(strippedItemName, StringComparison.OrdinalIgnoreCase))
 				.Select(ReadItemMetadata);
 
 			// the base path is the path the item would be written to on the filesystem *if there were no length limitations*. Note that this is why we avoid using Path.X() on the base path, because those validate path lengths.
@@ -359,7 +359,7 @@ namespace Rainbow.Storage
 					// e.g. if component is "foo" find "c:\bar\foo.yml" and "c:\bar\foo_0xA9f4.yml"
 					parentPaths.AddRange(
 						GetChildPaths(ReadItemMetadata(parentPath))
-							.Where(childPath => Path.GetFileName(childPath).StartsWith(pathComponent))
+							.Where(childPath => Path.GetFileName(childPath).StartsWith(pathComponent, StringComparison.OrdinalIgnoreCase))
 						);
 				}
 			}
@@ -424,7 +424,7 @@ namespace Rainbow.Storage
 			var localPath = ConvertGlobalVirtualPathToTreeVirtualPath(globalPath);
 
 			IItemMetadata cached;
-			if (_pathCache.TryGetValue(expectedItemId, out cached) && File.Exists(cached.SerializedItemId) && globalPath.Equals(cached.Path)) return _pathCache[expectedItemId];
+			if (_pathCache.TryGetValue(expectedItemId, out cached) && File.Exists(cached.SerializedItemId) && globalPath.Equals(cached.Path, StringComparison.OrdinalIgnoreCase)) return _pathCache[expectedItemId];
 
 			var result = GetPhysicalFilePathsForVirtualPath(localPath)
 				.Select(ReadItemMetadata)
