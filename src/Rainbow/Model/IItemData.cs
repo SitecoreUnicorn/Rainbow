@@ -8,7 +8,6 @@ namespace Rainbow.Model
 		string DatabaseName { get; set; }
 		string Name { get; }
 		Guid BranchId { get; }
-		Guid TemplateId { get; }
 		IEnumerable<IItemFieldValue> SharedFields { get; }
 		IEnumerable<IItemVersion> Versions { get; }
 

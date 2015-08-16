@@ -63,6 +63,7 @@
     <Compile Include="Storage\SfsTreeTests.GetItemsByPath.cs" />
     <Compile Include="Storage\SfsTreeTests.GetRootItem.cs" />
     <Compile Include="Storage\SfsTreeTests.PrepareItemNameForFileSystem.cs" />
+    <Compile Include="Storage\SfsTreeTests.GetItemById.cs" />
     <Compile Include="Storage\SfsTreeTests.Save.cs" />
     <Compile Include="Storage\SfsTreeTests.Remove.cs" />
     <Compile Include="Storage\TestSfsDataStore.cs" />

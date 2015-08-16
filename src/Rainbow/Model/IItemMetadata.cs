@@ -6,6 +6,7 @@ namespace Rainbow.Model
 	{
 		Guid Id { get; }
 		Guid ParentId { get; }
+		Guid TemplateId { get; }
 		string Path { get; }
 
 		/// <summary>

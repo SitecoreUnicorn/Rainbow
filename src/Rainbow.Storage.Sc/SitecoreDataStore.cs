@@ -58,30 +58,28 @@ namespace Rainbow.Storage.Sc
 			return dbItems.Select(item => new ItemData(item, this));
 		}
 
-		public IItemData GetByMetadata(IItemMetadata metadata, string database)
+		public IItemData GetByPathAndId(string path, Guid id, string database)
+		{
+			// note: because we always have the ID this is just GetById() for Sitecore
+			return GetById(id, database);
+		}
+
+		public IItemData GetById(Guid id, string database)
 		{
 			Assert.ArgumentNotNullOrEmpty(database, "database");
-			Assert.ArgumentNotNull(metadata, "metadata");
+			Assert.ArgumentCondition(id != default(Guid), "id", "The item ID must not be the null guid. Use GetByPath() if you don't know the ID.");
 
 			Database db = GetDatabase(database);
 
 			Assert.IsNotNull(db, "Database " + database + " did not exist!");
 
-			if (metadata.Id != default(Guid))
-			{
-				var item = db.GetItem(new ID(metadata.Id));
-				return item == null ? null : new ItemData(item);
-			}
+			var item = db.GetItem(new ID(id));
+			return item == null ? null : new ItemData(item);
+		}
 
-			if (!string.IsNullOrWhiteSpace(metadata.Path))
-			{
-				var items = GetByPath(metadata.Path, database).ToArray();
-				if (items.Length == 0) return null;
-				if (items.Length == 1) return items[0];
-				if(items.Length > 1) throw new AmbiguousMatchException("The path " + metadata.Path + " matched more than one item. Reduce ambiguity by passing the ID as well, or use GetByPath() for multiple results.");
-			}
-
-			throw new AmbiguousMatchException("The metadata provided did not contain a path or ID. Unable to look up the item in the database without one of those.");
+		public IEnumerable<IItemMetadata> GetMetadataByTemplateId(Guid templateId, string database)
+		{
+			throw new NotImplementedException();
 		}
 
 		public IEnumerable<IItemData> GetChildren(IItemData parentItem)

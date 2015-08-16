@@ -121,11 +121,36 @@ namespace Rainbow.Storage
 			return GetPhysicalFilePathsForVirtualPath(localPath).Select(ReadItem).Where(item => item != null && item.Path.Equals(globalPath, StringComparison.OrdinalIgnoreCase));
 		}
 
-		public IEnumerable<IItemData> GetChildren(IItemData parentItem)
+		public IItemData GetItemById(Guid id)
+		{
+			IItemMetadata cached;
+			if (_pathCache.TryGetValue(id, out cached) && File.Exists(cached.SerializedItemId)) return ReadItem(cached.SerializedItemId);
+
+			var root = GetRootItem();
+
+			if(root.Id == id) return root;
+
+			var item = GetDescendants(root, false, metadata => metadata.Id == id, true).FirstOrDefault();
+
+			if (item == null) return null;
+
+			_pathCache[item.Id] = new WrittenItemMetadata(item.Id, item.ParentId, item.TemplateId, item.Path, item.SerializedItemId);
+
+			return ReadItem(item.SerializedItemId);
+		}
+
+		public IEnumerable<IItemData> GetChildren(IItemMetadata parentItem)
 		{
 			Assert.ArgumentNotNull(parentItem, "parentItem");
 
 			return GetChildPaths(parentItem).Select(ReadItem);
+		}
+
+		public IEnumerable<IItemMetadata> GetChildrenMetadata(IItemMetadata parentItem)
+		{
+			Assert.ArgumentNotNull(parentItem, "parentItem");
+
+			return GetChildPaths(parentItem).Select(ReadItemMetadata);
 		}
 
 		/*
@@ -230,7 +255,7 @@ namespace Rainbow.Storage
 				}
 			}
 
-			_pathCache[item.Id] = new WrittenItemMetadata(item.Id, item.ParentId, item.Path, path);
+			_pathCache[item.Id] = new WrittenItemMetadata(item.Id, item.ParentId, item.TemplateId, item.Path, path);
 		}
 
 		protected virtual string ConvertGlobalVirtualPathToTreeVirtualPath(string globalPath)
@@ -424,7 +449,7 @@ namespace Rainbow.Storage
 			var localPath = ConvertGlobalVirtualPathToTreeVirtualPath(globalPath);
 
 			IItemMetadata cached;
-			if (_pathCache.TryGetValue(expectedItemId, out cached) && File.Exists(cached.SerializedItemId) && globalPath.Equals(cached.Path, StringComparison.OrdinalIgnoreCase)) return _pathCache[expectedItemId];
+			if (_pathCache.TryGetValue(expectedItemId, out cached) && File.Exists(cached.SerializedItemId) && globalPath.Equals(cached.Path, StringComparison.OrdinalIgnoreCase)) return cached;
 
 			var result = GetPhysicalFilePathsForVirtualPath(localPath)
 				.Select(ReadItemMetadata)
@@ -437,13 +462,9 @@ namespace Rainbow.Storage
 			return result;
 		}
 
-		protected virtual IList<IItemMetadata> GetDescendants(IItemData root, bool ignoreReadErrors)
+		protected virtual IList<IItemMetadata> GetDescendants(IItemData root, bool ignoreReadErrors, Func<IItemMetadata, bool> predicate = null, bool stopAfterFirstPredicateMatch = false)
 		{
 			Assert.ArgumentNotNull(root, "root");
-
-			IItemMetadata itemToRemove = GetItemForGlobalPath(root.Path, root.Id);
-
-			if (itemToRemove == null) return null;
 
 			var descendants = new List<IItemMetadata>();
 
@@ -453,6 +474,20 @@ namespace Rainbow.Storage
 			while (childQueue.Count > 0)
 			{
 				var parent = childQueue.Dequeue();
+
+				// add current item to descendant results
+				if (parent.Id != root.Id)
+				{
+					if (predicate == null) descendants.Add(parent);
+					else
+					{
+						if (predicate(parent))
+						{
+							descendants.Add(parent);
+							if (stopAfterFirstPredicateMatch) return descendants;
+						}
+					}
+				}
 
 				var children = GetChildPaths(parent).Select(physicalPath =>
 				{
@@ -469,8 +504,7 @@ namespace Rainbow.Storage
 				})
 				.Where(item => item != null)
 				.ToArray();
-
-				descendants.AddRange(children);
+				
 				foreach (var item in children)
 					childQueue.Enqueue(item);
 			}
@@ -564,16 +598,18 @@ namespace Rainbow.Storage
 
 		protected class WrittenItemMetadata : IItemMetadata
 		{
-			public WrittenItemMetadata(Guid id, Guid parentId, string path, string serializedItemId)
+			public WrittenItemMetadata(Guid id, Guid parentId, Guid templateId, string path, string serializedItemId)
 			{
 				Id = id;
 				ParentId = parentId;
+				TemplateId = templateId;
 				Path = path;
 				SerializedItemId = serializedItemId;
 			}
 
 			public Guid Id { get; private set; }
 			public Guid ParentId { get; private set; }
+			public Guid TemplateId { get; private set; }
 			public string Path { get; private set; }
 			public string SerializedItemId { get; private set; }
 		}

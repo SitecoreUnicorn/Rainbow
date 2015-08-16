@@ -18,16 +18,33 @@ namespace Rainbow.Storage
 
 		/// <summary>
 		/// Gets an item - or items, if multiple names match the path - by its path.
-		/// If you have item metadata available (e.g. an item from a different store) you should favor GetByMetadata() over this,
-		/// as it is likely faster and more accurate for most data stores.
+		/// If you have item ID available you should favor GetByPathAndId() over this,
+		/// as it is faster and more accurate for most data stores.
 		/// </summary>
 		IEnumerable<IItemData> GetByPath(string path, string database);
 
 		/// <summary>
-		/// Gets an item by its metadata. The data store will use the appropriate pieces of metadata to resolve your item, though you should at a minimum send path and preferably ID.
+		/// Gets an item by its path and ID. This is the preferred method to get a specific item from the data store, as it enables
+		/// both path-indexed and ID-indexed data stores to perform optimally.
 		/// </summary>
 		/// <returns>The item or null if no item matches. Exception should be thrown if metadata is incomplete.</returns>
-		IItemData GetByMetadata(IItemMetadata metadata, string database);
+		IItemData GetByPathAndId(string path, Guid id, string database);
+
+		/// <summary>
+		/// Gets an item by its ID.
+		/// If you have item path available you should favor GetByPathAndId() over this,
+		/// as it enables a data store to choose its fastest path to resolution.
+		/// 
+		/// Note: with path-indexed data stores such as SFS this results in a whole-tree-scan to resolve the item by ID - which is not very fast.
+		/// </summary>
+		/// <returns>The item or null if that item does not exist in the store.</returns>
+		IItemData GetById(Guid id, string database);
+
+		/// <summary>
+		/// Gets all items in the data store matching a template ID and returns their metadata
+		/// Note: this may be a slow operation in some providers that may not be indexed by template ID
+		/// </summary>
+		IEnumerable<IItemMetadata> GetMetadataByTemplateId(Guid templateId, string database);
 
 		IEnumerable<IItemData> GetChildren(IItemData parentItem);
 

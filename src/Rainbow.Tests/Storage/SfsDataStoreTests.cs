@@ -38,7 +38,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
 			{
-				var item = new FakeItem(path: "/sitecore", name: "sitecore", id:Guid.NewGuid());
+				var item = new FakeItem(path: "/sitecore", name: "sitecore", id: Guid.NewGuid());
 
 				dataStore.Save(item);
 
@@ -62,7 +62,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
 			{
-				var item = new FakeItem(path: "/sitecore", name:"sitecore");
+				var item = new FakeItem(path: "/sitecore", name: "sitecore");
 
 				dataStore.Save(item);
 
@@ -78,11 +78,11 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
 			{
-				var item = new FakeItem(path: "/sitecore", name: "sitecore");
+				var item = new FakeItem(path: "/sitecore", name: "sitecore", id: Guid.NewGuid());
 
 				dataStore.Save(item);
 
-				var retrieved = dataStore.GetByMetadata(item, "master");
+				var retrieved = dataStore.GetByPathAndId(item.Path, item.Id, "master");
 
 				Assert.IsNotNull(retrieved);
 				Assert.AreEqual("/sitecore", retrieved.Path);
@@ -117,7 +117,7 @@ namespace Rainbow.Tests.Storage
 
 				dataStore.Save(item);
 
-				var child = new FakeItem(path: "/sitecore/test", name: "test", parentId:rootId);
+				var child = new FakeItem(path: "/sitecore/test", name: "test", parentId: rootId);
 
 				dataStore.Save(child);
 
@@ -125,6 +125,46 @@ namespace Rainbow.Tests.Storage
 
 				Assert.IsNotEmpty(kids);
 				Assert.AreEqual("/sitecore/test", kids.First().Path);
+			}
+		}
+
+		[Test]
+		public void DataStore_GetMetadataByTemplateId_GetsExpectedItem_WhenTargetIsAtRoot()
+		{
+			using (var dataStore = new TestSfsDataStore("/sitecore"))
+			{
+				var templateId = Guid.NewGuid();
+
+				var item = new FakeItem(path: "/sitecore", name: "sitecore", templateId: templateId);
+
+				dataStore.Save(item);
+
+				var byTemplate = dataStore.GetMetadataByTemplateId(templateId, "master").ToArray();
+
+				Assert.AreEqual(1, byTemplate.Length);
+				Assert.AreEqual(templateId, byTemplate[0].TemplateId);
+			}
+		}
+
+		[Test]
+		public void DataStore_GetMetadataByTemplateId_GetsExpectedItem_WhenTargetIsMultipleChildren()
+		{
+			using (var dataStore = new TestSfsDataStore("/sitecore"))
+			{
+				var templateId = Guid.NewGuid();
+
+				var item = new FakeItem(path: "/sitecore", name: "sitecore", templateId: Guid.NewGuid());
+				var item2 = new FakeItem(path: "/sitecore/item1", name: "item1", templateId: templateId, id: Guid.NewGuid());
+				var item3 = new FakeItem(path: "/sitecore/item1/item2", name: "item2", templateId: templateId, id: Guid.NewGuid());
+
+				dataStore.Save(item);
+				dataStore.Save(item2);
+				dataStore.Save(item3);
+
+				var byTemplate = dataStore.GetMetadataByTemplateId(templateId, "master").ToArray();
+
+				Assert.AreEqual(2, byTemplate.Length);
+				Assert.AreEqual(templateId, byTemplate[0].TemplateId);
 			}
 		}
 	}

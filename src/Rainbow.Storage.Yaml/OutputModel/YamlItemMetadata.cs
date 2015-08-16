@@ -9,6 +9,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 	{
 		public Guid Id { get; private set; }
 		public Guid ParentId { get; private set; }
+		public Guid TemplateId { get; private set; }
 		public string Path { get; private set; }
 		public string SerializedItemId { get; private set; }
 
@@ -16,9 +17,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 		{
 			Id = reader.ReadExpectedGuidMap("ID");
 			ParentId = reader.ReadExpectedGuidMap("Parent");
-
-			reader.ReadExpectedGuidMap("Template");
-
+			TemplateId = reader.ReadExpectedGuidMap("Template");
 			Path = reader.ReadExpectedMap("Path");
 			SerializedItemId = serializedItemId;
 		}

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Web.Hosting;
 using Rainbow.Formatting;
 using Rainbow.Model;
@@ -98,21 +99,46 @@ namespace Rainbow.Storage
 			return tree.GetItemsByPath(path);
 		}
 
-		public IItemData GetByMetadata(IItemMetadata metadata, string database)
+		public IItemData GetByPathAndId(string path, Guid id, string database)
 		{
-			Assert.ArgumentNotNull(metadata, "metadata");
+			Assert.ArgumentNotNullOrEmpty(path, "path");
 			Assert.ArgumentNotNullOrEmpty(database, "database");
-			Assert.IsNotNullOrEmpty(metadata.Path, "The path is required to get an item from the SFS data store.");
+			Assert.ArgumentCondition(id != default(Guid), "id", "The item ID must not be the null guid. Use GetByPath() if you don't know the ID.");
 
-			var items = GetByPath(metadata.Path, database).ToArray();
+			var items = GetByPath(path, database).ToArray();
 
-			if (metadata.Id != default(Guid)) return items.FirstOrDefault(item => item.Id == metadata.Id);
+			return items.FirstOrDefault(item => item.Id == id);
+		}
 
-			if (items.Length == 0) return null;
+		public IItemData GetById(Guid id, string database)
+		{
+			var roots = Trees.Select(tree => tree.GetRootItem());
 
-			if (items.Length == 1) return items[0];
+			IItemData resultItem = null;
 
-			throw new AmbiguousMatchException("The path " + metadata.Path + " matched more than one item. Reduce ambiguity by passing the ID as well, or use GetByPath() for multiple results.");
+			Parallel.ForEach(roots, (data, state) =>
+			{
+				var tree = GetTreeForPath(data.Path, database);
+
+				if (tree == null) return;
+
+				var result = tree.GetItemById(id);
+
+				if (result != null)
+				{
+					state.Stop();
+					resultItem = GetByPathAndId(result.Path, result.Id, database);
+				}
+			});
+
+			return resultItem;
+		}
+
+		public IEnumerable<IItemMetadata> GetMetadataByTemplateId(Guid templateId, string database)
+		{
+			return Trees.Select(tree => tree.GetRootItem())
+				.AsParallel()
+				.SelectMany(tree => FilterDescendantsAndSelf(tree, item => item.TemplateId == templateId));
 		}
 
 		public IEnumerable<IItemData> GetChildren(IItemData parentItem)
@@ -178,6 +204,34 @@ namespace Rainbow.Storage
 		protected virtual SerializationFileSystemTree CreateTree(TreeRoot root)
 		{
 			return new SerializationFileSystemTree(root.Name, root.Path, root.DatabaseName, Path.Combine(PhysicalRootPath, root.Name), _formatter);
+		}
+
+		protected virtual IList<IItemMetadata> FilterDescendantsAndSelf(IItemData root, Func<IItemMetadata, bool> predicate)
+		{
+			Assert.ArgumentNotNull(root, "root");
+
+			var descendants = new List<IItemMetadata>();
+
+			var childQueue = new Queue<IItemMetadata>();
+			childQueue.Enqueue(root);
+
+			while (childQueue.Count > 0)
+			{
+				var parent = childQueue.Dequeue();
+
+				if (predicate(parent)) descendants.Add(parent);
+
+				var tree = GetTreeForPath(parent.Path, root.DatabaseName);
+
+				if (tree == null) continue;
+
+				var children = tree.GetChildrenMetadata(parent).ToArray();
+
+				foreach (var item in children)
+					childQueue.Enqueue(item);
+			}
+
+			return descendants;
 		}
 
 		public string FriendlyName { get { return "Serialization File System Data Store"; } }
