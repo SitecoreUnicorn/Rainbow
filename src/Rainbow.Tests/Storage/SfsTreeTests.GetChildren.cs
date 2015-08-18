@@ -48,7 +48,7 @@ namespace Rainbow.Tests.Storage
 
 				var root = testTree.GetItemsByPath("/sitecore/templates").First();
 
-				testTree.ClearCaches();
+				testTree.ClearAllCaches();
 
 				var children = testTree.GetChildren(root).ToArray();
 

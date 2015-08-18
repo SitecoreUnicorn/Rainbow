@@ -112,7 +112,7 @@ namespace Rainbow.Storage
 
 		public IItemData GetById(Guid id, string database)
 		{
-			var roots = Trees.Select(tree => tree.GetRootItem());
+			var roots = Trees.Select(tree => tree.GetRootItem()).Where(root => root != null);
 
 			IItemData resultItem = null;
 
@@ -137,6 +137,7 @@ namespace Rainbow.Storage
 		public IEnumerable<IItemMetadata> GetMetadataByTemplateId(Guid templateId, string database)
 		{
 			return Trees.Select(tree => tree.GetRootItem())
+				.Where(root => root != null)
 				.AsParallel()
 				.SelectMany(tree => FilterDescendantsAndSelf(tree, item => item.TemplateId == templateId));
 		}

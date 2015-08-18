@@ -47,7 +47,7 @@ namespace Rainbow.Tests.Storage
 
 				var root = testTree.GetRootItem();
 
-				testTree.ClearCaches();
+				testTree.ClearAllCaches();
 
 				var byId = testTree.GetItemById(root.Id);
 
@@ -65,7 +65,7 @@ namespace Rainbow.Tests.Storage
 
 				var item = testTree.GetItemsByPath("/sitecore/content/foo").First();
 
-				testTree.ClearCaches();
+				testTree.ClearAllCaches();
 
 				var byId = testTree.GetItemById(item.Id);
 

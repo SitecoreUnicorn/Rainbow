@@ -34,9 +34,9 @@ namespace Rainbow.Tests.Storage
 				Directory.Delete(PhysicalRootPath, true);
 		}
 
-		public void ClearCaches()
+		public void ClearAllCaches()
 		{
-			ClearPathCache();
+			ClearCaches();
 		}
 
 		public int MaxPathLengthForTests { get; set; }

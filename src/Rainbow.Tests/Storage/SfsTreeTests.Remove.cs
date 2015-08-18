@@ -64,7 +64,7 @@ namespace Rainbow.Tests.Storage
 
 				var item = testTree.GetItemsByPath("/sitecore/content").First();
 
-				testTree.ClearCaches();
+				testTree.ClearAllCaches();
 
 				testTree.Remove(item);
 

@@ -62,7 +62,8 @@ namespace Rainbow.Storage
 		private readonly string _globalRootItemPath;
 		protected readonly string PhysicalRootPath;
 		private readonly ISerializationFormatter _formatter;
-		private readonly Dictionary<Guid, IItemMetadata> _pathCache = new Dictionary<Guid, IItemMetadata>();
+		private readonly Dictionary<Guid, IItemMetadata> _idCache = new Dictionary<Guid, IItemMetadata>();
+		private readonly Dictionary<string, IItemMetadata> _pathCache = new Dictionary<string, IItemMetadata>();
 
 		/// <summary>
 		/// 
@@ -123,8 +124,8 @@ namespace Rainbow.Storage
 
 		public IItemData GetItemById(Guid id)
 		{
-			IItemMetadata cached;
-			if (_pathCache.TryGetValue(id, out cached) && File.Exists(cached.SerializedItemId)) return ReadItem(cached.SerializedItemId);
+			IItemMetadata cached = GetFromMetadataCache(id);
+			if (cached != null) return ReadItem(cached.SerializedItemId);
 
 			var root = GetRootItem();
 
@@ -134,7 +135,7 @@ namespace Rainbow.Storage
 
 			if (item == null) return null;
 
-			_pathCache[item.Id] = new WrittenItemMetadata(item.Id, item.ParentId, item.TemplateId, item.Path, item.SerializedItemId);
+			AddToMetadataCache(item);
 
 			return ReadItem(item.SerializedItemId);
 		}
@@ -217,6 +218,8 @@ namespace Rainbow.Storage
 					var readItem = _formatter.ReadSerializedItem(reader, path);
 					readItem.DatabaseName = DatabaseName;
 
+					AddToMetadataCache(readItem);
+
 					return readItem;
 				}
 			}
@@ -226,6 +229,9 @@ namespace Rainbow.Storage
 		{
 			Assert.ArgumentNotNullOrEmpty(path, "path");
 
+			IItemMetadata cached = GetFromMetadataCache(path);
+			if (cached != null) return cached;
+
 			lock (FileUtil.GetFileLock(path))
 			{
 				if (!File.Exists(path)) return null;
@@ -233,6 +239,8 @@ namespace Rainbow.Storage
 				using (var reader = File.OpenRead(path))
 				{
 					var readItem = _formatter.ReadSerializedItemMetadata(reader, path);
+
+					AddToMetadataCache(readItem);
 
 					return readItem;
 				}
@@ -246,16 +254,24 @@ namespace Rainbow.Storage
 
 			lock (FileUtil.GetFileLock(path))
 			{
-				var directory = Path.GetDirectoryName(path);
-				if (directory != null && !Directory.Exists(directory)) Directory.CreateDirectory(directory);
-
-				using (var writer = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.None))
+				try
 				{
-					_formatter.WriteSerializedItem(item, writer);
+					var directory = Path.GetDirectoryName(path);
+					if (directory != null && !Directory.Exists(directory)) Directory.CreateDirectory(directory);
+
+					using (var writer = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.None))
+					{
+						_formatter.WriteSerializedItem(item, writer);
+					}
+				}
+				catch
+				{
+					if(File.Exists(path)) File.Delete(path);
+					throw;
 				}
 			}
 
-			_pathCache[item.Id] = new WrittenItemMetadata(item.Id, item.ParentId, item.TemplateId, item.Path, path);
+			AddToMetadataCache(item);
 		}
 
 		protected virtual string ConvertGlobalVirtualPathToTreeVirtualPath(string globalPath)
@@ -448,16 +464,19 @@ namespace Rainbow.Storage
 
 			var localPath = ConvertGlobalVirtualPathToTreeVirtualPath(globalPath);
 
-			IItemMetadata cached;
-			if (_pathCache.TryGetValue(expectedItemId, out cached) && File.Exists(cached.SerializedItemId) && globalPath.Equals(cached.Path, StringComparison.OrdinalIgnoreCase)) return cached;
+			IItemMetadata cached = GetFromMetadataCache(expectedItemId);
+			if (cached != null && globalPath.Equals(cached.Path, StringComparison.OrdinalIgnoreCase)) return cached;
 
 			var result = GetPhysicalFilePathsForVirtualPath(localPath)
 				.Select(ReadItemMetadata)
 				.FirstOrDefault(candidateItem => candidateItem.Id == expectedItemId);
 
-			if (_pathCache.ContainsKey(result.Id)) throw new InvalidOperationException("The item with ID {0} has duplicate item files serialized ({1}, {2}). Please remove the incorrect one and try again.".FormatWith(result.Id, _pathCache[result.Id].SerializedItemId, result.SerializedItemId));
+			if (result == null) return null;
 
-			_pathCache.Add(result.Id, result);
+			IItemMetadata temp = GetFromMetadataCache(expectedItemId);
+			if (temp != null && temp.SerializedItemId != result.SerializedItemId) throw new InvalidOperationException("The item with ID {0} has duplicate item files serialized ({1}, {2}). Please remove the incorrect one and try again.".FormatWith(result.Id, _idCache[result.Id].SerializedItemId, result.SerializedItemId));
+
+			AddToMetadataCache(result);
 
 			return result;
 		}
@@ -591,9 +610,32 @@ namespace Rainbow.Storage
 			}
 		}
 
-		protected void ClearPathCache()
+		protected void ClearCaches()
 		{
-			_pathCache.Clear();
+			_idCache.Clear();
+		}
+
+		protected void AddToMetadataCache(IItemMetadata metadata)
+		{
+			var cachedValue = new WrittenItemMetadata(metadata.Id, metadata.ParentId, metadata.TemplateId, metadata.Path, metadata.SerializedItemId);
+			_idCache[metadata.Id] = cachedValue;
+			_pathCache[metadata.SerializedItemId] = cachedValue;
+		}
+
+		protected IItemMetadata GetFromMetadataCache(Guid itemId)
+		{
+			IItemMetadata cached;
+			if (_idCache.TryGetValue(itemId, out cached) && File.Exists(cached.SerializedItemId)) return cached;
+
+			return null;
+		}
+
+		protected IItemMetadata GetFromMetadataCache(string physicalPath)
+		{
+			IItemMetadata cached;
+			if (_pathCache.TryGetValue(physicalPath, out cached) && File.Exists(cached.SerializedItemId)) return cached;
+
+			return null;
 		}
 
 		protected class WrittenItemMetadata : IItemMetadata

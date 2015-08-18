@@ -57,7 +57,7 @@ namespace Rainbow.Tests.Storage
 			{
 				CreateTestTree("/sitecore/templates/User Defined", testTree);
 
-				testTree.ClearCaches();
+				testTree.ClearAllCaches();
 
 				var root = testTree.GetItemsByPath("/sitecore/templates/uSer dEfiNed").ToArray();
 
