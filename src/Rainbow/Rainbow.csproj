@@ -65,6 +65,9 @@
     <Compile Include="Formatting\FieldFormatters\XmlFieldFormatter.cs" />
     <Compile Include="Formatting\ISerializationFormatter.cs" />
     <Compile Include="IDocumentable.cs" />
+    <Compile Include="Model\ProxyFieldValue.cs" />
+    <Compile Include="Model\ProxyItem.cs" />
+    <Compile Include="Model\ProxyItemVersion.cs" />
     <Compile Include="Model\ItemDecorator.cs" />
     <Compile Include="Model\VersionDecorator.cs" />
     <Compile Include="Storage\FastDirectoryEnumerator.cs" />

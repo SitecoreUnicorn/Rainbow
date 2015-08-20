@@ -252,6 +252,8 @@ namespace Rainbow.Storage
 			Assert.ArgumentNotNull(item, "item");
 			Assert.ArgumentNotNullOrEmpty(path, "path");
 
+			var proxiedItem = new ProxyItem(item);
+
 			lock (FileUtil.GetFileLock(path))
 			{
 				try
@@ -261,7 +263,7 @@ namespace Rainbow.Storage
 
 					using (var writer = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.None))
 					{
-						_formatter.WriteSerializedItem(item, writer);
+						_formatter.WriteSerializedItem(proxiedItem, writer);
 					}
 				}
 				catch
