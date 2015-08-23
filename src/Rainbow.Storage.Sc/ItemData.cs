@@ -46,9 +46,14 @@ namespace Rainbow.Storage.Sc
 			get { return _item.ParentID.Guid; }
 		}
 
+		private string _path;
 		public string Path
 		{
-			get { return _item.Paths.Path; }
+			get
+			{
+				if (_path == null) return _path = _item.Paths.Path;
+				return _path;
+			}
 		}
 
 		public string Name

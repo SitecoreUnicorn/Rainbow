@@ -1,0 +1,90 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using Sitecore.IO;
+
+namespace Rainbow.Storage
+{
+	/// <summary>
+	/// Implements a filesystem cache that invalidates entries when the file last write time changes
+	/// Cache entries present for less than 1s are treated as always valid to reduce i/o
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	public class FsCache<T> where T : class
+	{
+		private readonly Dictionary<string, FsCacheEntry<T>> _fsCache = new Dictionary<string, FsCacheEntry<T>>();
+
+		public void AddOrUpdate(string key, T value)
+		{
+			var file = new FileInfo(key);
+
+			AddOrUpdate(file, value);
+		}
+
+		/// <summary>
+		///     Gets a value from the cache. Returns null if the value doesn't exist.
+		/// </summary>
+		/// <typeparam name="T">Type expected to return.</typeparam>
+		/// <param name="key">The cache key to retrieve</param>
+		/// <param name="populateFunction">Delegate to invoke if the cached item doesn't exist that generates the item value</param>
+		public T GetValue(string key, Func<FileInfo, T> populateFunction)
+		{
+			lock (FileUtil.GetFileLock(key))
+			{
+				var cached = GetValue(key);
+				if (cached != null) return cached;
+
+				var file = new FileInfo(key);
+
+				if (!file.Exists) return null;
+
+				var value = populateFunction(file);
+
+				AddOrUpdate(file, value);
+
+				return value;
+			}
+		}
+
+		public virtual T GetValue(string key)
+		{
+			FsCacheEntry<T> existing;
+			if (!_fsCache.TryGetValue(key, out existing)) return null;
+
+			// if entry is less than 1sec old, return it
+			if ((DateTime.Now - existing.Added).TotalMilliseconds < 1000) return existing.Entry;
+
+			// entry file does not exist or last mod is changed, invalidate entry
+			var file = new FileInfo(key);
+			if (!file.Exists || file.LastWriteTime != existing.LastModified) return null;
+
+			return existing.Entry;
+		}
+
+		public void Clear()
+		{
+			_fsCache.Clear();
+		}
+
+		protected virtual void AddOrUpdate(FileInfo file, T value)
+		{
+			if (!file.Exists) return;
+
+			var entry = new FsCacheEntry<T>
+			{
+				Added = DateTime.Now,
+				LastModified = file.LastWriteTime,
+				Entry = value
+			};
+
+			_fsCache[file.FullName] = entry;
+		}
+
+		protected class FsCacheEntry<TEntry>
+		{
+			public TEntry Entry { get; set; }
+			public DateTime Added { get; set; }
+			public DateTime LastModified { get; set; }
+		}
+	}
+}

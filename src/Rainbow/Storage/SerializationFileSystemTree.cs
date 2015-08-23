@@ -63,7 +63,8 @@ namespace Rainbow.Storage
 		protected readonly string PhysicalRootPath;
 		private readonly ISerializationFormatter _formatter;
 		private readonly Dictionary<Guid, IItemMetadata> _idCache = new Dictionary<Guid, IItemMetadata>();
-		private readonly Dictionary<string, IItemMetadata> _pathCache = new Dictionary<string, IItemMetadata>();
+		private readonly FsCache<IItemData> _dataCache = new FsCache<IItemData>();
+		private readonly FsCache<IItemMetadata> _metadataCache = new FsCache<IItemMetadata>();
 
 		/// <summary>
 		/// 
@@ -129,7 +130,7 @@ namespace Rainbow.Storage
 
 			var root = GetRootItem();
 
-			if(root.Id == id) return root;
+			if (root.Id == id) return root;
 
 			var item = GetDescendants(root, false, metadata => metadata.Id == id, true).FirstOrDefault();
 
@@ -209,11 +210,9 @@ namespace Rainbow.Storage
 		{
 			Assert.ArgumentNotNullOrEmpty(path, "path");
 
-			lock (FileUtil.GetFileLock(path))
+			return _dataCache.GetValue(path, fileInfo =>
 			{
-				if (!File.Exists(path)) return null;
-
-				using (var reader = File.OpenRead(path))
+				using (var reader = fileInfo.OpenRead())
 				{
 					var readItem = _formatter.ReadSerializedItem(reader, path);
 					readItem.DatabaseName = DatabaseName;
@@ -222,7 +221,7 @@ namespace Rainbow.Storage
 
 					return readItem;
 				}
-			}
+			});
 		}
 
 		protected virtual IItemMetadata ReadItemMetadata(string path)
@@ -268,12 +267,13 @@ namespace Rainbow.Storage
 				}
 				catch
 				{
-					if(File.Exists(path)) File.Delete(path);
+					if (File.Exists(path)) File.Delete(path);
 					throw;
 				}
 			}
 
 			AddToMetadataCache(item);
+			_dataCache.AddOrUpdate(path, proxiedItem);
 		}
 
 		protected virtual string ConvertGlobalVirtualPathToTreeVirtualPath(string globalPath)
@@ -519,13 +519,13 @@ namespace Rainbow.Storage
 					catch (Exception)
 					{
 						if (ignoreReadErrors) return null;
-				
+
 						throw;
 					}
 				})
 				.Where(item => item != null)
 				.ToArray();
-				
+
 				foreach (var item in children)
 					childQueue.Enqueue(item);
 			}
@@ -615,13 +615,15 @@ namespace Rainbow.Storage
 		protected void ClearCaches()
 		{
 			_idCache.Clear();
+			_metadataCache.Clear();
+			_dataCache.Clear();
 		}
 
 		protected void AddToMetadataCache(IItemMetadata metadata)
 		{
 			var cachedValue = new WrittenItemMetadata(metadata.Id, metadata.ParentId, metadata.TemplateId, metadata.Path, metadata.SerializedItemId);
 			_idCache[metadata.Id] = cachedValue;
-			_pathCache[metadata.SerializedItemId] = cachedValue;
+			_metadataCache.AddOrUpdate(metadata.SerializedItemId, metadata);
 		}
 
 		protected IItemMetadata GetFromMetadataCache(Guid itemId)
@@ -634,10 +636,11 @@ namespace Rainbow.Storage
 
 		protected IItemMetadata GetFromMetadataCache(string physicalPath)
 		{
-			IItemMetadata cached;
-			if (_pathCache.TryGetValue(physicalPath, out cached) && File.Exists(cached.SerializedItemId)) return cached;
+			var metadata = _metadataCache.GetValue(physicalPath);
 
-			return null;
+			if (metadata != null) return metadata;
+
+			return _dataCache.GetValue(physicalPath);
 		}
 
 		protected class WrittenItemMetadata : IItemMetadata

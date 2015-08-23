@@ -71,6 +71,7 @@
     <Compile Include="Model\ItemDecorator.cs" />
     <Compile Include="Model\VersionDecorator.cs" />
     <Compile Include="Storage\FastDirectoryEnumerator.cs" />
+    <Compile Include="Storage\FsCache.cs" />
     <Compile Include="Storage\IDataStore.cs" />
     <Compile Include="Model\IItemFieldValue.cs" />
     <Compile Include="Model\IItemData.cs" />
