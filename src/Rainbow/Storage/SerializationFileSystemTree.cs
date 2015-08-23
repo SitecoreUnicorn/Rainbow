@@ -63,8 +63,11 @@ namespace Rainbow.Storage
 		protected readonly string PhysicalRootPath;
 		private readonly ISerializationFormatter _formatter;
 		private readonly Dictionary<Guid, IItemMetadata> _idCache = new Dictionary<Guid, IItemMetadata>();
-		private readonly FsCache<IItemData> _dataCache = new FsCache<IItemData>();
-		private readonly FsCache<IItemMetadata> _metadataCache = new FsCache<IItemMetadata>();
+		private readonly FsCache<IItemData> _dataCache;
+		private readonly FsCache<IItemMetadata> _metadataCache = new FsCache<IItemMetadata>(true);
+
+		private bool _configuredForFastReads = false;
+		private readonly object _fastReadConfigurationLock = new object();
 
 		/// <summary>
 		/// 
@@ -74,7 +77,8 @@ namespace Rainbow.Storage
 		/// <param name="databaseName">Name of the database the items in this tree are from. This is for your reference and help when resolving this tree as a destination, and is not directly used.</param>
 		/// <param name="physicalRootPath">The physical root path to write items in this tree to. Will be created if it does not exist.</param>
 		/// <param name="formatter">The formatter to use when reading or writing items to disk</param>
-		public SerializationFileSystemTree(string name, string globalRootItemPath, string databaseName, string physicalRootPath, ISerializationFormatter formatter)
+		/// <param name="useDataCache">Whether to cache items read in memory for later rapid retrieval. Great for small trees, or if you have plenty of RAM. Bad for media trees :)</param>
+		public SerializationFileSystemTree(string name, string globalRootItemPath, string databaseName, string physicalRootPath, ISerializationFormatter formatter, bool useDataCache)
 		{
 			Assert.ArgumentNotNullOrEmpty(globalRootItemPath, "globalRootItemPath");
 			Assert.ArgumentNotNullOrEmpty(databaseName, "databaseName");
@@ -86,6 +90,7 @@ namespace Rainbow.Storage
 			_globalRootItemPath = globalRootItemPath.TrimEnd('/');
 			PhysicalRootPath = physicalRootPath;
 			_formatter = formatter;
+			_dataCache = new FsCache<IItemData>(useDataCache);
 			Name = name;
 			DatabaseName = databaseName;
 
@@ -123,23 +128,22 @@ namespace Rainbow.Storage
 			return GetPhysicalFilePathsForVirtualPath(localPath).Select(ReadItem).Where(item => item != null && item.Path.Equals(globalPath, StringComparison.OrdinalIgnoreCase));
 		}
 
+		/// <summary>
+		/// Gets an item from the tree by ID.
+		/// Note: the first call to this method ensures that the tree is configured for high speed reading by ID,
+		/// which fills the metadata cache with all instances from disk. Reading by ID is not recommended for very large datasets,
+		/// but is quite good with smaller datasets of 1000-2000 items.
+		/// </summary>
 		public IItemData GetItemById(Guid id)
 		{
+			EnsureConfiguredForFastReads();
+
 			IItemMetadata cached = GetFromMetadataCache(id);
-			if (cached != null) return ReadItem(cached.SerializedItemId);
+			if (cached == null) return null;
 
-			var root = GetRootItem();
-
-			if (root.Id == id) return root;
-
-			var item = GetDescendants(root, false, metadata => metadata.Id == id, true).FirstOrDefault();
-
-			if (item == null) return null;
-
-			AddToMetadataCache(item);
-
-			return ReadItem(item.SerializedItemId);
+			return ReadItem(cached.SerializedItemId);
 		}
+
 
 		public IEnumerable<IItemData> GetChildren(IItemMetadata parentItem)
 		{
@@ -228,22 +232,15 @@ namespace Rainbow.Storage
 		{
 			Assert.ArgumentNotNullOrEmpty(path, "path");
 
-			IItemMetadata cached = GetFromMetadataCache(path);
-			if (cached != null) return cached;
-
-			lock (FileUtil.GetFileLock(path))
+			return _metadataCache.GetValue(path, fileInfo =>
 			{
-				if (!File.Exists(path)) return null;
-
-				using (var reader = File.OpenRead(path))
+				using (var reader = fileInfo.OpenRead())
 				{
 					var readItem = _formatter.ReadSerializedItemMetadata(reader, path);
 
-					AddToMetadataCache(readItem);
-
 					return readItem;
 				}
-			}
+			});
 		}
 
 		protected virtual void WriteItem(IItemData item, string path)
@@ -486,7 +483,7 @@ namespace Rainbow.Storage
 			return result;
 		}
 
-		protected virtual IList<IItemMetadata> GetDescendants(IItemData root, bool ignoreReadErrors, Func<IItemMetadata, bool> predicate = null, bool stopAfterFirstPredicateMatch = false)
+		protected virtual IList<IItemMetadata> GetDescendants(IItemData root, bool ignoreReadErrors)
 		{
 			Assert.ArgumentNotNull(root, "root");
 
@@ -502,35 +499,25 @@ namespace Rainbow.Storage
 				// add current item to descendant results
 				if (parent.Id != root.Id)
 				{
-					if (predicate == null) descendants.Add(parent);
-					else
-					{
-						if (predicate(parent))
-						{
-							descendants.Add(parent);
-							if (stopAfterFirstPredicateMatch) return descendants;
-						}
-					}
+					descendants.Add(parent);
 				}
 
-				var children = GetChildPaths(parent).Select(physicalPath =>
+				var children = GetChildPaths(parent);
+				
+				foreach(var physicalPath in children)
 				{
 					try
 					{
-						return ReadItemMetadata(physicalPath);
+						var child = ReadItemMetadata(physicalPath);
+						if (child != null) childQueue.Enqueue(child);
 					}
 					catch (Exception)
 					{
-						if (ignoreReadErrors) return null;
+						if (ignoreReadErrors) continue;
 
 						throw;
 					}
-				})
-				.Where(item => item != null)
-				.ToArray();
-
-				foreach (var item in children)
-					childQueue.Enqueue(item);
+				}
 			}
 
 			return descendants;
@@ -644,6 +631,36 @@ namespace Rainbow.Storage
 			if (metadata != null) return metadata;
 
 			return _dataCache.GetValue(physicalPath);
+		}
+
+		/// <summary>
+		/// Configures the tree to enable fast reads of items by ID or template ID,
+		/// by preloading the whole metadata on disk into cache at once and then
+		/// watching for metadata changes with a filesystem watcher to update the cache.
+		/// 
+		/// This enables us to rapidly say "this ID is not in this tree," which is an
+		/// essential component of a performant data provider read implementation.
+		/// </summary>
+		protected virtual void EnsureConfiguredForFastReads()
+		{
+			if (_configuredForFastReads) return;
+
+			lock (_fastReadConfigurationLock)
+			{
+				if (_configuredForFastReads) return;
+
+				// getting descendants of the root item will populate the metadata cache with the entirety of what's on disk
+				var root = GetRootItem();
+				if (root != null)
+				{
+					GetDescendants(root, false);
+				}
+
+				// TODO: watch for added or deleted files with a filesystem watcher
+				// note: we don't care about changed files, because FSCache checks for a later mod date already for cache invalidation
+
+				_configuredForFastReads = true;
+			}
 		}
 
 		protected class WrittenItemMetadata : IItemMetadata

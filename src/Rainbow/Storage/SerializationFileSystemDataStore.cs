@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using System.Web.Hosting;
 using Rainbow.Formatting;
@@ -15,11 +14,12 @@ namespace Rainbow.Storage
 	public class SerializationFileSystemDataStore : IDataStore, IDocumentable
 	{
 		protected readonly string PhysicalRootPath;
+		private readonly bool _useDataCache;
 		private readonly ITreeRootFactory _rootFactory;
 		private readonly ISerializationFormatter _formatter;
 		protected readonly List<SerializationFileSystemTree> Trees;
 
-		public SerializationFileSystemDataStore(string physicalRootPath, ITreeRootFactory rootFactory, ISerializationFormatter formatter)
+		public SerializationFileSystemDataStore(string physicalRootPath, bool useDataCache, ITreeRootFactory rootFactory, ISerializationFormatter formatter)
 		{
 			Assert.ArgumentNotNullOrEmpty(physicalRootPath, "rootPath");
 			Assert.ArgumentNotNull(formatter, "formatter");
@@ -28,6 +28,7 @@ namespace Rainbow.Storage
 			// ReSharper disable once DoNotCallOverridableMethodsInConstructor
 			PhysicalRootPath = InitializeRootPath(physicalRootPath);
 
+			_useDataCache = useDataCache;
 			_rootFactory = rootFactory;
 			_formatter = formatter;
 			_formatter.ParentDataStore = this;
@@ -112,26 +113,17 @@ namespace Rainbow.Storage
 
 		public IItemData GetById(Guid id, string database)
 		{
-			var roots = Trees.Select(tree => tree.GetRootItem()).Where(root => root != null);
-
-			IItemData resultItem = null;
-
-			Parallel.ForEach(roots, (data, state) =>
+			foreach (var tree in Trees)
 			{
-				var tree = GetTreeForPath(data.Path, database);
-
-				if (tree == null) return;
-
 				var result = tree.GetItemById(id);
 
 				if (result != null)
 				{
-					state.Stop();
-					resultItem = GetByPathAndId(result.Path, result.Id, database);
+					return GetByPathAndId(result.Path, result.Id, database);
 				}
-			});
+			}
 
-			return resultItem;
+			return null;
 		}
 
 		public IEnumerable<IItemMetadata> GetMetadataByTemplateId(Guid templateId, string database)
@@ -190,7 +182,7 @@ namespace Rainbow.Storage
 
 		protected virtual SerializationFileSystemTree GetTreeForPath(string path, string database)
 		{
-			var trees = Trees.Where(tree => tree.DatabaseName.Equals(database) && tree.ContainsPath(path)).ToArray();
+			var trees = Trees.Where(tree => tree.DatabaseName.Equals(database, StringComparison.OrdinalIgnoreCase) && tree.ContainsPath(path)).ToArray();
 
 			if (trees.Length == 0)
 			{
@@ -204,7 +196,7 @@ namespace Rainbow.Storage
 
 		protected virtual SerializationFileSystemTree CreateTree(TreeRoot root)
 		{
-			return new SerializationFileSystemTree(root.Name, root.Path, root.DatabaseName, Path.Combine(PhysicalRootPath, root.Name), _formatter);
+			return new SerializationFileSystemTree(root.Name, root.Path, root.DatabaseName, Path.Combine(PhysicalRootPath, root.Name), _formatter, _useDataCache);
 		}
 
 		protected virtual IList<IItemMetadata> FilterDescendantsAndSelf(IItemData root, Func<IItemMetadata, bool> predicate)
@@ -234,6 +226,8 @@ namespace Rainbow.Storage
 
 			return descendants;
 		}
+
+
 
 		public string FriendlyName { get { return "Serialization File System Data Store"; } }
 		public string Description { get { return "Stores serialized items on disk using the SFS tree format, where each root is a separate tree."; } }
