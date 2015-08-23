@@ -2,7 +2,7 @@
 	- FakeDb + rainbow.sc?
 	- Unicorn w/fakedb?
 
-// TODO: memory profiling on sync, another perf profiler review (esp on large syncs, that sync complete collector saving all the IItemData in ram for the end may be suboptimal)
+// TODO: memory profiling on large sync, another perf profiler review
 // TODO: documentation/commenting/code review
 // TODO: final nuget setup and install tests
 // TODO: SPE extensions
@@ -17,6 +17,7 @@
 // 3.1: consistency checking (in unicorn control panel and SFS)
 // 3.1: parallel tree syncing, at a top level tree point and or config level- if it helps. may need to allow trees to opt out and load first eg templates
 // 3.2: formatting of security field values?
+// 3.2: micro auto-install framework that bootstraps from embedded resources
 
 SECURITY REVENGE!
 
