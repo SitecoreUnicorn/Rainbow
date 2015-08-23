@@ -105,6 +105,42 @@ namespace Rainbow.Tests.Storage
 		}
 
 		[Test]
+		public void GetChildren_ReturnsExpectedItems_WhenNameTruncationCausesSimilarNames()
+		{
+			using (var testTree = new TestSfsTree())
+			{
+				testTree.MaxFileNameLengthForTests = 10;
+
+				const string treePath = "/sitecore/templates";
+				CreateTestTree(treePath, testTree);
+
+				var testItem = testTree.GetItemsByPath(treePath).First();
+
+				var multilist = CreateTestItem("/sitecore/templates/Multilist", testItem.Id);
+				var multilistWithSearch = CreateTestItem("/sitecore/templates/Multilist with Search", testItem.Id);
+
+				var multilistChild = CreateTestItem("/sitecore/templates/Multilist/Menu", multilist.Id);
+				var multilistWithSearchChild = CreateTestItem("/sitecore/templates/Multilist with Search/Menu", multilistWithSearch.Id);
+
+				testTree.Save(multilist);
+				testTree.Save(multilistWithSearch);
+				testTree.Save(multilistChild);
+				testTree.Save(multilistWithSearchChild);
+
+				// now we'll have "Multilist.yml" and "Multilist .yml" - make sure we get the right children from each
+
+				// get the children of the root, which should include the two same named items
+				var multilistChildren = testTree.GetChildren(multilist).ToArray();
+				var multilistWithSearchChildren = testTree.GetChildren(multilistWithSearch).ToArray();
+
+				Assert.AreEqual(1, multilistChildren.Length);
+				Assert.AreEqual(multilistChild.Id, multilistChildren.First().Id);
+				Assert.AreEqual(1, multilistWithSearchChildren.Length);
+				Assert.AreEqual(multilistWithSearchChild.Id, multilistWithSearchChildren.First().Id);
+			}
+		}
+
+		[Test]
 		public void GetChildren_ReturnsExpectedItems_WhenMultipleMatchesExist_ThroughSeparateParents()
 		{
 			using (var testTree = new TestSfsTree())

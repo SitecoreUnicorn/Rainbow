@@ -455,7 +455,10 @@ namespace Rainbow.Storage
 			var validifiedName = Regex.Replace(name, @"[%\$\\/:\*\?<>\|""]+", "_", RegexOptions.Compiled);
 
 			if (validifiedName.Length > MaxItemNameLengthBeforeTruncation)
-				return validifiedName.Substring(0, MaxItemNameLengthBeforeTruncation);
+				validifiedName = validifiedName.Substring(0, MaxItemNameLengthBeforeTruncation);
+
+			// if the name ends with a space that can cause ambiguous results (e.g. "Multilist" and "Multilist "); Win32 considers directories with trailing spaces as the same as without, so we end it with underscore instead
+			if (validifiedName[validifiedName.Length - 1] == ' ') validifiedName = validifiedName.Substring(0, validifiedName.Length - 1) + "_";
 
 			return validifiedName;
 		}
