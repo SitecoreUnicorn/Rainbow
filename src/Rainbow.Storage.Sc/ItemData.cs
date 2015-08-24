@@ -185,6 +185,8 @@ namespace Rainbow.Storage.Sc
 				{
 					if (_field.IsBlobField)
 					{
+						if (!_field.HasBlobStream) return null;
+
 						using (var stream = _field.GetBlobStream())
 						{
 							var buf = new byte[stream.Length];
@@ -201,6 +203,24 @@ namespace Rainbow.Storage.Sc
 			public string FieldType
 			{
 				get { return _field.Type; }
+			}
+
+			public Guid? BlobId
+			{
+				get
+				{
+					if (_field.IsBlobField)
+					{
+						string parsedIdValue = _field.Value;
+						if (parsedIdValue.Length > 38)
+							parsedIdValue = parsedIdValue.Substring(0, 38);
+
+						Guid blobId;
+						if(Guid.TryParse(parsedIdValue, out blobId)) return blobId;
+					}
+
+					return null;
+				}
 			}
 
 			public string NameHint

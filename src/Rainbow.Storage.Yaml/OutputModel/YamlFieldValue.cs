@@ -10,6 +10,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 		public string NameHint { get; set; }
 		public string Type { get; set; }
 		public string Value { get; set; }
+		public Guid? BlobId { get; set; }
 
 		public int CompareTo(YamlFieldValue other)
 		{
@@ -20,6 +21,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 		{
 			Id = field.FieldId;
 			NameHint = field.NameHint;
+			BlobId = field.BlobId;
 			
 			string value = field.Value;
 
@@ -45,6 +47,9 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			{
 				writer.WriteComment(NameHint);
 			}
+
+			if(BlobId.HasValue)
+				writer.WriteMap("BlobID", BlobId.Value.ToString("D"));
 			
 			if(Type != null)
 				writer.WriteMap("Type", Type);
@@ -61,6 +66,12 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			}
 
 			Id = reader.ReadExpectedGuidMap("ID");
+
+			var blob = reader.PeekMap();
+			if (blob.HasValue && blob.Value.Key.Equals("BlobID"))
+			{
+				BlobId = reader.ReadExpectedGuidMap("BlobID");
+			}
 
 			var type = reader.PeekMap();
 			if (type.HasValue && type.Value.Key.Equals("Type"))

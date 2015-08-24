@@ -10,6 +10,7 @@ namespace Rainbow.Model
 			FieldType = fieldToProxy.FieldType;
 			FieldId = fieldToProxy.FieldId;
 			NameHint = fieldToProxy.NameHint;
+			BlobId = fieldToProxy.BlobId;
 		}
 
 		public Guid FieldId { get; private set; }
@@ -19,5 +20,6 @@ namespace Rainbow.Model
 		public string Value { get; private set; }
 
 		public string FieldType { get; private set; }
+		public Guid? BlobId { get; private set; }
 	}
 }

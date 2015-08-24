@@ -13,6 +13,8 @@ namespace Rainbow.Diff.Fields
 		{
 			if (field1.Value == null || field2.Value == null) return false;
 
+			if (field1.BlobId.HasValue && field2.BlobId.HasValue) return field1.BlobId.Value.Equals(field2.BlobId.Value);
+
 			return field1.Value.Equals(field2.Value);
 		}
 	}

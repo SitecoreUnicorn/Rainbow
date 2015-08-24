@@ -8,5 +8,6 @@ namespace Rainbow.Model
 		string NameHint { get; }
 		string Value { get; }
 		string FieldType { get; }
+		Guid? BlobId { get; }
 	}
 }

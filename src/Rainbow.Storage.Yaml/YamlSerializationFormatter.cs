@@ -266,6 +266,11 @@ namespace Rainbow.Storage.Yaml
 				get { return _field.Type; }
 			}
 
+			public Guid? BlobId
+			{
+				get { return _field.BlobId; }
+			}
+
 			[ExcludeFromCodeCoverage]
 			public string NameHint
 			{
