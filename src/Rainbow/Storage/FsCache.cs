@@ -12,7 +12,7 @@ namespace Rainbow.Storage
 	/// <typeparam name="T"></typeparam>
 	public class FsCache<T> where T : class
 	{
-		private readonly Dictionary<string, FsCacheEntry<T>> _fsCache = new Dictionary<string, FsCacheEntry<T>>();
+		private readonly Dictionary<string, FsCacheEntry<T>> _fsCache = new Dictionary<string, FsCacheEntry<T>>(StringComparer.OrdinalIgnoreCase);
 
 		public FsCache(bool enabled)
 		{
@@ -55,7 +55,7 @@ namespace Rainbow.Storage
 			}
 		}
 
-		public virtual T GetValue(string key)
+		public virtual T GetValue(string key, bool validate = true)
 		{
 			if (!Enabled) return null;
 
@@ -64,6 +64,8 @@ namespace Rainbow.Storage
 #endif
 			FsCacheEntry<T> existing;
 			if (!_fsCache.TryGetValue(key, out existing)) return null;
+
+			if (!validate) return existing.Entry;
 
 			// if entry is less than 1sec old, return it
 			if ((DateTime.Now - existing.Added).TotalMilliseconds < 1000)
@@ -82,6 +84,11 @@ namespace Rainbow.Storage
 			_hits++;
 #endif
 			return existing.Entry;
+		}
+
+		public bool Remove(string key)
+		{
+			return _fsCache.Remove(key);
 		}
 
 		public void Clear()

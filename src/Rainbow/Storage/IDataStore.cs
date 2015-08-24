@@ -63,5 +63,11 @@ namespace Rainbow.Storage
 		/// </summary>
 		/// <returns>True if the item existed in the store and was removed, false if it did not exist and the store is unchanged.</returns>
 		bool Remove(IItemData item);
+
+		/// <summary>
+		/// Delegate is fired when the data store data changes. This is an optional implementation, required only if you wish to enable data providers
+		/// to clear Sitecore data caches when the data store is changed.
+		/// </summary>
+		void RegisterForChanges(Action<IItemMetadata, string> actionOnChange);
 	}
 }

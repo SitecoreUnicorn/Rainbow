@@ -82,6 +82,7 @@
     <Compile Include="Storage\ITreeRootFactory.cs" />
     <Compile Include="Storage\SerializationFileSystemTree.cs" />
     <Compile Include="Storage\TreeRoot.cs" />
+    <Compile Include="Storage\TreeWatcher.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TODO.txt" />

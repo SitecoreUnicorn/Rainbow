@@ -18,6 +18,7 @@ namespace Rainbow.Storage
 		private readonly ITreeRootFactory _rootFactory;
 		private readonly ISerializationFormatter _formatter;
 		protected readonly List<SerializationFileSystemTree> Trees;
+		protected readonly List<Action<IItemMetadata, string>> _changeWatchers = new List<Action<IItemMetadata, string>>();
 
 		public SerializationFileSystemDataStore(string physicalRootPath, bool useDataCache, ITreeRootFactory rootFactory, ISerializationFormatter formatter)
 		{
@@ -163,6 +164,11 @@ namespace Rainbow.Storage
 			return tree.Remove(item);
 		}
 
+		public void RegisterForChanges(Action<IItemMetadata, string> actionOnChange)
+		{
+			_changeWatchers.Add(actionOnChange);
+		}
+
 		protected virtual string InitializeRootPath(string rootPath)
 		{
 			if (rootPath.StartsWith("~") || rootPath.StartsWith("/"))
@@ -196,7 +202,13 @@ namespace Rainbow.Storage
 
 		protected virtual SerializationFileSystemTree CreateTree(TreeRoot root)
 		{
-			return new SerializationFileSystemTree(root.Name, root.Path, root.DatabaseName, Path.Combine(PhysicalRootPath, root.Name), _formatter, _useDataCache);
+			var tree = new SerializationFileSystemTree(root.Name, root.Path, root.DatabaseName, Path.Combine(PhysicalRootPath, root.Name), _formatter, _useDataCache);
+			tree.TreeItemChanged += metadata =>
+			{
+				foreach (var watcher in _changeWatchers) watcher(metadata, tree.DatabaseName);
+			};
+
+			return tree;
 		}
 
 		protected virtual IList<IItemMetadata> FilterDescendantsAndSelf(IItemData root, Func<IItemMetadata, bool> predicate)

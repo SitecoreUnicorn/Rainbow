@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Rainbow.Formatting;
 using Rainbow.Model;
 using Sitecore.Configuration;
@@ -65,9 +66,16 @@ namespace Rainbow.Storage
 		private readonly Dictionary<Guid, IItemMetadata> _idCache = new Dictionary<Guid, IItemMetadata>();
 		private readonly FsCache<IItemData> _dataCache;
 		private readonly FsCache<IItemMetadata> _metadataCache = new FsCache<IItemMetadata>(true);
+		private readonly TreeWatcher _treeWatcher;
 
 		private bool _configuredForFastReads = false;
 		private readonly object _fastReadConfigurationLock = new object();
+
+		/// <summary>
+		/// Fired when a file in the tree is updated, added, renamed, or deleted.
+		/// Note: in certain cases the metadata will be null, if we did not have it in cache when an item is deleted.
+		/// </summary>
+		public event Action<IItemMetadata> TreeItemChanged;
 
 		/// <summary>
 		/// 
@@ -95,6 +103,8 @@ namespace Rainbow.Storage
 			DatabaseName = databaseName;
 
 			if (!Directory.Exists(PhysicalRootPath)) Directory.CreateDirectory(PhysicalRootPath);
+
+			_treeWatcher = new TreeWatcher(PhysicalRootPath, _formatter.FileExtension, HandleDataItemChanged);
 		}
 
 		public string DatabaseName { get; private set; }
@@ -238,6 +248,8 @@ namespace Rainbow.Storage
 				{
 					var readItem = _formatter.ReadSerializedItemMetadata(reader, path);
 
+					_idCache[readItem.Id] = readItem;
+
 					return readItem;
 				}
 			});
@@ -254,6 +266,8 @@ namespace Rainbow.Storage
 			{
 				try
 				{
+					_treeWatcher.Stop();
+
 					var directory = Path.GetDirectoryName(path);
 					if (directory != null && !Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
@@ -266,6 +280,10 @@ namespace Rainbow.Storage
 				{
 					if (File.Exists(path)) File.Delete(path);
 					throw;
+				}
+				finally
+				{
+					_treeWatcher.Restart();
 				}
 			}
 
@@ -660,6 +678,72 @@ namespace Rainbow.Storage
 				// note: we don't care about changed files, because FSCache checks for a later mod date already for cache invalidation
 
 				_configuredForFastReads = true;
+			}
+		}
+
+		protected virtual void HandleDataItemChanged(string path, WatcherChangeTypes changeType)
+		{
+			if (changeType == WatcherChangeTypes.Created || changeType == WatcherChangeTypes.Changed || changeType == WatcherChangeTypes.Renamed)
+			{
+				Log.Info(string.Format("[Rainbow] SFS tree item {0} changed ({1}), caches updating.", path, changeType), this);
+
+				const int retries = 5;
+				for (int i = 0; i < retries; i++)
+				{
+					try
+					{
+						// note that the act of reading the metadata will update the metadata cache automatically
+						// (it'll either not be in cache or have a newer write time thus invalidating FsCache)
+						var metadata = ReadItemMetadata(path);
+						if (metadata != null)
+						{
+							if (TreeItemChanged != null) TreeItemChanged(metadata);
+						}
+
+						_dataCache.Remove(path);
+					}
+					catch (IOException iex)
+					{
+						// this is here because FSW can tell us the file has changed
+						// BEFORE it's done with writing. So if we get access denied,
+						// we wait 500ms and retry up to 5x before rethrowing
+						if (i < retries - 1)
+						{
+							Thread.Sleep(500);
+							continue;
+						}
+
+						Log.Error("[Rainbow] Failed to read {0} metadata because the file remained locked too long.".FormatWith(path), iex, this);
+					}
+					catch (Exception ex)
+					{
+						Log.Error("[Rainbow] Failed to read updated file {0}. This may indicate a merge conflict or corrupt file. We'll retry reading it if it changes again.".FormatWith(path), ex, this);
+					}
+
+					break;
+				}
+			}
+
+			if (changeType == WatcherChangeTypes.Deleted)
+			{
+				Log.Info(string.Format("Serialized item {0} deleted, reloading caches.", path), this);
+
+				var existingCached = _metadataCache.GetValue(path, false);
+
+				_dataCache.Remove(path);
+				_metadataCache.Remove(path);
+
+				if (existingCached != null)
+				{
+					_idCache.Remove(existingCached.Id);
+					if (TreeItemChanged != null)
+					{
+						if (TreeItemChanged != null) TreeItemChanged(existingCached);
+						return;
+					}
+				}
+
+				if (TreeItemChanged != null) TreeItemChanged(null);
 			}
 		}
 

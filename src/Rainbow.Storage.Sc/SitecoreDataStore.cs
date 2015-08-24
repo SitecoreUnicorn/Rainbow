@@ -132,6 +132,11 @@ namespace Rainbow.Storage.Sc
 			return true;
 		}
 
+		public void RegisterForChanges(Action<IItemMetadata, string> actionOnChange)
+		{
+			throw new NotImplementedException("You may not watch Sitecore for changes.");
+		}
+
 		protected virtual Database GetDatabase(string databaseName)
 		{
 			return Factory.GetDatabase(databaseName);
