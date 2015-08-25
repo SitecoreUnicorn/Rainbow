@@ -397,7 +397,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			if (itemField.IsBlobField && !ID.IsID(field.Value))
 			{
 				byte[] buffer = Convert.FromBase64String(field.Value);
-				itemField.SetBlobStream(new MemoryStream(buffer, false));
+				ItemManager.SetBlobStream(new MemoryStream(buffer, false), field.BlobId.Value, item.Database);
 
 				if (!creatingNewItem)
 					_logger.WroteBlobStream(item, field);
