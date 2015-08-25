@@ -30,24 +30,24 @@ namespace Rainbow.Storage.Sc
 			_sourceDataStore = sourceDataStore;
 		}
 
-		public Guid Id
+		public virtual Guid Id
 		{
 			get { return _item.ID.Guid; }
 		}
 
-		public string DatabaseName
+		public virtual string DatabaseName
 		{
 			get { return _item.Database.Name; }
 			set { }
 		}
 
-		public Guid ParentId
+		public virtual Guid ParentId
 		{
 			get { return _item.ParentID.Guid; }
 		}
 
 		private string _path;
-		public string Path
+		public virtual string Path
 		{
 			get
 			{
@@ -56,23 +56,23 @@ namespace Rainbow.Storage.Sc
 			}
 		}
 
-		public string Name
+		public virtual string Name
 		{
 			get { return _item.Name; }
 		}
 
-		public Guid BranchId
+		public virtual Guid BranchId
 		{
 			get { return _item.BranchId.Guid; }
 		}
 
-		public Guid TemplateId
+		public virtual Guid TemplateId
 		{
 			get { return _item.TemplateID.Guid; }
 		}
 
 		private List<IItemFieldValue> _sharedFields;
-		public IEnumerable<IItemFieldValue> SharedFields
+		public virtual IEnumerable<IItemFieldValue> SharedFields
 		{
 			get
 			{
@@ -100,7 +100,7 @@ namespace Rainbow.Storage.Sc
 						var value = field.GetValue(false, false);
 
 						if (value != null)
-							fieldResults.Add(new ItemFieldValue(field, value));
+							fieldResults.Add(CreateFieldValue(field, value));
 					}
 
 					_sharedFields = fieldResults;
@@ -111,7 +111,7 @@ namespace Rainbow.Storage.Sc
 		}
 
 		private List<IItemVersion> _versions;
-		public IEnumerable<IItemVersion> Versions
+		public virtual IEnumerable<IItemVersion> Versions
 		{
 			get
 			{
@@ -122,7 +122,7 @@ namespace Rainbow.Storage.Sc
 					var versions = GetVersions();
 					for (int i = 0; i < versions.Length; i++)
 					{
-						versionResults.Add(new ItemVersionValue(versions[i]));
+						versionResults.Add(CreateVersion(versions[i]));
 					}
 
 					_versions = versionResults;
@@ -132,12 +132,12 @@ namespace Rainbow.Storage.Sc
 			}
 		}
 
-		public string SerializedItemId
+		public virtual string SerializedItemId
 		{
 			get { return "(from Sitecore database)"; }
 		}
 
-		public IEnumerable<IItemData> GetChildren()
+		public virtual IEnumerable<IItemData> GetChildren()
 		{
 			if (_sourceDataStore != null)
 				return _sourceDataStore.GetChildren(this);
@@ -145,7 +145,7 @@ namespace Rainbow.Storage.Sc
 			return _item.GetChildren().Select(child => new ItemData(child));
 		}
 
-		protected void EnsureFields()
+		protected virtual void EnsureFields()
 		{
 			if (!_fieldsLoaded)
 			{
@@ -154,12 +154,22 @@ namespace Rainbow.Storage.Sc
 			}
 		}
 
-		protected Item[] GetVersions()
+		protected virtual Item[] GetVersions()
 		{
 			if (_itemVersions == null)
 				_itemVersions = _item.Versions.GetVersions(true);
 
 			return _itemVersions;
+		}
+
+		protected virtual IItemFieldValue CreateFieldValue(Field field, string value)
+		{
+			return new ItemFieldValue(field, value);
+		}
+
+		protected virtual IItemVersion CreateVersion(Item version)
+		{
+			return new ItemVersionValue(version);
 		}
 
 		[DebuggerDisplay("{NameHint} ({FieldType})")]
@@ -179,7 +189,7 @@ namespace Rainbow.Storage.Sc
 				get { return _field.ID.Guid; }
 			}
 
-			public string Value
+			public virtual string Value
 			{
 				get
 				{
@@ -205,7 +215,7 @@ namespace Rainbow.Storage.Sc
 				get { return _field.Type; }
 			}
 
-			public Guid? BlobId
+			public virtual Guid? BlobId
 			{
 				get
 				{
@@ -242,7 +252,7 @@ namespace Rainbow.Storage.Sc
 
 			private List<IItemFieldValue> _fields;
 
-			public IEnumerable<IItemFieldValue> Fields
+			public virtual IEnumerable<IItemFieldValue> Fields
 			{
 				get
 				{
@@ -270,7 +280,7 @@ namespace Rainbow.Storage.Sc
 							var value = field.GetValue(false, false);
 
 							if (value != null)
-								fieldResults.Add(new ItemFieldValue(field, value));
+								fieldResults.Add(CreateFieldValue(field, value));
 						}
 
 						_fields = fieldResults;
@@ -287,13 +297,17 @@ namespace Rainbow.Storage.Sc
 				get { return _version.Version.Number; }
 			}
 
-			protected void EnsureFields()
+			protected virtual void EnsureFields()
 			{
 				if (!_fieldsLoaded)
 				{
 					_version.Fields.ReadAll();
 					_fieldsLoaded = true;
 				}
+			}
+			protected virtual IItemFieldValue CreateFieldValue(Field field, string value)
+			{
+				return new ItemFieldValue(field, value);
 			}
 		}
 	}
