@@ -22,5 +22,6 @@ namespace Rainbow.Tests
 		public string Value { get; private set; }
 
 		public string FieldType { get; private set; }
+		public Guid? BlobId { get; private set; }
 	}
 }
