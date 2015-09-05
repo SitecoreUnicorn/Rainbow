@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using Sitecore.IO;
@@ -12,7 +13,7 @@ namespace Rainbow.Storage
 	/// <typeparam name="T"></typeparam>
 	public class FsCache<T> where T : class
 	{
-		private readonly Dictionary<string, FsCacheEntry<T>> _fsCache = new Dictionary<string, FsCacheEntry<T>>(StringComparer.OrdinalIgnoreCase);
+		private readonly ConcurrentDictionary<string, FsCacheEntry<T>> _fsCache = new ConcurrentDictionary<string, FsCacheEntry<T>>(StringComparer.OrdinalIgnoreCase);
 
 		public FsCache(bool enabled)
 		{
@@ -88,7 +89,8 @@ namespace Rainbow.Storage
 
 		public bool Remove(string key)
 		{
-			return _fsCache.Remove(key);
+			FsCacheEntry<T> entry;
+			return _fsCache.TryRemove(key, out entry);
 		}
 
 		public void Clear()

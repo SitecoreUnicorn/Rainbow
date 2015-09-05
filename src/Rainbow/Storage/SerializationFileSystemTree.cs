@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -63,7 +64,7 @@ namespace Rainbow.Storage
 		private readonly string _globalRootItemPath;
 		protected readonly string PhysicalRootPath;
 		private readonly ISerializationFormatter _formatter;
-		private readonly Dictionary<Guid, IItemMetadata> _idCache = new Dictionary<Guid, IItemMetadata>();
+		private readonly ConcurrentDictionary<Guid, IItemMetadata> _idCache = new ConcurrentDictionary<Guid, IItemMetadata>();
 		private readonly FsCache<IItemData> _dataCache;
 		private readonly FsCache<IItemMetadata> _metadataCache = new FsCache<IItemMetadata>(true);
 		private readonly TreeWatcher _treeWatcher;
@@ -185,9 +186,9 @@ namespace Rainbow.Storage
 
 			if (itemToRemove == null) return false;
 
-			var descendants = GetDescendants(item, true).Concat(new[] { itemToRemove });
+			var descendants = GetDescendants(item, true).Concat(new[] { itemToRemove }).OrderByDescending(desc => desc.Path).ToArray();
 
-			foreach (var descendant in descendants.OrderByDescending(desc => desc.Path))
+			foreach (var descendant in descendants)
 			{
 				lock (FileUtil.GetFileLock(descendant.SerializedItemId))
 				{
@@ -215,7 +216,7 @@ namespace Rainbow.Storage
 		{
 			Assert.ArgumentNotNull(item, "item");
 
-			var storagePath = GetTargetPhysicalPath(item);
+			string storagePath = GetTargetPhysicalPath(item);
 
 			WriteItem(item, storagePath);
 		}
@@ -494,7 +495,8 @@ namespace Rainbow.Storage
 			if (result == null) return null;
 
 			IItemMetadata temp = GetFromMetadataCache(expectedItemId);
-			if (temp != null && temp.SerializedItemId != result.SerializedItemId) throw new InvalidOperationException("The item with ID {0} has duplicate item files serialized ({1}, {2}). Please remove the incorrect one and try again.".FormatWith(result.Id, _idCache[result.Id].SerializedItemId, result.SerializedItemId));
+			if (temp != null && temp.SerializedItemId != result.SerializedItemId)
+				throw new InvalidOperationException("The item with ID {0} has duplicate item files serialized ({1}, {2}). Please remove the incorrect one and try again.".FormatWith(result.Id, temp.SerializedItemId, result.SerializedItemId));
 
 			AddToMetadataCache(result);
 
@@ -521,8 +523,8 @@ namespace Rainbow.Storage
 				}
 
 				var children = GetChildPaths(parent);
-				
-				foreach(var physicalPath in children)
+
+				foreach (var physicalPath in children)
 				{
 					try
 					{
@@ -674,7 +676,6 @@ namespace Rainbow.Storage
 					GetDescendants(root, false);
 				}
 
-				// TODO: watch for added or deleted files with a filesystem watcher
 				// note: we don't care about changed files, because FSCache checks for a later mod date already for cache invalidation
 
 				_configuredForFastReads = true;
@@ -735,7 +736,9 @@ namespace Rainbow.Storage
 
 				if (existingCached != null)
 				{
-					_idCache.Remove(existingCached.Id);
+					IItemMetadata temp;
+					_idCache.TryRemove(existingCached.Id, out temp);
+
 					if (TreeItemChanged != null)
 					{
 						if (TreeItemChanged != null) TreeItemChanged(existingCached);
