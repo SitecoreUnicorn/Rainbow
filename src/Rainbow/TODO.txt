@@ -2,7 +2,7 @@
 	- FakeDb + rainbow.sc?
 	- Unicorn w/fakedb?
 
-// TODO: memory profiling on large sync, another perf profiler review
+// TODO: memory profiling on large sync
 // TODO: documentation/commenting/code review
 // TODO: final nuget setup and install tests
 // TODO: SPE extensions
