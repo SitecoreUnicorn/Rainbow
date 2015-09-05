@@ -11,11 +11,14 @@ namespace Rainbow.Diff.Fields
 
 		public bool AreEqual(IItemFieldValue field1, IItemFieldValue field2)
 		{
-			if (field1.Value == null || field2.Value == null) return false;
-
 			if (field1.BlobId.HasValue && field2.BlobId.HasValue) return field1.BlobId.Value.Equals(field2.BlobId.Value);
 
-			return field1.Value.Equals(field2.Value);
+			var field1Value = field1.Value;
+			var field2Value = field2.Value;
+
+			if (field1Value == null || field2Value == null) return false;
+
+			return field1Value.Equals(field2Value);
 		}
 	}
 }
