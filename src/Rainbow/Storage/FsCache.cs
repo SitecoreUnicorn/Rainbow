@@ -39,21 +39,18 @@ namespace Rainbow.Storage
 		/// <param name="populateFunction">Delegate to invoke if the cached item doesn't exist that generates the item value</param>
 		public T GetValue(string key, Func<FileInfo, T> populateFunction)
 		{
-			lock (FileUtil.GetFileLock(key))
-			{
-				var cached = GetValue(key);
-				if (cached != null) return cached;
+			var cached = GetValue(key);
+			if (cached != null) return cached;
 
-				var file = new FileInfo(key);
+			var file = new FileInfo(key);
 
-				if (!file.Exists) return null;
+			if (!file.Exists) return null;
 
-				var value = populateFunction(file);
+			var value = populateFunction(file);
 
-				AddOrUpdate(file, value);
+			AddOrUpdate(file, value);
 
-				return value;
-			}
+			return value;
 		}
 
 		public virtual T GetValue(string key, bool validate = true)
