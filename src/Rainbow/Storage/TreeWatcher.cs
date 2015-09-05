@@ -13,6 +13,7 @@ namespace Rainbow.Storage
 		private readonly FileSystemWatcher _watcher;
 		private readonly Timer _eventFlusher;
 		private readonly ConcurrentQueue<Tuple<string, WatcherChangeTypes>> _actions = new ConcurrentQueue<Tuple<string, WatcherChangeTypes>>();
+		private bool _enableEvents = true;
 
 		public TreeWatcher(string rootPath, string extension, Action<string, WatcherChangeTypes> actionOnChange)
 		{
@@ -30,21 +31,25 @@ namespace Rainbow.Storage
 
 		public void Stop()
 		{
-			_watcher.EnableRaisingEvents = false;
+			_enableEvents = false;
 		}
 
 		public void Restart()
 		{
-			_watcher.EnableRaisingEvents = true;
+			_enableEvents = true;
 		}
 
 		private void OnFileChanged(object source, FileSystemEventArgs args)
 		{
+			if (!_enableEvents) return;
+
 			OnFileChanged(args.FullPath, args.ChangeType);
 		}
 
 		private void OnFileChanged(string path, WatcherChangeTypes changeType)
 		{
+			if (!_enableEvents) return;
+
 			_actions.Enqueue(Tuple.Create(path, changeType));
 			_eventFlusher.Change(DebounceInMs, Timeout.Infinite);
 		}
