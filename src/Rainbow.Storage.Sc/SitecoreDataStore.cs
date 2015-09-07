@@ -137,6 +137,11 @@ namespace Rainbow.Storage.Sc
 			throw new NotImplementedException("You may not watch Sitecore for changes.");
 		}
 
+		public void Clear()
+		{
+			throw new NotImplementedException("You crazy? I'm not going to clear the Sitecore database for you! :)");
+		}
+
 		protected virtual Database GetDatabase(string databaseName)
 		{
 			return Factory.GetDatabase(databaseName);

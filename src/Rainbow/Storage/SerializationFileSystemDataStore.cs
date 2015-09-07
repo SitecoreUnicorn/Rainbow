@@ -169,6 +169,24 @@ namespace Rainbow.Storage
 			_changeWatchers.Add(actionOnChange);
 		}
 
+		public void Clear()
+		{
+			if (!Directory.Exists(PhysicalRootPath)) return;
+			var children = Directory.GetDirectories(PhysicalRootPath);
+
+			foreach (var child in children)
+			{
+				Directory.Delete(child, true);
+			}
+
+			var files = Directory.GetFiles(PhysicalRootPath);
+
+			foreach (var file in files)
+			{
+				File.Delete(file);
+			}
+		}
+
 		protected virtual string InitializeRootPath(string rootPath)
 		{
 			if (rootPath.StartsWith("~") || rootPath.StartsWith("/"))

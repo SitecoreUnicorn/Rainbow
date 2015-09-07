@@ -69,5 +69,10 @@ namespace Rainbow.Storage
 		/// to clear Sitecore data caches when the data store is changed.
 		/// </summary>
 		void RegisterForChanges(Action<IItemMetadata, string> actionOnChange);
+
+		/// <summary>
+		/// Instructs the data store to remove all stored data (wipe clean)
+		/// </summary>
+		void Clear();
 	}
 }
