@@ -14,8 +14,10 @@ namespace Rainbow.Tests.Storage
 		{
 		}
 
-		public void Dispose()
+		protected virtual void Dispose(bool disposing)
 		{
+			base.Dispose(disposing);
+
 			if (PhysicalRootPath != null && Directory.Exists(PhysicalRootPath))
 				Directory.Delete(PhysicalRootPath, true);
 		}

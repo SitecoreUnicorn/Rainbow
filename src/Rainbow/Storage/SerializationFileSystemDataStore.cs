@@ -11,7 +11,7 @@ using Sitecore.StringExtensions;
 
 namespace Rainbow.Storage
 {
-	public class SerializationFileSystemDataStore : IDataStore, IDocumentable
+	public class SerializationFileSystemDataStore : IDataStore, IDocumentable, IDisposable
 	{
 		protected readonly string PhysicalRootPath;
 		private readonly bool _useDataCache;
@@ -269,6 +269,20 @@ namespace Rainbow.Storage
 				new KeyValuePair<string, string>("Physical root path", PhysicalRootPath),
 				new KeyValuePair<string, string>("Total internal SFS trees", Trees.Count.ToString())
 			};
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				foreach(var tree in Trees) tree.Dispose();
+			}
 		}
 	}
 }

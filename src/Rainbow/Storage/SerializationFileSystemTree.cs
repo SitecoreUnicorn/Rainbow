@@ -59,7 +59,7 @@ namespace Rainbow.Storage
 	/// SFS is similar to Sitecore standard, but accounts for things that Sitecore does not do very well,
 	/// like items with the same name in the same path and the ability to use local vs global paths
 	/// </summary>
-	public class SerializationFileSystemTree
+	public class SerializationFileSystemTree : IDisposable
 	{
 		private readonly string _globalRootItemPath;
 		protected readonly string PhysicalRootPath;
@@ -766,6 +766,20 @@ namespace Rainbow.Storage
 			public Guid TemplateId { get; private set; }
 			public string Path { get; private set; }
 			public string SerializedItemId { get; private set; }
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				if(_treeWatcher != null) _treeWatcher.Dispose();
+			}
 		}
 	}
 }

@@ -28,8 +28,10 @@ namespace Rainbow.Tests.Storage
 		public string GlobalRootItemPath { get; private set; }
 		public string PhysicalRootPathTest { get { return PhysicalRootPath; } }
 
-		public void Dispose()
+		protected override void Dispose(bool disposing)
 		{
+			base.Dispose(disposing);
+			
 			if (PhysicalRootPath != null && Directory.Exists(PhysicalRootPath))
 				Directory.Delete(PhysicalRootPath, true);
 		}
