@@ -46,11 +46,14 @@ namespace Rainbow.Storage
 
 			if (!file.Exists) return null;
 
-			var value = populateFunction(file);
+			lock (FileUtil.GetFileLock(file.FullName))
+			{
+				var value = populateFunction(file);
 
-			AddOrUpdate(file, value);
+				AddOrUpdate(file, value);
 
-			return value;
+				return value;
+			}
 		}
 
 		public virtual T GetValue(string key, bool validate = true)
