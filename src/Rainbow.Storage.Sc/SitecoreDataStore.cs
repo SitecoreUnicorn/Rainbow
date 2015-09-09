@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Rainbow.Model;
 using Rainbow.Storage.Sc.Deserialization;
 using Sitecore.Collections;
@@ -31,6 +30,8 @@ namespace Rainbow.Storage.Sc
 
 		public void Save(IItemData item)
 		{
+			Assert.ArgumentNotNull(item, "item");
+
 			_deserializer.Deserialize(item, true);
 		}
 
@@ -92,6 +93,8 @@ namespace Rainbow.Storage.Sc
 
 			var item = db.GetItem(new ID(parentItem.Id));
 
+			if (item == null) return Enumerable.Empty<IItemData>();
+
 			return item.GetChildren(ChildListOptions.SkipSorting).Select(child => (IItemData)new ItemData(child, this)).ToArray();
 		}
 
@@ -110,6 +113,8 @@ namespace Rainbow.Storage.Sc
 
 		public bool Remove(IItemData item)
 		{
+			Assert.ArgumentNotNull(item, "item");
+
 			var databaseRef = GetDatabase(item.DatabaseName);
 			var scId = new ID(item.Id);
 			var scItem = databaseRef.GetItem(scId);

@@ -13,13 +13,13 @@ namespace Rainbow.Model
 			BlobId = fieldToProxy.BlobId;
 		}
 
-		public Guid FieldId { get; private set; }
+		public Guid FieldId { get; set; }
 
-		public string NameHint { get; private set; }
+		public string NameHint { get; set; }
 
-		public string Value { get; private set; }
+		public string Value { get; set; }
 
-		public string FieldType { get; private set; }
-		public Guid? BlobId { get; private set; }
+		public string FieldType { get; set; }
+		public Guid? BlobId { get; set; }
 	}
 }

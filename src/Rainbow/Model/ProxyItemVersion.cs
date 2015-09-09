@@ -13,8 +13,8 @@ namespace Rainbow.Model
 			Fields = versionToProxy.Fields.Select(field => new ProxyFieldValue(field)).ToArray();
 		}
 
-		public IEnumerable<IItemFieldValue> Fields { get; private set; }
-		public CultureInfo Language { get; private set; }
-		public int VersionNumber { get; private set; }
+		public IEnumerable<IItemFieldValue> Fields { get; set; }
+		public CultureInfo Language { get; set; }
+		public int VersionNumber { get; set; }
 	}
 }

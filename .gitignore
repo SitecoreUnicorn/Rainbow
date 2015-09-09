@@ -22,3 +22,5 @@ src/*/v6obj
 packages/*
 !packages/repositories.config
 Build/*.nupkg
+
+src/Rainbow.*.Tests/license.xml
