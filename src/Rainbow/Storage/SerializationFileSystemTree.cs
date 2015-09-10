@@ -108,17 +108,18 @@ namespace Rainbow.Storage
 			_treeWatcher = new TreeWatcher(PhysicalRootPath, _formatter.FileExtension, HandleDataItemChanged);
 		}
 
-		public string DatabaseName { get; private set; }
-		[ExcludeFromCodeCoverage]
-		public string Name { get; private set; }
+		public virtual string DatabaseName { get; private set; }
 
-		public bool ContainsPath(string globalPath)
+		[ExcludeFromCodeCoverage]
+		public virtual string Name { get; private set; }
+
+		public virtual bool ContainsPath(string globalPath)
 		{
 			// test that the path is under the global root
 			return globalPath.StartsWith(_globalRootItemPath, StringComparison.OrdinalIgnoreCase);
 		}
 
-		public IItemData GetRootItem()
+		public virtual IItemData GetRootItem()
 		{
 			var rootItem = Directory.GetFiles(PhysicalRootPath, "*" + _formatter.FileExtension);
 
@@ -130,7 +131,7 @@ namespace Rainbow.Storage
 			return ReadItem(rootItem[0]);
 		}
 
-		public IEnumerable<IItemData> GetItemsByPath(string globalPath)
+		public virtual IEnumerable<IItemData> GetItemsByPath(string globalPath)
 		{
 			Assert.ArgumentNotNullOrEmpty(globalPath, "globalPath");
 
@@ -145,7 +146,7 @@ namespace Rainbow.Storage
 		/// which fills the metadata cache with all instances from disk. Reading by ID is not recommended for very large datasets,
 		/// but is quite good with smaller datasets of 1000-2000 items.
 		/// </summary>
-		public IItemData GetItemById(Guid id)
+		public virtual IItemData GetItemById(Guid id)
 		{
 			EnsureConfiguredForFastReads();
 
@@ -156,14 +157,14 @@ namespace Rainbow.Storage
 		}
 
 
-		public IEnumerable<IItemData> GetChildren(IItemMetadata parentItem)
+		public virtual IEnumerable<IItemData> GetChildren(IItemMetadata parentItem)
 		{
 			Assert.ArgumentNotNull(parentItem, "parentItem");
 
 			return GetChildPaths(parentItem).Select(ReadItem);
 		}
 
-		public IEnumerable<IItemMetadata> GetChildrenMetadata(IItemMetadata parentItem)
+		public virtual IEnumerable<IItemMetadata> GetChildrenMetadata(IItemMetadata parentItem)
 		{
 			Assert.ArgumentNotNull(parentItem, "parentItem");
 
@@ -178,7 +179,7 @@ namespace Rainbow.Storage
 			3. Starting at the deepest paths, begin deleting item files and - if present - children subfolders, until all are gone
 		*/
 
-		public bool Remove(IItemData item)
+		public virtual bool Remove(IItemData item)
 		{
 			Assert.ArgumentNotNull(item, "item");
 
@@ -212,7 +213,7 @@ namespace Rainbow.Storage
 		- Save the child item into the tree (replace existing if same ID, or add new if no matching name OR no matching ID)
 		*/
 
-		public void Save(IItemData item)
+		public virtual void Save(IItemData item)
 		{
 			Assert.ArgumentNotNull(item, "item");
 
@@ -622,21 +623,21 @@ namespace Rainbow.Storage
 			}
 		}
 
-		protected void ClearCaches()
+		protected virtual void ClearCaches()
 		{
 			_idCache.Clear();
 			_metadataCache.Clear();
 			_dataCache.Clear();
 		}
 
-		protected void AddToMetadataCache(IItemMetadata metadata)
+		protected virtual void AddToMetadataCache(IItemMetadata metadata)
 		{
 			var cachedValue = new WrittenItemMetadata(metadata.Id, metadata.ParentId, metadata.TemplateId, metadata.Path, metadata.SerializedItemId);
 			_idCache[metadata.Id] = cachedValue;
 			_metadataCache.AddOrUpdate(metadata.SerializedItemId, metadata);
 		}
 
-		protected IItemMetadata GetFromMetadataCache(Guid itemId)
+		protected virtual IItemMetadata GetFromMetadataCache(Guid itemId)
 		{
 			IItemMetadata cached;
 			if (_idCache.TryGetValue(itemId, out cached) && File.Exists(cached.SerializedItemId)) return cached;
@@ -644,7 +645,7 @@ namespace Rainbow.Storage
 			return null;
 		}
 
-		protected IItemMetadata GetFromMetadataCache(string physicalPath)
+		protected virtual IItemMetadata GetFromMetadataCache(string physicalPath)
 		{
 			var metadata = _metadataCache.GetValue(physicalPath);
 

@@ -4,6 +4,9 @@ using Rainbow.Model;
 
 namespace Rainbow.Storage
 {
+	/// <summary>
+	/// Represents a place you can store items in abstract. For example, this could be a Sitecore database, files on a filesystem, etc
+	/// </summary>
 	public interface IDataStore
 	{
 		/// <summary>

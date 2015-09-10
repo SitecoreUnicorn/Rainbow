@@ -6,6 +6,10 @@ using System.Threading;
 
 namespace Rainbow.Storage
 {
+	/// <summary>
+	/// Provides real time updates when a SFS tree is changed on the filesystem.
+	/// Updates are debounced (e.g. 3 rapid writes result in one change logged)
+	/// </summary>
 	public class TreeWatcher : IDisposable
 	{
 		private const int DebounceInMs = 1000;
@@ -72,8 +76,17 @@ namespace Rainbow.Storage
 
 		public void Dispose()
 		{
-			if(_watcher != null) _watcher.Dispose();
-			if (_eventFlusher != null) _eventFlusher.Dispose();
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				if (_watcher != null) _watcher.Dispose();
+				if (_eventFlusher != null) _eventFlusher.Dispose();
+			}
 		}
 	}
 }

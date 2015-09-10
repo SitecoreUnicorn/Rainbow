@@ -6,18 +6,14 @@ using Rainbow.Model;
 
 namespace Rainbow.Formatting.FieldFormatters
 {
-	public class XmlFieldFormatter : IFieldFormatter
+	public class XmlFieldFormatter : FieldTypeBasedFormatter
 	{
-		public virtual bool CanFormat(IItemFieldValue field)
+		public override string[] SupportedFieldTypes
 		{
-			if (field.FieldType == null) return false;
-
-			return field.FieldType.Equals("Layout", StringComparison.OrdinalIgnoreCase) ||
-				field.FieldType.Equals("Tracking", StringComparison.OrdinalIgnoreCase) ||
-				field.FieldType.Equals("Rules", StringComparison.OrdinalIgnoreCase);
+			get { return new[] { "Layout", "Tracking", "Rules" }; }
 		}
 
-		public virtual string Format(IItemFieldValue field)
+		public override string Format(IItemFieldValue field)
 		{
 			try
 			{
@@ -30,7 +26,7 @@ namespace Rainbow.Formatting.FieldFormatters
 			}
 		}
 
-		public virtual string Unformat(string value)
+		public override string Unformat(string value)
 		{
 			if (value == null) return null;
 

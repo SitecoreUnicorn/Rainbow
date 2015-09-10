@@ -5,31 +5,27 @@ using Sitecore.Data;
 
 namespace Rainbow.Formatting.FieldFormatters
 {
-	public class MultilistFormatter : IFieldFormatter
+	public class MultilistFormatter : FieldTypeBasedFormatter
 	{
-		public virtual bool CanFormat(IItemFieldValue field)
+		public override string[] SupportedFieldTypes
 		{
-			if (field.FieldType == null) return false;
-
-			return field.FieldType.Equals("Checklist", StringComparison.OrdinalIgnoreCase) ||
-				   field.FieldType.Equals("Multilist", StringComparison.OrdinalIgnoreCase) ||
-				   field.FieldType.Equals("Multilist with Search", StringComparison.OrdinalIgnoreCase) ||
-				   field.FieldType.Equals("Treelist", StringComparison.OrdinalIgnoreCase) ||
-				   field.FieldType.Equals("Treelist with Search", StringComparison.OrdinalIgnoreCase) ||
-				   field.FieldType.Equals("TreelistEx", StringComparison.OrdinalIgnoreCase);
+			get
+			{
+				return new[] { "Checklist", "Multilist", "Multilist with Search", "Treelist", "Treelist with Search", "TreelistEx" };
+			}
 		}
 
-		public virtual string Format(IItemFieldValue field)
+		public override string Format(IItemFieldValue field)
 		{
 			var values = ID.ParseArray(field.Value);
 
-			if(values.Length == 0 && field.Value.Length > 0)
+			if (values.Length == 0 && field.Value.Length > 0)
 				return field.Value;
 
 			return string.Join(Environment.NewLine, (IEnumerable<ID>)values);
 		}
 
-		public virtual string Unformat(string value)
+		public override string Unformat(string value)
 		{
 			if (value == null) return null;
 			return value.Trim().Replace(Environment.NewLine, "|");

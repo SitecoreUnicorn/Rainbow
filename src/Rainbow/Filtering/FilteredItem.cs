@@ -32,12 +32,14 @@ namespace Rainbow.Filtering
 			get { return InnerItem.Versions.Select(version => new FilteredVersion(version, _fieldFilter)); }
 		}
 
-		protected class FilteredVersion : VersionDecorator
+		protected class FilteredVersion : ProxyItemVersion
 		{
+			private readonly IItemVersion _innerVersion;
 			private readonly IFieldFilter _fieldFilter;
 
 			public FilteredVersion(IItemVersion innerVersion, IFieldFilter fieldFilter) : base(innerVersion)
 			{
+				_innerVersion = innerVersion;
 				_fieldFilter = fieldFilter;
 			}
 
@@ -45,7 +47,7 @@ namespace Rainbow.Filtering
 			{
 				get
 				{
-					return InnerVersion.Fields.Where(field => _fieldFilter.Includes(field.FieldId));
+					return _innerVersion.Fields.Where(field => _fieldFilter.Includes(field.FieldId));
 				}
 			}
 		}

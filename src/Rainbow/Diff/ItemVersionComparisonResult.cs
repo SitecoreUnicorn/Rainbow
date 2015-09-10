@@ -14,7 +14,7 @@ namespace Rainbow.Diff
 			ChangedFields = changedFields ?? new FieldComparisonResult[] {};
 		}
 
-		public int VersionNumber
+		public virtual int VersionNumber
 		{
 			get
 			{
@@ -24,7 +24,7 @@ namespace Rainbow.Diff
 			}
 		}
 
-		public CultureInfo Language
+		public virtual CultureInfo Language
 		{
 			get
 			{

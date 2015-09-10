@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Web.Hosting;
 using Rainbow.Formatting;
 using Rainbow.Model;
@@ -11,6 +10,10 @@ using Sitecore.StringExtensions;
 
 namespace Rainbow.Storage
 {
+	/// <summary>
+	/// SFS data store stores serialized items on the file system.
+	/// Items are organized into one or more subtrees. Each tree must be solid (e.g. if a child is written all parents must also be written)
+	/// </summary>
 	public class SerializationFileSystemDataStore : IDataStore, IDocumentable, IDisposable
 	{
 		protected readonly string PhysicalRootPath;
@@ -18,7 +21,7 @@ namespace Rainbow.Storage
 		private readonly ITreeRootFactory _rootFactory;
 		private readonly ISerializationFormatter _formatter;
 		protected readonly List<SerializationFileSystemTree> Trees;
-		protected readonly List<Action<IItemMetadata, string>> _changeWatchers = new List<Action<IItemMetadata, string>>();
+		protected readonly List<Action<IItemMetadata, string>> ChangeWatchers = new List<Action<IItemMetadata, string>>();
 
 		public SerializationFileSystemDataStore(string physicalRootPath, bool useDataCache, ITreeRootFactory rootFactory, ISerializationFormatter formatter)
 		{
@@ -38,7 +41,7 @@ namespace Rainbow.Storage
 			Trees = InitializeTrees();
 		}
 
-		public void Save(IItemData item)
+		public virtual void Save(IItemData item)
 		{
 			var tree = GetTreeForPath(item.Path, item.DatabaseName);
 
@@ -57,7 +60,7 @@ namespace Rainbow.Storage
 		Renaming an item involves:
 		- The same thing as moving an item
 		*/
-		public void MoveOrRenameItem(IItemData itemWithFinalPath, string oldPath)
+		public virtual void MoveOrRenameItem(IItemData itemWithFinalPath, string oldPath)
 		{
 			var oldPathTree = GetTreeForPath(oldPath, itemWithFinalPath.DatabaseName);
 
@@ -92,7 +95,7 @@ namespace Rainbow.Storage
 			}
 		}
 
-		public IEnumerable<IItemData> GetByPath(string path, string database)
+		public virtual IEnumerable<IItemData> GetByPath(string path, string database)
 		{
 			var tree = GetTreeForPath(path, database);
 
@@ -101,7 +104,7 @@ namespace Rainbow.Storage
 			return tree.GetItemsByPath(path);
 		}
 
-		public IItemData GetByPathAndId(string path, Guid id, string database)
+		public virtual IItemData GetByPathAndId(string path, Guid id, string database)
 		{
 			Assert.ArgumentNotNullOrEmpty(path, "path");
 			Assert.ArgumentNotNullOrEmpty(database, "database");
@@ -112,7 +115,7 @@ namespace Rainbow.Storage
 			return items.FirstOrDefault(item => item.Id == id);
 		}
 
-		public IItemData GetById(Guid id, string database)
+		public virtual IItemData GetById(Guid id, string database)
 		{
 			foreach (var tree in Trees)
 			{
@@ -127,7 +130,7 @@ namespace Rainbow.Storage
 			return null;
 		}
 
-		public IEnumerable<IItemMetadata> GetMetadataByTemplateId(Guid templateId, string database)
+		public virtual IEnumerable<IItemMetadata> GetMetadataByTemplateId(Guid templateId, string database)
 		{
 			return Trees.Select(tree => tree.GetRootItem())
 				.Where(root => root != null)
@@ -135,7 +138,7 @@ namespace Rainbow.Storage
 				.SelectMany(tree => FilterDescendantsAndSelf(tree, item => item.TemplateId == templateId));
 		}
 
-		public IEnumerable<IItemData> GetChildren(IItemData parentItem)
+		public virtual IEnumerable<IItemData> GetChildren(IItemData parentItem)
 		{
 			var tree = GetTreeForPath(parentItem.Path, parentItem.DatabaseName);
 
@@ -144,18 +147,18 @@ namespace Rainbow.Storage
 			return tree.GetChildren(parentItem);
 		}
 
-		public void CheckConsistency(string database, bool fixErrors, Action<string> logMessageReceiver)
+		public virtual void CheckConsistency(string database, bool fixErrors, Action<string> logMessageReceiver)
 		{
 			// TODO: consistency check
 			throw new NotImplementedException();
 		}
 
-		public void ResetTemplateEngine()
+		public virtual void ResetTemplateEngine()
 		{
 			// do nothing, the YAML serializer has no template engine
 		}
 
-		public bool Remove(IItemData item)
+		public virtual bool Remove(IItemData item)
 		{
 			var tree = GetTreeForPath(item.Path, item.DatabaseName);
 
@@ -164,12 +167,12 @@ namespace Rainbow.Storage
 			return tree.Remove(item);
 		}
 
-		public void RegisterForChanges(Action<IItemMetadata, string> actionOnChange)
+		public virtual void RegisterForChanges(Action<IItemMetadata, string> actionOnChange)
 		{
-			_changeWatchers.Add(actionOnChange);
+			ChangeWatchers.Add(actionOnChange);
 		}
 
-		public void Clear()
+		public virtual void Clear()
 		{
 			if (!Directory.Exists(PhysicalRootPath)) return;
 			var children = Directory.GetDirectories(PhysicalRootPath);
@@ -223,7 +226,7 @@ namespace Rainbow.Storage
 			var tree = new SerializationFileSystemTree(root.Name, root.Path, root.DatabaseName, Path.Combine(PhysicalRootPath, root.Name), _formatter, _useDataCache);
 			tree.TreeItemChanged += metadata =>
 			{
-				foreach (var watcher in _changeWatchers) watcher(metadata, tree.DatabaseName);
+				foreach (var watcher in ChangeWatchers) watcher(metadata, tree.DatabaseName);
 			};
 
 			return tree;
@@ -259,9 +262,9 @@ namespace Rainbow.Storage
 
 
 
-		public string FriendlyName { get { return "Serialization File System Data Store"; } }
-		public string Description { get { return "Stores serialized items on disk using the SFS tree format, where each root is a separate tree."; } }
-		public KeyValuePair<string, string>[] GetConfigurationDetails()
+		public virtual string FriendlyName { get { return "Serialization File System Data Store"; } }
+		public virtual string Description { get { return "Stores serialized items on disk using the SFS tree format, where each root is a separate tree."; } }
+		public virtual KeyValuePair<string, string>[] GetConfigurationDetails()
 		{
 			return new[]
 			{

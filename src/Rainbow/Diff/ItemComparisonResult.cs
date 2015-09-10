@@ -23,7 +23,7 @@ namespace Rainbow.Diff
 
 		public IItemData SourceItemData { get; private set; }
 		public IItemData TargetItemData { get; private set; }
-		public bool AreEqual
+		public virtual bool AreEqual
 		{
 			get
 			{

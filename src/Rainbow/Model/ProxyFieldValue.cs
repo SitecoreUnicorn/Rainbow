@@ -1,7 +1,12 @@
 ﻿using System;
+// ReSharper disable DoNotCallOverridableMethodsInConstructor
 
 namespace Rainbow.Model
 {
+	/// <summary>
+	/// Copies any IItemFieldValue into a proxy object, fully evaluating any lazy loading
+	/// and enabling permuting the values in the field
+	/// </summary>
 	public class ProxyFieldValue : IItemFieldValue
 	{
 		public ProxyFieldValue(IItemFieldValue fieldToProxy)
@@ -13,13 +18,13 @@ namespace Rainbow.Model
 			BlobId = fieldToProxy.BlobId;
 		}
 
-		public Guid FieldId { get; set; }
+		public virtual Guid FieldId { get; set; }
 
-		public string NameHint { get; set; }
+		public virtual string NameHint { get; set; }
 
-		public string Value { get; set; }
+		public virtual string Value { get; set; }
 
-		public string FieldType { get; set; }
-		public Guid? BlobId { get; set; }
+		public virtual string FieldType { get; set; }
+		public virtual Guid? BlobId { get; set; }
 	}
 }

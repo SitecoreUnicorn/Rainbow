@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using Sitecore.IO;
 
@@ -9,8 +8,9 @@ namespace Rainbow.Storage
 	/// <summary>
 	/// Implements a filesystem cache that invalidates entries when the file last write time changes
 	/// Cache entries present for less than 1s are treated as always valid to reduce i/o
+	/// This class is thread-safe and automatically takes out read and write locks on files
 	/// </summary>
-	/// <typeparam name="T"></typeparam>
+	/// <typeparam name="T">Type of item we're storing in the cache</typeparam>
 	public class FsCache<T> where T : class
 	{
 		private readonly ConcurrentDictionary<string, FsCacheEntry<T>> _fsCache = new ConcurrentDictionary<string, FsCacheEntry<T>>(StringComparer.OrdinalIgnoreCase);
@@ -31,12 +31,6 @@ namespace Rainbow.Storage
 			AddOrUpdate(file, value);
 		}
 
-		/// <summary>
-		///     Gets a value from the cache. Returns null if the value doesn't exist.
-		/// </summary>
-		/// <typeparam name="T">Type expected to return.</typeparam>
-		/// <param name="key">The cache key to retrieve</param>
-		/// <param name="populateFunction">Delegate to invoke if the cached item doesn't exist that generates the item value</param>
 		public T GetValue(string key, Func<FileInfo, T> populateFunction)
 		{
 			var cached = GetValue(key);

@@ -28,7 +28,7 @@ namespace Rainbow.Filtering
 			}
 		}
 
-		public bool Includes(Guid fieldId)
+		public virtual bool Includes(Guid fieldId)
 		{
 			return !_excludedFieldIds.Contains(fieldId);
 		}
