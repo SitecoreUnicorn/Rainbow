@@ -48,6 +48,7 @@
     <Compile Include="Diff\Fields\XmlComparisonTests.cs" />
     <Compile Include="Diff\ItemComparerTests.cs" />
     <Compile Include="Diff\ItemVersionComparisonResultTests.cs" />
+    <Compile Include="DocumentationUtilityTests.cs" />
     <Compile Include="FakeFieldValue.cs" />
     <Compile Include="FakeItem.cs" />
     <Compile Include="FakeItemVersion.cs" />

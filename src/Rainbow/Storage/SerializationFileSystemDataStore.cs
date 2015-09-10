@@ -123,7 +123,7 @@ namespace Rainbow.Storage
 
 				if (result != null)
 				{
-					return GetByPathAndId(result.Path, result.Id, database);
+					return result;
 				}
 			}
 

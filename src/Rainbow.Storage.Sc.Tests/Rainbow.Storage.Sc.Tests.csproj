@@ -45,8 +45,8 @@
     <Reference Include="Sitecore.Analytics">
       <HintPath>..\..\lib\Sitecore\v7\Sitecore.Analytics.dll</HintPath>
     </Reference>
-    <Reference Include="Sitecore.FakeDb, Version=0.29.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Sitecore.FakeDb.0.29.2\lib\net45\Sitecore.FakeDb.dll</HintPath>
+    <Reference Include="Sitecore.FakeDb, Version=0.29.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Sitecore.FakeDb.0.29.3\lib\net45\Sitecore.FakeDb.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Sitecore.Kernel, Version=7.0.0.0, Culture=neutral, processorArchitecture=MSIL">

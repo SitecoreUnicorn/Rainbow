@@ -122,17 +122,16 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 		[Test]
 		public void Deserialize_DeserializesExistingItem_WithTemplateChanged()
 		{
-			// TODO: https://github.com/sergeyshushlyapin/Sitecore.FakeDb/issues/84
-			//RunItemChangeTest(
-			//	setup: itemData =>
-			//	{
-			//		itemData.TemplateId = _testTemplate2Id.Guid;
-			//	},
-			//	assert: dbItem =>
-			//	{
-			//		Assert.AreEqual(_testTemplate2Id, dbItem.TemplateID);
-			//	}
-			//);
+			RunItemChangeTest(
+				setup: itemData =>
+				{
+					itemData.TemplateId = _testTemplate2Id.Guid;
+				},
+				assert: dbItem =>
+				{
+					Assert.AreEqual(_testTemplate2Id, dbItem.TemplateID);
+				}
+			);
 		}
 
 		[Test]

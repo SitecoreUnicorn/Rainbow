@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NUnit.Framework;
-using NUnit.Framework.Constraints;
-using Rainbow.Storage;
 
 namespace Rainbow.Tests.Storage
 {
 	public class SfsDataStoreTests
 	{
 		[Test]
-		public void DataStore_SavesItem()
+		public void Save_SavesItem()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
 			{
@@ -23,7 +18,7 @@ namespace Rainbow.Tests.Storage
 		}
 
 		[Test]
-		public void DataStore_Saves_ErrorWhenItemNotInTree()
+		public void Save_ErrorWhenItemNotInTree()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
 			{
@@ -34,7 +29,7 @@ namespace Rainbow.Tests.Storage
 		}
 
 		[Test]
-		public void DataStore_MoveOrRename_RenamesItem()
+		public void MoveOrRename_RenamesItem()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
 			{
@@ -58,7 +53,7 @@ namespace Rainbow.Tests.Storage
 		}
 
 		[Test]
-		public void DataStore_RetrievesItemByPath()
+		public void GetByPath_RetrievesItemByPath()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
 			{
@@ -74,7 +69,7 @@ namespace Rainbow.Tests.Storage
 		}
 
 		[Test]
-		public void DataStore_RetrievesItemByMetadataPath()
+		public void GetByPathAndId_RetrievesItemByMetadataPath()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
 			{
@@ -90,7 +85,7 @@ namespace Rainbow.Tests.Storage
 		}
 
 		[Test]
-		public void DataStore_RemovesItem()
+		public void Remove_RemovesItem()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
 			{
@@ -107,7 +102,7 @@ namespace Rainbow.Tests.Storage
 		}
 
 		[Test]
-		public void DataStore_GetChildren()
+		public void GetChildren_GetsExpectedChildren()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
 			{
@@ -129,7 +124,7 @@ namespace Rainbow.Tests.Storage
 		}
 
 		[Test]
-		public void DataStore_GetMetadataByTemplateId_GetsExpectedItem_WhenTargetIsAtRoot()
+		public void GetMetadataByTemplateId_GetsExpectedItem_WhenTargetIsAtRoot()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
 			{
@@ -147,7 +142,7 @@ namespace Rainbow.Tests.Storage
 		}
 
 		[Test]
-		public void DataStore_GetMetadataByTemplateId_GetsExpectedItem_WhenTargetIsMultipleChildren()
+		public void GetMetadataByTemplateId_GetsExpectedItem_WhenTargetIsMultipleChildren()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
 			{
@@ -165,6 +160,35 @@ namespace Rainbow.Tests.Storage
 
 				Assert.AreEqual(2, byTemplate.Length);
 				Assert.AreEqual(templateId, byTemplate[0].TemplateId);
+			}
+		}
+
+		[Test]
+		public void Clear_ClearsTree()
+		{
+			using (var dataStore = new TestSfsDataStore("/sitecore"))
+			{
+				var item = new FakeItem(path:"/sitecore");
+
+				dataStore.Save(item);
+
+				dataStore.Clear();
+
+				Assert.IsEmpty(dataStore.GetByPath("/sitecore", "master"));
+			}
+		}
+
+		[Test]
+		public void GetById_GetsExpectedItem()
+		{
+			using (var dataStore = new TestSfsDataStore("/sitecore"))
+			{
+				var id = Guid.NewGuid();
+				var item = new FakeItem(path: "/sitecore", id:id);
+
+				dataStore.Save(item);
+
+				Assert.IsNotNull(dataStore.GetById(id, "master"));
 			}
 		}
 	}
