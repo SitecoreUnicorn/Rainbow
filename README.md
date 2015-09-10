@@ -35,7 +35,7 @@ Rainbow consists of multiple projects:
 ### [Item comparison APIs](https://github.com/kamsar/Rainbow/tree/master/src/Rainbow/Diff)
 * Compare any item that you can stuff into `IItemData`, which out of the box includes Sitecore items and YAML-serialized items
 * Customize comparison for field types or specific fields with [Field Comparers](https://github.com/kamsar/Rainbow/tree/master/src/Rainbow/Diff/Fields)
-* Get a complete readout of changes 
+* Get a complete readout of changes as an object model
 
 ## Improvements
 Improvements are in comparison to Sitecore serialization and the functionality in Unicorn 2.
@@ -45,3 +45,5 @@ Improvements are in comparison to Sitecore serialization and the functionality i
 
 ## Extending Rainbow
 Rainbow is designed to be loosely coupled. It's recommended that you employ a Dependency Injection framework (e.g. [SimpleInjector](https://simpleinjector.org)) to make your life constructing Rainbow object easier. This also means that you can inject your own version of any dependency that you like.
+
+Rainbow has extensive unit tests and hopefully easy to understand code, which serve as its living documentation. As of now, Rainbow has 90% test coverage and 220 tests. If you can't find what you're looking for you can find me on Twitter (@kamsar) or on Sitecore Community Slack.
