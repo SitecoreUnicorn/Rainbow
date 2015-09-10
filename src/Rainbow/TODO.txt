@@ -1,17 +1,11 @@
-﻿// TODO: more tests. yo dawg...
-	- FakeDb + rainbow.sc?
-	- Unicorn w/fakedb?
+﻿// TODO: memory profiling on large sync
 
-// TODO: memory profiling on large sync
-// TODO: documentation/commenting/code review
-// TODO: final nuget setup and install tests
-// TODO: SPE extensions
+// 3.1: SPE extensions
 	- Get-RainbowItemData: Gets IItemData from a sitecore item (or disk?)
 	- Export-SerializedItem: Serialize an item with a specified formatter, to cmd output
 	- Import-SerializedItem -Data $serializedItem: Loads an item from a formatter into Sitecore
 	- Sync-UnicornConfiguration -Config "Default Configuration"
 	- Export-UnicornConfiguration (runs reserialize)
-
 // 3.1: remoting
 // 3.1: roles support
 // 3.1: consistency checking (in unicorn control panel and SFS)
