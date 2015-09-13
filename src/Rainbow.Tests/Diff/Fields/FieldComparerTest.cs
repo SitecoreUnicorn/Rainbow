@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 using Rainbow.Diff.Fields;
 
 namespace Rainbow.Tests.Diff.Fields
@@ -10,7 +10,7 @@ namespace Rainbow.Tests.Diff.Fields
 			var field1 = new FakeFieldValue(val1);
 			var field2 = new FakeFieldValue(val2);
 
-			Assert.AreEqual(expectedResult, comparer.AreEqual(field1, field2));
+			Assert.Equal(expectedResult, comparer.AreEqual(field1, field2));
 		}
 	}
 }

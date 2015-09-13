@@ -1,19 +1,19 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using NUnit.Framework;
+using Xunit;
 
 namespace Rainbow.Storage.Yaml.Tests
 {
 	public class YamlReaderTests
 	{
-		[Test]
+		[Fact]
 		public void YamlReader_ReadsYamlHeading()
 		{
 			ExecuteYamlReader("---", reader => { });
 		}
 
-		[Test]
+		[Fact]
 		public void YamlReader_ReadsValuelessMap_AtRoot()
 		{
 			ExecuteYamlReader("---\r\nHello:\r\n", reader =>
@@ -22,47 +22,47 @@ namespace Rainbow.Storage.Yaml.Tests
 			});
 		}
 
-		[Test]
+		[Fact]
 		public void YamlReader_ReadsMap_AtRoot()
 		{
 			ExecuteYamlReader("---\r\nHello: Whirled Peas\r\n", reader =>
 			{
 				var value = reader.ReadExpectedMap("Hello");
-				Assert.AreEqual("Whirled Peas", value);
+				Assert.Equal("Whirled Peas", value);
 			});
 		}
 
-		[Test]
+		[Fact]
 		public void YamlReader_PreservesMapValueWhitespace_AtRoot()
 		{
 			ExecuteYamlReader("---\r\nHello:  hi  \r\n", reader =>
 			{
 				var value = reader.ReadExpectedMap("Hello");
-				Assert.AreEqual(" hi  ", value);
+				Assert.Equal(" hi  ", value);
 			});
 		}
 
-		[Test]
+		[Fact]
 		public void YamlReader_ReadsMap_WithEscaping_AtRoot()
 		{
 			ExecuteYamlReader("---\r\nHello: \"Whirled: \\\"Peas\\\"\"\r\n", reader =>
 			{
 				var value = reader.ReadExpectedMap("Hello");
-				Assert.AreEqual("Whirled: \"Peas\"", value);
+				Assert.Equal("Whirled: \"Peas\"", value);
 			});
 		}
 
-		[Test]
+		[Fact]
 		public void YamlReader_ReadsMultilineMap_AtRoot()
 		{
 			ExecuteYamlReader("---\r\nHello: |\r\n  <div>\r\n    <p>Hello!</p>\r\n  </div>\r\nFake: Value", reader =>
 			{
 				var value = reader.ReadExpectedMap("Hello");
-				Assert.AreEqual("<div>\r\n  <p>Hello!</p>\r\n</div>", value);
+				Assert.Equal("<div>\r\n  <p>Hello!</p>\r\n</div>", value);
 			});
 		}
 
-		[Test]
+		[Fact]
 		public void YamlReader_ReadsMap_Indented()
 		{
 			ExecuteYamlReader("---\r\nHello: World\r\n  Indented: Value\r\n", reader =>
@@ -70,23 +70,23 @@ namespace Rainbow.Storage.Yaml.Tests
 				reader.ReadMap();
 
 				var value = reader.ReadExpectedMap("Indented");
-				Assert.AreEqual("Value", value);
+				Assert.Equal("Value", value);
 			});
 		}
 
-		[Test]
+		[Fact]
 		public void YamlReader_SkipsComment()
 		{
 			// contains a comment, a blank line, and an indented comment for testing - should skip all of them
 			ExecuteYamlReader("---\r\n# This is a comment\r\nHello: World\r\n\r\n  # Indented comment\r\n  Indented: Value\r\n", reader =>
 			{
-				Assert.AreEqual("World", reader.ReadExpectedMap("Hello"));
+				Assert.Equal("World", reader.ReadExpectedMap("Hello"));
 
-				Assert.AreEqual("Value", reader.ReadExpectedMap("Indented"));
+				Assert.Equal("Value", reader.ReadExpectedMap("Indented"));
 			});
 		}
 
-		[Test]
+		[Fact]
 		public void YamlReader_ReadsStartListItem_AsMap()
 		{
 			ExecuteYamlReader("---\r\nHello:\r\n- Pie: Cake\r\n", reader =>
@@ -94,64 +94,64 @@ namespace Rainbow.Storage.Yaml.Tests
 				reader.ReadMap();
 
 				var value = reader.ReadExpectedMap("Pie");
-				Assert.AreEqual("Cake", value);
+				Assert.Equal("Cake", value);
 			});
 		}
 
-		[Test]
+		[Fact]
 		public void YamlReader_ReadsMultilineValue_WithLinuxEndlines()
 		{
 			ExecuteYamlReader("---\nHello: |\n  <div>\n    <p>Hello!</p>\n  </div>\nFake: Value", reader =>
 			{
 				var value = reader.ReadExpectedMap("Hello");
-				Assert.AreEqual("<div>\r\n  <p>Hello!</p>\r\n</div>", value); // note: endlines are converted
+				Assert.Equal("<div>\r\n  <p>Hello!</p>\r\n</div>", value); // note: endlines are converted
 			});
 		}
 
-		[Test]
+		[Fact]
 		public void YamlReader_PeekMap_DoesNotAdvancePointer()
 		{
 			ExecuteYamlReader("---\r\nHello: There\r\nPie: Cake\r\n", reader =>
 			{
 				var peek = reader.PeekMap();
 
-				Assert.AreEqual("There", peek.Value.Value);
+				Assert.Equal("There", peek.Value.Value);
 
 				var read = reader.ReadMap();
 
-				Assert.AreEqual("There", read.Value.Value);
+				Assert.Equal("There", read.Value.Value);
 
 				var value = reader.ReadExpectedMap("Pie");
-				Assert.AreEqual("Cake", value);
+				Assert.Equal("Cake", value);
 			});
 		}
 
-		[Test]
+		[Fact]
 		public void YamlReader_PeekMap_PeeksSameValue_WhenCalledMultipleTimes()
 		{
 			ExecuteYamlReader("---\r\nHello: There\r\nPie: Cake\r\n", reader =>
 			{
 				var peek = reader.PeekMap();
 
-				Assert.AreEqual("There", peek.Value.Value);
+				Assert.Equal("There", peek.Value.Value);
 
 				peek = reader.PeekMap();
 
-				Assert.AreEqual("There", peek.Value.Value);
+				Assert.Equal("There", peek.Value.Value);
 
 				var read = reader.ReadMap();
 
-				Assert.AreEqual("There", read.Value.Value);
+				Assert.Equal("There", read.Value.Value);
 			});
 		}
 
-		[Test]
+		[Fact]
 		public void YamlReader_ReadExpectedGuid_ParsesValidGuidValue()
 		{
 			ExecuteYamlReader("---\r\nHello: 1d2261da-389e-4f0a-abc1-8cb7bbfbfe28\r\n", reader =>
 			{
 				var value = reader.ReadExpectedGuidMap("Hello");
-				Assert.AreEqual(new Guid("1d2261da-389e-4f0a-abc1-8cb7bbfbfe28"), value);
+				Assert.Equal(new Guid("1d2261da-389e-4f0a-abc1-8cb7bbfbfe28"), value);
 			});
 		}
 

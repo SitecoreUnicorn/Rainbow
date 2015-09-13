@@ -1,13 +1,13 @@
 ﻿using System;
 using System.IO;
-using NUnit.Framework;
 using Rainbow.Storage.Yaml.OutputModel;
+using Xunit;
 
 namespace Rainbow.Storage.Yaml.Tests
 {
 	public class YamlFormatTests
 	{
-		[Test]
+		[Fact]
 		public void YamlFormatter_EmitsRootFormats()
 		{
 			var testItem = CreateBaseTestItem();
@@ -15,10 +15,10 @@ namespace Rainbow.Storage.Yaml.Tests
 			ExecuteYamlWriter(writer =>
 			{
 				testItem.WriteYaml(writer);
-			}, BaseTestExpected, "YAML did not match.");
+			}, BaseTestExpected);
 		}
 
-		[Test]
+		[Fact]
 		public void YamlFormatter_EmitsSharedFields()
 		{
 			var testItem = CreateBaseTestItem();
@@ -27,10 +27,10 @@ namespace Rainbow.Storage.Yaml.Tests
 			ExecuteYamlWriter(writer =>
 			{
 				testItem.WriteYaml(writer);
-			}, SharedFieldsExpected, "YAML did not match.");
+			}, SharedFieldsExpected);
 		}
 
-		[Test]
+		[Fact]
 		public void YamlFormatter_EmitsVersions()
 		{
 			var testItem = CreateBaseTestItem();
@@ -39,10 +39,10 @@ namespace Rainbow.Storage.Yaml.Tests
 			ExecuteYamlWriter(writer =>
 			{
 				testItem.WriteYaml(writer);
-			}, VersionsExpected, "YAML did not match.");
+			}, VersionsExpected);
 		}
 
-		private void ExecuteYamlWriter(Action<YamlWriter> actions, string expectedOutput, string errorMessage)
+		private void ExecuteYamlWriter(Action<YamlWriter> actions, string expectedOutput)
 		{
 			using (var ms = new MemoryStream())
 			{
@@ -56,7 +56,7 @@ namespace Rainbow.Storage.Yaml.Tests
 				using (var sr = new StreamReader(ms))
 				{
 					string result = sr.ReadToEnd();
-					Assert.AreEqual(expectedOutput, result, errorMessage);
+					Assert.Equal(expectedOutput, result);
 				}
 			}
 		}

@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 using Rainbow.Formatting.FieldFormatters;
 
 namespace Rainbow.Tests.Formatting.FieldFormatters
@@ -13,34 +13,34 @@ namespace Rainbow.Tests.Formatting.FieldFormatters
   </d>
 </r>";
 		
-		[Test]
+		[Fact]
 		public void XmlFieldFormatter_FormatsValues_AsExpected()
 		{
 			var formatter = new XmlFieldFormatter();
 
 			var result = formatter.Format(new FakeFieldValue(SourceValueExpectation));
 
-			Assert.AreEqual(result, FormattedValueExpectation);
+			Assert.Equal(result, FormattedValueExpectation);
 		}
 
-		[Test]
+		[Fact]
 		public void XmlFieldFormatter_ReturnsValues_AsExpected()
 		{
 			var formatter = new XmlFieldFormatter();
 
 			var result = formatter.Unformat(FormattedValueExpectation);
 
-			Assert.AreEqual(result, SourceValueExpectation);
+			Assert.Equal(result, SourceValueExpectation);
 		}
 
-		[Test,
-			TestCase("Layout", true),
-			TestCase("Multilist", false)]
+		[Theory,
+			InlineData("Layout", true),
+			InlineData("Multilist", false)]
 		public void XmlFieldFormatter_Formats_XmlFieldTypes(string fieldType, bool expected)
 		{
 			var formatter = new XmlFieldFormatter();
 
-			Assert.AreEqual(expected, formatter.CanFormat(new FakeFieldValue("foo", fieldType)));
+			Assert.Equal(expected, formatter.CanFormat(new FakeFieldValue("foo", fieldType)));
 		}
 	}
 }

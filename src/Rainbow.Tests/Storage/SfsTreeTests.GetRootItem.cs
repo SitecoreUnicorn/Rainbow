@@ -1,10 +1,10 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 
 namespace Rainbow.Tests.Storage
 {
 	partial class SfsTreeTests
 	{
-		[Test]
+		[Fact]
 		public void GetRootItem_ReturnsExpectedItem_WhenTreeIsAtRoot()
 		{
 			using (var testTree = new TestSfsTree())
@@ -13,12 +13,12 @@ namespace Rainbow.Tests.Storage
 
 				var root = testTree.GetRootItem();
 
-				Assert.IsNotNull(root);
-				Assert.AreEqual(root.Name, "sitecore");
+				Assert.NotNull(root);
+				Assert.Equal(root.Name, "sitecore");
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetRootItem_ReturnsExpectedItem_WhenTreeIsNested()
 		{
 			using (var testTree = new TestSfsTree("/sitecore/templates/User Defined"))
@@ -27,12 +27,12 @@ namespace Rainbow.Tests.Storage
 
 				var root = testTree.GetRootItem();
 
-				Assert.IsNotNull(root);
-				Assert.AreEqual(root.Name, "User Defined");
+				Assert.NotNull(root);
+				Assert.Equal(root.Name, "User Defined");
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetRootItem_ReturnsExpectedItem_WhenNameHasInvalidChars()
 		{
 			using (var testTree = new TestSfsTree("/<h\\tml>"))
@@ -41,8 +41,8 @@ namespace Rainbow.Tests.Storage
 
 				var root = testTree.GetRootItem();
 
-				Assert.IsNotNull(root);
-				Assert.AreEqual(root.Name, "<h\\tml>");
+				Assert.NotNull(root);
+				Assert.Equal(root.Name, "<h\\tml>");
 			}
 		}
 	}

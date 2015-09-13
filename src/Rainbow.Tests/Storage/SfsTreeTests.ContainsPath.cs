@@ -1,44 +1,44 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 
 namespace Rainbow.Tests.Storage
 {
     partial class SfsTreeTests
     {
-		[Test]
+		[Fact]
 		public void ContainsPath_ReturnsTrue_WhenPathIsRoot()
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				Assert.IsTrue(testTree.ContainsPath("/sitecore/content"));
+				Assert.True(testTree.ContainsPath("/sitecore/content"));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void ContainsPath_ReturnsTrue_WhenExpectedPath()
 		{
 			using (var testTree = new TestSfsTree("/sitecore/content"))
 			{
 
-				Assert.IsTrue(testTree.ContainsPath("/sitecore/content/hello"));
+				Assert.True(testTree.ContainsPath("/sitecore/content/hello"));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void ContainsPath_ReturnsFalse_WhenNotIncludedPath()
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				Assert.IsFalse(testTree.ContainsPath("/umbraco/aem"));
+				Assert.False(testTree.ContainsPath("/umbraco/aem"));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void ContainsPath_ReturnsTrue_WhenExpectedPath_ContainingInvalidFileSystemChars()
 		{
 			using (var testTree = new TestSfsTree("/sitecore/content"))
 			{
 
-				Assert.IsTrue(testTree.ContainsPath("/sitecore/content/$he\\llo%<html>"));
+				Assert.True(testTree.ContainsPath("/sitecore/content/$he\\llo%<html>"));
 			}
 		}
 	}

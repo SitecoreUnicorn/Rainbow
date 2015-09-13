@@ -4,14 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
-using NUnit.Framework;
 using Rainbow.Tests;
+using Xunit;
 
 namespace Rainbow.Storage.Yaml.Tests
 {
 	public class YamlSerializationFormatterTests
 	{
-		[Test]
+		[Fact]
 		public void YamlFormatter_ReadsMetadata_AsExpected()
 		{
 			var formatter = new YamlSerializationFormatter(null, null);
@@ -26,14 +26,14 @@ Path: /sitecore/content/test
 			using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(metadata)))
 			{
 				var item = formatter.ReadSerializedItemMetadata(ms, "unittest.yml");
-				Assert.AreEqual(new Guid("a4f985d9-98b3-4b52-aaaf-4344f6e747c6"), item.Id);
-				Assert.AreEqual(new Guid("001dd393-96c5-490b-924a-b0f25cd9efd8"), item.ParentId);
-				Assert.AreEqual("unittest.yml", item.SerializedItemId);
-				Assert.AreEqual("/sitecore/content/test", item.Path);
+				Assert.Equal(new Guid("a4f985d9-98b3-4b52-aaaf-4344f6e747c6"), item.Id);
+				Assert.Equal(new Guid("001dd393-96c5-490b-924a-b0f25cd9efd8"), item.ParentId);
+				Assert.Equal("unittest.yml", item.SerializedItemId);
+				Assert.Equal("/sitecore/content/test", item.Path);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void YamlFormatter_ReadsItem_AsExpected()
 		{
 			var formatter = new YamlSerializationFormatter(null, null);
@@ -60,32 +60,32 @@ Languages:
 			using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(yml)))
 			{
 				var item = formatter.ReadSerializedItem(ms, "unittest.yml");
-				Assert.AreEqual("unittest.yml", item.SerializedItemId);
-				Assert.AreEqual(new Guid("a4f985d9-98b3-4b52-aaaf-4344f6e747c6"), item.Id);
-				Assert.AreEqual(new Guid("001dd393-96c5-490b-924a-b0f25cd9efd8"), item.ParentId);
-				Assert.AreEqual("/sitecore/content/test", item.Path);
+				Assert.Equal("unittest.yml", item.SerializedItemId);
+				Assert.Equal(new Guid("a4f985d9-98b3-4b52-aaaf-4344f6e747c6"), item.Id);
+				Assert.Equal(new Guid("001dd393-96c5-490b-924a-b0f25cd9efd8"), item.ParentId);
+				Assert.Equal("/sitecore/content/test", item.Path);
 
 				var shared = item.SharedFields.ToArray();
 
-				Assert.AreEqual(1, shared.Length);
-				Assert.AreEqual(new Guid("549fa670-79ab-4810-9450-aba0c06a2b87"), shared[0].FieldId);
-				Assert.AreEqual("SHARED", shared[0].Value);
+				Assert.Equal(1, shared.Length);
+				Assert.Equal(new Guid("549fa670-79ab-4810-9450-aba0c06a2b87"), shared[0].FieldId);
+				Assert.Equal("SHARED", shared[0].Value);
 
 				var versions = item.Versions.ToArray();
 
-				Assert.AreEqual(1, versions.Length);
-				Assert.AreEqual(1, versions[0].VersionNumber);
-				Assert.AreEqual(new CultureInfo("en"), versions[0].Language);
+				Assert.Equal(1, versions.Length);
+				Assert.Equal(1, versions[0].VersionNumber);
+				Assert.Equal(new CultureInfo("en"), versions[0].Language);
 
 				var versionedFields = versions[0].Fields.ToArray();
 
-				Assert.AreEqual(1, versionedFields.Length);
-				Assert.AreEqual(new Guid("25bed78c-4957-4165-998a-ca1b52f67497"), versionedFields[0].FieldId);
-				Assert.AreEqual("20140918T062658:635466184182719253", versionedFields[0].Value);
+				Assert.Equal(1, versionedFields.Length);
+				Assert.Equal(new Guid("25bed78c-4957-4165-998a-ca1b52f67497"), versionedFields[0].FieldId);
+				Assert.Equal("20140918T062658:635466184182719253", versionedFields[0].Value);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void YamlFormatter_WritesItem_AsExpected()
 		{
 			var formatter = new YamlSerializationFormatter(null, null);
@@ -136,13 +136,13 @@ Languages:
 				{
 					var yml = reader.ReadToEnd();
 
-					Assert.AreEqual(expectedYml, yml);
+					Assert.Equal(expectedYml, yml);
 				}
 			}
 
 		}
 
-		[Test]
+		[Fact]
 		public void YamlFormatter_WritesItem_WithFieldFormatter_AsExpected()
 		{
 			var xmlConfigNode = @"<serializationFormatter>
@@ -189,7 +189,7 @@ SharedFields:
 				{
 					var yml = reader.ReadToEnd();
 
-					Assert.AreEqual(expectedYml, yml);
+					Assert.Equal(expectedYml, yml);
 				}
 			}
 		}

@@ -1,18 +1,19 @@
 ﻿using System;
 using System.IO;
-using NUnit.Framework;
+using Xunit;
+using Xunit.Sdk;
 
 namespace Rainbow.Storage.Yaml.Tests
 {
 	public class YamlWriterTests
 	{
-		[Test]
+		[Fact]
 		public void YamlWriter_WritesYamlHeading()
 		{
 			ExecuteYamlWriter(writer => { }, "---\r\n", "YAML header was missing!");
 		}
 
-		[Test]
+		[Fact]
 		public void YamlWriter_WritesKeylessMap_AtRoot()
 		{
 			ExecuteYamlWriter(writer =>
@@ -21,7 +22,7 @@ namespace Rainbow.Storage.Yaml.Tests
 			}, "---\r\nHello:\r\n", "Written keyless map was not in expected format!");
 		}
 
-		[Test]
+		[Fact]
 		public void YamlWriter_WritesMap_WithoutEscaping_AtRoot()
 		{
 			ExecuteYamlWriter(writer =>
@@ -30,7 +31,7 @@ namespace Rainbow.Storage.Yaml.Tests
 			}, "---\r\nHello: World\r\n", "Written unescaped map was not in expected format!");
 		}
 
-		[Test]
+		[Fact]
 		public void YamlWriter_WritesMap_WithEscaping_AtRoot()
 		{
 			ExecuteYamlWriter(writer =>
@@ -39,7 +40,7 @@ namespace Rainbow.Storage.Yaml.Tests
 			}, "---\r\nHello: \"What a nice \\\"world\\\" this is\"\r\n", "Written map was not in expected format!");
 		}
 
-		[Test]
+		[Fact]
 		public void YamlWriter_WritesMap_WithEscaping_AroundWholeValue_AtRoot()
 		{
 			ExecuteYamlWriter(writer =>
@@ -48,7 +49,7 @@ namespace Rainbow.Storage.Yaml.Tests
 			}, "---\r\nHello: \"\\\"What a nice world this is\\\"\"\r\n", "Written map was not in expected format!");
 		}
 
-		[Test]
+		[Fact]
 		public void YamlWriter_WritesMultilineMap_AtRoot()
 		{
 			ExecuteYamlWriter(writer =>
@@ -57,7 +58,7 @@ namespace Rainbow.Storage.Yaml.Tests
 			}, "---\r\nHello: |\r\n  World\r\n  it's me!\r\n", "Written multiline map was not in expected format!");
 		}
 
-		[Test]
+		[Fact]
 		public void YamlWriter_WritesMultilineMap_WithLinuxEndLines_AtRoot()
 		{
 			ExecuteYamlWriter(writer =>
@@ -66,7 +67,7 @@ namespace Rainbow.Storage.Yaml.Tests
 			}, "---\r\nHello: |\r\n  World\r\n  it's me!\r\n", "Written multiline map was not in expected format!");
 		}
 
-		[Test]
+		[Fact]
 		public void YamlWriter_WritesMultilineMap_WithCrEndLines_AtRoot()
 		{
 			ExecuteYamlWriter(writer =>
@@ -75,7 +76,7 @@ namespace Rainbow.Storage.Yaml.Tests
 			}, "---\r\nHello: |\r\n  World\r\n  it's me!\r\n", "Written multiline map was not in expected format!");
 		}
 
-		[Test]
+		[Fact]
 		public void YamlWriter_WritesMultilineMap_WithCrEndLinesAtEnd_AtRoot()
 		{
 			ExecuteYamlWriter(writer =>
@@ -84,7 +85,7 @@ namespace Rainbow.Storage.Yaml.Tests
 			}, "---\r\nHello: |\r\n  World\r\n", "Written multiline map was not in expected format!");
 		}
 
-		[Test]
+		[Fact]
 		public void YamlWriter_WritesMultilineMap_WithLinuxEndLines_AndBlankStartLine_AtRoot()
 		{
 			ExecuteYamlWriter(writer =>
@@ -93,7 +94,7 @@ namespace Rainbow.Storage.Yaml.Tests
 			}, "---\r\nHello: |\r\n  \r\n  \r\n  it's me!\r\n", "Written multiline map was not in expected format!");
 		}
 
-		[Test]
+		[Fact]
 		public void YamlWriter_WritesMap_Indented()
 		{
 			ExecuteYamlWriter(writer =>
@@ -103,7 +104,7 @@ namespace Rainbow.Storage.Yaml.Tests
 			}, "---\r\n  Hello: World\r\n", "Written indented map was not in expected format!");
 		}
 
-		[Test]
+		[Fact]
 		public void YamlWriter_WritesComment_Indented()
 		{
 			ExecuteYamlWriter(writer =>
@@ -113,7 +114,7 @@ namespace Rainbow.Storage.Yaml.Tests
 			}, "---\r\n  # Hello\r\n", "Written comment was not in expected format!");
 		}
 
-		[Test]
+		[Fact]
 		public void YamlWriter_WritesStartListItem()
 		{
 			ExecuteYamlWriter(writer =>
@@ -123,7 +124,7 @@ namespace Rainbow.Storage.Yaml.Tests
 			}, "---\r\n- Hello: World\r\n", "Written indented list map was not in expected format!");
 		}
 
-		[Test]
+		[Fact]
 		public void YamlWriter_WritesMultilineMap_AsListItem()
 		{
 			ExecuteYamlWriter(writer =>
@@ -133,7 +134,7 @@ namespace Rainbow.Storage.Yaml.Tests
 			}, "---\r\n- Hello: |\r\n    World\r\n    it's me!\r\n", "Written multiline list map was not in expected format!");
 		}
 
-		[Test]
+		[Fact]
 		public void YamlWriter_WritesMultipleItemList()
 		{
 			ExecuteYamlWriter(writer =>
@@ -145,7 +146,7 @@ namespace Rainbow.Storage.Yaml.Tests
 			}, "---\r\n- Hello: |\r\n    World\r\n    it's me!\r\n  Goodbye: World\r\n  Just: Kidding\r\n", "Written multiple item list was not in expected format!");
 		}
 
-		[Test]
+		[Fact]
 		public void YamlWriter_WritesIndentedLists()
 		{
 			ExecuteYamlWriter(writer =>
@@ -172,7 +173,8 @@ namespace Rainbow.Storage.Yaml.Tests
 				using (var sr = new StreamReader(ms))
 				{
 					string result = sr.ReadToEnd();
-					Assert.AreEqual(expectedOutput, result, errorMessage);
+
+					Assert.Equal(expectedOutput, result);
 				}
 			}
 		}

@@ -1,12 +1,12 @@
 ﻿using System.IO;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 
 namespace Rainbow.Tests.Storage
 {
 	partial class SfsTreeTests
 	{
-		[Test]
+		[Fact]
 		public void GetItemById_ResolvesItem_WhenItemIsRoot()
 		{
 			using (var testTree = new TestSfsTree())
@@ -17,12 +17,12 @@ namespace Rainbow.Tests.Storage
 
 				var byId = testTree.GetItemById(root.Id);
 
-				Assert.IsNotNull(byId);
-				Assert.AreEqual(root.Id, byId.Id);
+				Assert.NotNull(byId);
+				Assert.Equal(root.Id, byId.Id);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetItemById_ResolvesItem_WhenItemIsChild()
 		{
 			using (var testTree = new TestSfsTree())
@@ -33,12 +33,12 @@ namespace Rainbow.Tests.Storage
 
 				var byId = testTree.GetItemById(item.Id);
 
-				Assert.IsNotNull(byId);
-				Assert.AreEqual(item.Id, byId.Id);
+				Assert.NotNull(byId);
+				Assert.Equal(item.Id, byId.Id);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetItemById_ResolvesItem_WhenItemIsRoot_AndCacheIsEmpty()
 		{
 			using (var testTree = new TestSfsTree())
@@ -51,12 +51,12 @@ namespace Rainbow.Tests.Storage
 
 				var byId = testTree.GetItemById(root.Id);
 
-				Assert.IsNotNull(byId);
-				Assert.AreEqual(root.Id, byId.Id);
+				Assert.NotNull(byId);
+				Assert.Equal(root.Id, byId.Id);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetItemById_ResolvesItem_WhenItemIsChild_AndCacheIsEmpty()
 		{
 			using (var testTree = new TestSfsTree())
@@ -69,8 +69,8 @@ namespace Rainbow.Tests.Storage
 
 				var byId = testTree.GetItemById(item.Id);
 
-				Assert.IsNotNull(byId);
-				Assert.AreEqual(item.Id, byId.Id);
+				Assert.NotNull(byId);
+				Assert.Equal(item.Id, byId.Id);
 			}
 		}
 	}

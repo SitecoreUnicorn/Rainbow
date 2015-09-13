@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
-using NUnit.Framework;
+using Xunit;
 using Rainbow.Diff;
 using Rainbow.Diff.Fields;
 
@@ -10,7 +10,7 @@ namespace Rainbow.Tests.Diff
 {
 	public class ItemComparerTests
 	{
-		[Test]
+		[Fact]
 		public void ItemComparer_IsNotEqual_WhenVersionedFieldsAreUnequal()
 		{
 			var comparer = new TestItemComparer();
@@ -20,14 +20,14 @@ namespace Rainbow.Tests.Diff
 
 			var comparison = comparer.Compare(sourceItem, targetItem);
 
-			Assert.IsFalse(comparison.AreEqual);
-			Assert.AreEqual(1, comparison.ChangedVersions.Length);
-			Assert.AreEqual(1, comparison.ChangedVersions[0].ChangedFields.Length);
-			Assert.AreEqual("Hello", comparison.ChangedVersions[0].ChangedFields[0].SourceField.Value);
-			Assert.AreEqual("Goodbye", comparison.ChangedVersions[0].ChangedFields[0].TargetField.Value);
+			Assert.False(comparison.AreEqual);
+			Assert.Equal(1, comparison.ChangedVersions.Length);
+			Assert.Equal(1, comparison.ChangedVersions[0].ChangedFields.Length);
+			Assert.Equal("Hello", comparison.ChangedVersions[0].ChangedFields[0].SourceField.Value);
+			Assert.Equal("Goodbye", comparison.ChangedVersions[0].ChangedFields[0].TargetField.Value);
 		}
 
-		[Test]
+		[Fact]
 		public void ItemComparer_IsNotEqual_WhenSharedFieldsAreUnequal()
 		{
 			var comparer = new TestItemComparer();
@@ -37,13 +37,13 @@ namespace Rainbow.Tests.Diff
 
 			var comparison = comparer.Compare(sourceItem, targetItem);
 
-			Assert.IsFalse(comparison.AreEqual);
-			Assert.AreEqual(1, comparison.ChangedSharedFields.Length);
-			Assert.AreEqual("Hello", comparison.ChangedSharedFields[0].SourceField.Value);
-			Assert.AreEqual("Goodbye", comparison.ChangedSharedFields[0].TargetField.Value);
+			Assert.False(comparison.AreEqual);
+			Assert.Equal(1, comparison.ChangedSharedFields.Length);
+			Assert.Equal("Hello", comparison.ChangedSharedFields[0].SourceField.Value);
+			Assert.Equal("Goodbye", comparison.ChangedSharedFields[0].TargetField.Value);
 		}
 
-		[Test]
+		[Fact]
 		public void FastCompare_IsNotEqual_WhenSharedFieldsAreUnequal()
 		{
 			var comparer = new TestItemComparer();
@@ -53,10 +53,10 @@ namespace Rainbow.Tests.Diff
 
 			var comparison = comparer.FastCompare(sourceItem, targetItem);
 
-			Assert.IsFalse(comparison.AreEqual);
+			Assert.False(comparison.AreEqual);
 		}
 
-		[Test]
+		[Fact]
 		public void ItemComparer_IsNotEqual_WhenSharedFieldIsInSourceOnly()
 		{
 			var comparer = new TestItemComparer();
@@ -66,13 +66,13 @@ namespace Rainbow.Tests.Diff
 
 			var comparison = comparer.Compare(sourceItem, targetItem);
 
-			Assert.IsFalse(comparison.AreEqual);
-			Assert.AreEqual(1, comparison.ChangedSharedFields.Length);
-			Assert.AreEqual("Hello", comparison.ChangedSharedFields[0].SourceField.Value);
-			Assert.IsNull(comparison.ChangedSharedFields[0].TargetField);
+			Assert.False(comparison.AreEqual);
+			Assert.Equal(1, comparison.ChangedSharedFields.Length);
+			Assert.Equal("Hello", comparison.ChangedSharedFields[0].SourceField.Value);
+			Assert.Null(comparison.ChangedSharedFields[0].TargetField);
 		}
 
-		[Test]
+		[Fact]
 		public void ItemComparer_IsEqual_WhenSharedFieldIsInSourceOnly_AndValueIsEmpty()
 		{
 			var comparer = new TestItemComparer();
@@ -82,11 +82,11 @@ namespace Rainbow.Tests.Diff
 
 			var comparison = comparer.Compare(sourceItem, targetItem);
 
-			Assert.IsTrue(comparison.AreEqual);
-			Assert.AreEqual(0, comparison.ChangedSharedFields.Length);
+			Assert.True(comparison.AreEqual);
+			Assert.Equal(0, comparison.ChangedSharedFields.Length);
 		}
 
-		[Test]
+		[Fact]
 		public void ItemComparer_IsNotEqual_WhenSharedFieldIsInTargetOnly()
 		{
 			var comparer = new TestItemComparer();
@@ -96,13 +96,13 @@ namespace Rainbow.Tests.Diff
 
 			var comparison = comparer.Compare(sourceItem, targetItem);
 
-			Assert.IsFalse(comparison.AreEqual);
-			Assert.AreEqual(1, comparison.ChangedSharedFields.Length);
-			Assert.AreEqual("Hello", comparison.ChangedSharedFields[0].TargetField.Value);
-			Assert.IsNull(comparison.ChangedSharedFields[0].SourceField);
+			Assert.False(comparison.AreEqual);
+			Assert.Equal(1, comparison.ChangedSharedFields.Length);
+			Assert.Equal("Hello", comparison.ChangedSharedFields[0].TargetField.Value);
+			Assert.Null(comparison.ChangedSharedFields[0].SourceField);
 		}
 
-		[Test]
+		[Fact]
 		public void ItemComparer_IsEqual_WhenSharedFieldIsInTargetOnly_AndValueIsEmpty()
 		{
 			var comparer = new TestItemComparer();
@@ -112,11 +112,11 @@ namespace Rainbow.Tests.Diff
 
 			var comparison = comparer.Compare(sourceItem, targetItem);
 
-			Assert.IsTrue(comparison.AreEqual);
-			Assert.AreEqual(0, comparison.ChangedSharedFields.Length);
+			Assert.True(comparison.AreEqual);
+			Assert.Equal(0, comparison.ChangedSharedFields.Length);
 		}
 
-		[Test]
+		[Fact]
 		public void ItemComparer_IsNotEqual_WhenNewTargetVersionExists()
 		{
 			var comparer = new TestItemComparer();
@@ -126,12 +126,12 @@ namespace Rainbow.Tests.Diff
 
 			var comparison = comparer.Compare(sourceItem, targetItem);
 
-			Assert.IsFalse(comparison.AreEqual);
-			Assert.AreEqual(1, comparison.ChangedVersions.Length);
-			Assert.IsNull(comparison.ChangedVersions[0].SourceVersion);
+			Assert.False(comparison.AreEqual);
+			Assert.Equal(1, comparison.ChangedVersions.Length);
+			Assert.Null(comparison.ChangedVersions[0].SourceVersion);
 		}
 
-		[Test]
+		[Fact]
 		public void ItemComparer_IsNotEqual_WhenNewSourceVersionExists()
 		{
 			var comparer = new TestItemComparer();
@@ -141,12 +141,12 @@ namespace Rainbow.Tests.Diff
 
 			var comparison = comparer.Compare(sourceItem, targetItem);
 
-			Assert.IsFalse(comparison.AreEqual);
-			Assert.AreEqual(1, comparison.ChangedVersions.Length);
-			Assert.IsNull(comparison.ChangedVersions[0].TargetVersion);
+			Assert.False(comparison.AreEqual);
+			Assert.Equal(1, comparison.ChangedVersions.Length);
+			Assert.Null(comparison.ChangedVersions[0].TargetVersion);
 		}
 
-		[Test]
+		[Fact]
 		public void ItemComparer_IsNotEqual_WhenMoved()
 		{
 			var comparer = new TestItemComparer();
@@ -156,11 +156,11 @@ namespace Rainbow.Tests.Diff
 
 			var comparison = comparer.Compare(sourceItem, targetItem);
 
-			Assert.IsFalse(comparison.AreEqual);
-			Assert.IsTrue(comparison.IsMoved);
+			Assert.False(comparison.AreEqual);
+			Assert.True(comparison.IsMoved);
 		}
 
-		[Test]
+		[Fact]
 		public void ItemComparer_IsNotEqual_WhenNamesAreUnequal()
 		{
 			var comparer = new TestItemComparer();
@@ -170,11 +170,11 @@ namespace Rainbow.Tests.Diff
 
 			var comparison = comparer.Compare(sourceItem, targetItem);
 
-			Assert.IsFalse(comparison.AreEqual);
-			Assert.IsTrue(comparison.IsRenamed);
+			Assert.False(comparison.AreEqual);
+			Assert.True(comparison.IsRenamed);
 		}
 
-		[Test]
+		[Fact]
 		public void ItemComparer_IsNotEqual_WhenTemplatesAreUnequal()
 		{
 			var comparer = new TestItemComparer();
@@ -184,11 +184,11 @@ namespace Rainbow.Tests.Diff
 
 			var comparison = comparer.Compare(sourceItem, targetItem);
 
-			Assert.IsFalse(comparison.AreEqual);
-			Assert.IsTrue(comparison.IsTemplateChanged);
+			Assert.False(comparison.AreEqual);
+			Assert.True(comparison.IsTemplateChanged);
 		}
 
-		[Test]
+		[Fact]
 		public void EvaluateUpdate_DoesNotDeserialize_WhenItemsAreEqual()
 		{
 			var comparer = new TestItemComparer();
@@ -202,13 +202,13 @@ namespace Rainbow.Tests.Diff
 
 			var comparison = comparer.Compare(sourceItem, targetItem);
 
-			Assert.IsTrue(comparison.AreEqual);
-			Assert.IsEmpty(comparison.ChangedSharedFields);
-			Assert.IsEmpty(comparison.ChangedVersions);
-			Assert.IsFalse(comparison.IsMoved || comparison.IsRenamed || comparison.IsTemplateChanged);
+			Assert.True(comparison.AreEqual);
+			Assert.Empty(comparison.ChangedSharedFields);
+			Assert.Empty(comparison.ChangedVersions);
+			Assert.False(comparison.IsMoved || comparison.IsRenamed || comparison.IsTemplateChanged);
 		}
 
-		[Test]
+		[Fact]
 		public void ItemComparer_AddsComparerFromXmlConfig()
 		{
 			var xmlConfigNode = @"<itemComparer>
@@ -220,7 +220,7 @@ namespace Rainbow.Tests.Diff
 
 			var comparer = new TestComparisonItemComparer(configDoc.DocumentElement);
 
-			Assert.IsTrue(comparer.Comparers.Any(c => c.GetType() == typeof(XmlComparison)));
+			Assert.True(comparer.Comparers.Any(c => c.GetType() == typeof(XmlComparison)));
 		}
 
 		private class TestItemComparer : ItemComparer
