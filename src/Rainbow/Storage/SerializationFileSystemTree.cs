@@ -650,7 +650,7 @@ namespace Rainbow.Storage
 		{
 			var cachedValue = new WrittenItemMetadata(metadata.Id, metadata.ParentId, metadata.TemplateId, metadata.Path, metadata.SerializedItemId);
 			_idCache[metadata.Id] = cachedValue;
-			_metadataCache.AddOrUpdate(metadata.SerializedItemId, metadata);
+			_metadataCache.AddOrUpdate(metadata.SerializedItemId, cachedValue);
 		}
 
 		protected virtual IItemMetadata GetFromMetadataCache(Guid itemId)
