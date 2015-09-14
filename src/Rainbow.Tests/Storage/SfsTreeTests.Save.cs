@@ -181,11 +181,34 @@ namespace Rainbow.Tests.Storage
 
 				testTree.Save(CreateTestItem("/sitecore/hello hello hello", testTree.GetRootItem().Id));
 
-				var overlengthItems = testTree.GetChildren(testTree.GetRootItem()).ToArray();
+				var overlengthItems = testTree.GetChildren(testTree.GetRootItem()).OrderBy(i => i.SerializedItemId).ToArray();
 
-				Assert.Equal(2, overlengthItems.Count());
-				Assert.True(overlengthItems.Any(item => item.Path == "/sitecore/hello hello"));
-				Assert.True(overlengthItems.Any(item => item.Path == "/sitecore/hello hello hello"));
+				Assert.Equal(2, overlengthItems.Length);
+				Assert.Equal("/sitecore/hello hello", overlengthItems[0].Path);
+				Assert.EndsWith("hello hell.yml", overlengthItems[0].SerializedItemId);
+				Assert.Equal("/sitecore/hello hello hello", overlengthItems[1].Path);
+				Assert.EndsWith("hello hell_" + overlengthItems[1].Id + ".yml", overlengthItems[1].SerializedItemId);
+			}
+		}
+
+		[Fact]
+		public void Save_WritesExpectedItems_WhenItemsWithSameNamePrefixExist()
+		{
+			using (var testTree = new TestSfsTree())
+			{
+				// longer name first
+				CreateTestTree("/sitecore/Html Editor Drop Down Button", testTree);
+
+				// shorter name second - name is unique, but has same prefix as longer
+				testTree.Save(CreateTestItem("/sitecore/Html Editor Drop Down", testTree.GetRootItem().Id));
+
+				var children = testTree.GetChildren(testTree.GetRootItem()).OrderBy(i => i.SerializedItemId).ToArray();
+
+				Assert.Equal(2, children.Length);
+				Assert.Equal("/sitecore/Html Editor Drop Down Button", children[0].Path);
+				Assert.EndsWith("Html Editor Drop Down Button.yml", children[0].SerializedItemId);
+				Assert.Equal(children[1].Path, "/sitecore/Html Editor Drop Down");
+				Assert.EndsWith("Html Editor Drop Down.yml", children[1].SerializedItemId);
 			}
 		}
 	}

@@ -8,7 +8,7 @@ namespace Rainbow.Tests.Storage
 	internal class TestSfsTree : SerializationFileSystemTree, IDisposable
 	{
 		public TestSfsTree(string globalRootItemPath = "/sitecore")
-			: base("Unit Testing", globalRootItemPath, "UnitTesting", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()), new YamlSerializationFormatter(null, null), false)
+			: base("Unit Testing", globalRootItemPath, "UnitTesting", Path.Combine(Path.GetTempPath(), Guid.NewGuid() + " rb"), new YamlSerializationFormatter(null, null), false)
 		{
 			GlobalRootItemPath = globalRootItemPath;
 			MaxPathLengthForTests = base.MaxRelativePathLength;

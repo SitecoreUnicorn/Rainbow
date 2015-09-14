@@ -278,8 +278,11 @@ namespace Rainbow.Storage.Yaml
 			}
 		}
 
+		[ExcludeFromCodeCoverage]
 		public string FriendlyName { get { return "YAML Serialization Formatter"; } }
+		[ExcludeFromCodeCoverage]
 		public string Description { get { return "Stores serialized items in an easy to read, easy to merge dialect of YAML."; } }
+		[ExcludeFromCodeCoverage]
 		public KeyValuePair<string, string>[] GetConfigurationDetails()
 		{
 			var configs = new List<KeyValuePair<string, string>>();

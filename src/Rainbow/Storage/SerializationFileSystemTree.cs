@@ -347,7 +347,22 @@ namespace Rainbow.Storage
 
 			// Determine if this item has any name-dupes in the source store.
 			var nameDupeCandidateItems = GetChildPaths(parentItem)
-				.Where(path => Path.GetFileName(path).StartsWith(strippedItemName, StringComparison.OrdinalIgnoreCase))
+				.Where(path =>
+				{
+					var fileName = Path.GetFileName(path);
+					if (fileName == null) return false;
+
+					// exact name match (item.ext)
+					if (fileName.Equals(strippedItemName + _formatter.FileExtension, StringComparison.OrdinalIgnoreCase))
+						return true;
+
+					// match by item id (e.g. item_id.ext)
+					if (fileName.StartsWith(strippedItemName + "_", StringComparison.OrdinalIgnoreCase) && fileName.Substring(strippedItemName.Length + 1).Equals(item.Id + _formatter.FileExtension, StringComparison.OrdinalIgnoreCase))
+						return true;
+
+					// not a match (e.g. someothername.ext, item_otherid.ext)
+					return false;
+				})
 				.Select(ReadItemMetadata);
 
 			// the base path is the path the item would be written to on the filesystem *if there were no length limitations*. Note that this is why we avoid using Path.X() on the base path, because those validate path lengths.
