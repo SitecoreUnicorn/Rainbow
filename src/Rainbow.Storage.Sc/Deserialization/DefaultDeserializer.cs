@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Rainbow.Filtering;
@@ -31,6 +32,8 @@ namespace Rainbow.Storage.Sc.Deserialization
 		private readonly IDefaultDeserializerLogger _logger;
 		private readonly IFieldFilter _fieldFilter;
 
+		public IDataStore ParentDataStore { get; set; }
+
 		public DefaultDeserializer(IDefaultDeserializerLogger logger, IFieldFilter fieldFilter)
 		{
 			Assert.ArgumentNotNull(logger, "logger");
@@ -44,11 +47,69 @@ namespace Rainbow.Storage.Sc.Deserialization
 		{
 			Assert.ArgumentNotNull(serializedItemData, "serializedItem");
 
+			bool newItemWasCreated;
+			var targetItem = GetOrCreateTargetItem(serializedItemData, out newItemWasCreated);
+
+			var softErrors = new List<TemplateMissingFieldException>();
+
+			try
+			{
+				ChangeTemplateIfNeeded(serializedItemData, targetItem);
+
+				RenameIfNeeded(serializedItemData, targetItem);
+
+				ResetTemplateEngineIfItemIsTemplate(targetItem);
+
+				UpdateFieldSharingIfNeeded(serializedItemData, targetItem);
+
+				PasteSharedFields(serializedItemData, targetItem, newItemWasCreated, softErrors);
+
+				ClearCaches(targetItem.Database, new ID(serializedItemData.Id));
+
+				targetItem.Reload();
+
+				ResetTemplateEngineIfItemIsTemplate(targetItem);
+
+				PasteVersions(serializedItemData, targetItem, newItemWasCreated, softErrors);
+
+				ClearCaches(targetItem.Database, targetItem.ID);
+
+				if (softErrors.Count > 0) throw TemplateMissingFieldException.Merge(softErrors);
+
+				return new ItemData(targetItem, ParentDataStore);
+			}
+			catch (ParentForMovedItemNotFoundException)
+			{
+				throw;
+			}
+			catch (ParentItemNotFoundException)
+			{
+				throw;
+			}
+			catch (TemplateMissingFieldException)
+			{
+				throw;
+			}
+			catch (Exception ex)
+			{
+				if (newItemWasCreated)
+				{
+					targetItem.Delete();
+					ClearCaches(targetItem.Database, new ID(serializedItemData.Id));
+				}
+
+				throw new DeserializationException("Failed to paste item: " + serializedItemData.Path, ex);
+			}
+		}
+
+		protected virtual Item GetOrCreateTargetItem(IItemData serializedItemData, out bool newItemWasCreated)
+		{
 			Database database = Factory.GetDatabase(serializedItemData.DatabaseName);
 
 			Item destinationParentItem = database.GetItem(new ID(serializedItemData.ParentId));
 			Item targetItem = database.GetItem(new ID(serializedItemData.Id));
-			bool newItemWasCreated = false;
+
+			newItemWasCreated = false;
 
 			// the target item did not yet exist, so we need to start by creating it
 			if (targetItem == null)
@@ -83,104 +144,8 @@ namespace Rainbow.Storage.Sc.Deserialization
 					_logger.MovedItemToNewParent(destinationParentItem, oldParent, targetItem);
 				}
 			}
-			try
-			{
-				ChangeTemplateIfNeeded(serializedItemData, targetItem);
-				RenameIfNeeded(serializedItemData, targetItem);
-				ResetTemplateEngineIfItemIsTemplate(targetItem);
-				UpdateFieldSharingIfNeeded(serializedItemData, targetItem);
-
-				bool commitEditContext = false;
-
-				try
-				{
-					targetItem.Editing.BeginEdit();
-
-					targetItem.RuntimeSettings.ReadOnlyStatistics = true;
-					targetItem.RuntimeSettings.SaveAll = true;
-
-					foreach (Field field in targetItem.Fields)
-					{
-						if (field.Shared && serializedItemData.SharedFields.All(x => x.FieldId != field.ID.Guid))
-						{
-							_logger.ResetFieldThatDidNotExistInSerialized(field);
-							field.Reset();
-							commitEditContext = true;
-						}
-					}
-
-					foreach (var field in serializedItemData.SharedFields)
-					{
-						if (PasteSyncField(targetItem, field, newItemWasCreated))
-							commitEditContext = true;
-					}
-
-					// we commit the edit context - and write to the DB - only if we changed something
-					if(commitEditContext)
-						targetItem.Editing.EndEdit();
-				}
-				finally
-				{
-					if(targetItem.Editing.IsEditing)
-						targetItem.Editing.CancelEdit();
-				}
-				
-
-				ClearCaches(database, new ID(serializedItemData.Id));
-				targetItem.Reload();
-				ResetTemplateEngineIfItemIsTemplate(targetItem);
-
-				Hashtable versionTable = CommonUtils.CreateCIHashtable();
-
-				// this version table allows us to detect and remove orphaned versions that are not in the
-				// serialized version, but are in the database version
-				foreach (Item version in targetItem.Versions.GetVersions(true))
-					versionTable[version.Uri] = null;
-
-				foreach (var syncVersion in serializedItemData.Versions)
-				{
-					var version = PasteSyncVersion(targetItem, syncVersion, newItemWasCreated);
-					if (versionTable.ContainsKey(version.Uri))
-						versionTable.Remove(version.Uri);
-				}
-
-				foreach (ItemUri uri in versionTable.Keys)
-				{
-					var versionToRemove = Database.GetItem(uri);
-
-					_logger.RemovingOrphanedVersion(versionToRemove);
-
-					versionToRemove.Versions.RemoveVersion();
-				}
-
-				ClearCaches(targetItem.Database, targetItem.ID);
-
-				return new ItemData(targetItem, ParentDataStore);
-			}
-			catch (ParentForMovedItemNotFoundException)
-			{
-				throw;
-			}
-			catch (ParentItemNotFoundException)
-			{
-				throw;
-			}
-			catch (FieldIsMissingFromTemplateException)
-			{
-				throw;
-			}
-			catch (Exception ex)
-			{
-				if (newItemWasCreated)
-				{
-					targetItem.Delete();
-					ClearCaches(database, new ID(serializedItemData.Id));
-				}
-				throw new Exception("Failed to paste item: " + serializedItemData.Path, ex);
-			}
+			return targetItem;
 		}
-
-		public IDataStore ParentDataStore { get; set; }
 
 		protected void RenameIfNeeded(IItemData serializedItemData, Item targetItem)
 		{
@@ -300,7 +265,78 @@ namespace Rainbow.Storage.Sc.Deserialization
 			return targetItem;
 		}
 
-		protected virtual Item PasteSyncVersion(Item item, IItemVersion serializedVersion, bool creatingNewItem)
+		protected virtual void PasteSharedFields(IItemData serializedItemData, Item targetItem, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors)
+		{
+			bool commitEditContext = false;
+
+			try
+			{
+				targetItem.Editing.BeginEdit();
+
+				targetItem.RuntimeSettings.ReadOnlyStatistics = true;
+				targetItem.RuntimeSettings.SaveAll = true;
+
+				foreach (Field field in targetItem.Fields)
+				{
+					if (field.Shared && serializedItemData.SharedFields.All(x => x.FieldId != field.ID.Guid))
+					{
+						_logger.ResetFieldThatDidNotExistInSerialized(field);
+						field.Reset();
+						commitEditContext = true;
+					}
+				}
+
+				foreach (var field in serializedItemData.SharedFields)
+				{
+					try
+					{
+						if (PasteField(targetItem, field, newItemWasCreated))
+							commitEditContext = true;
+					}
+					catch (TemplateMissingFieldException tex)
+					{
+						softErrors.Add(tex);
+					}
+				}
+
+				// we commit the edit context - and write to the DB - only if we changed something
+				if (commitEditContext)
+					targetItem.Editing.EndEdit();
+			}
+			finally
+			{
+				if (targetItem.Editing.IsEditing)
+					targetItem.Editing.CancelEdit();
+			}
+		}
+
+		protected virtual void PasteVersions(IItemData serializedItemData, Item targetItem, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors)
+		{
+			Hashtable versionTable = CommonUtils.CreateCIHashtable();
+
+			// this version table allows us to detect and remove orphaned versions that are not in the
+			// serialized version, but are in the database version
+			foreach (Item version in targetItem.Versions.GetVersions(true))
+				versionTable[version.Uri] = null;
+
+			foreach (var syncVersion in serializedItemData.Versions)
+			{
+				var version = PasteVersion(targetItem, syncVersion, newItemWasCreated, softErrors);
+				if (versionTable.ContainsKey(version.Uri))
+					versionTable.Remove(version.Uri);
+			}
+
+			foreach (ItemUri uri in versionTable.Keys)
+			{
+				var versionToRemove = Database.GetItem(uri);
+
+				_logger.RemovingOrphanedVersion(versionToRemove);
+
+				versionToRemove.Versions.RemoveVersion();
+			}
+		}
+
+		protected virtual Item PasteVersion(Item item, IItemVersion serializedVersion, bool creatingNewItem, List<TemplateMissingFieldException> softErrors)
 		{
 			Language language = Language.Parse(serializedVersion.Language.Name);
 			var targetVersion = Version.Parse(serializedVersion.VersionNumber);
@@ -357,8 +393,15 @@ namespace Rainbow.Storage.Sc.Deserialization
 					if (field.FieldId == FieldIDs.Owner.Guid)
 						wasOwnerFieldParsed = true;
 
-					if (PasteSyncField(languageVersionItem, field, creatingNewItem))
-						commitEditContext = true;
+					try
+					{
+						if (PasteField(languageVersionItem, field, creatingNewItem))
+							commitEditContext = true;
+					}
+					catch (TemplateMissingFieldException tex)
+					{
+						softErrors.Add(tex);
+					}
 				}
 
 				if (!wasOwnerFieldParsed)
@@ -415,7 +458,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 		/// <param name="field">The field.</param>
 		/// <param name="creatingNewItem">Whether the item under update is new or not (controls logging verbosity)</param>
 		/// <exception cref="T:Sitecore.Data.Serialization.Exceptions.FieldIsMissingFromTemplateException"/>
-		protected virtual bool PasteSyncField(Item item, IItemFieldValue field, bool creatingNewItem)
+		protected virtual bool PasteField(Item item, IItemFieldValue field, bool creatingNewItem)
 		{
 			if (!_fieldFilter.Includes(field.FieldId))
 			{
@@ -432,7 +475,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 			if (template.GetField(new ID(field.FieldId)) == null)
 			{
-				throw new FieldIsMissingFromTemplateException("Field " + field.FieldId + " does not exist in template '" + template.Name + "'", item.Template.InnerItem.Paths.FullPath, item.Paths.FullPath, item.ID);
+				throw new TemplateMissingFieldException(item.TemplateName, item.Database.Name + ":" + item.Paths.FullPath, field);
 			}
 
 			Field itemField = item.Fields[new ID(field.FieldId)];
