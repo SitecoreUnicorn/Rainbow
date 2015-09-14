@@ -60,9 +60,17 @@ namespace Rainbow.Storage.Yaml.OutputModel
 		public bool ReadYaml(YamlReader reader)
 		{
 			var id = reader.PeekMap();
-			if (!id.HasValue || !id.Value.Key.Equals("ID", StringComparison.Ordinal))
+			if (!id.HasValue)
 			{
 				return false;
+			}
+
+			var key = id.Value.Key;
+			if (!key.Equals("ID", StringComparison.Ordinal))
+			{
+				if (key.Equals("Languages", StringComparison.Ordinal) || key.Equals("Language", StringComparison.Ordinal) || key.Equals("Version")) return false;
+
+				throw new FormatException(reader.CreateErrorMessage("Cannot read field value. Expected 'ID' map, found '" + id.Value.Key + "' instead."));
 			}
 
 			Id = reader.ReadExpectedGuidMap("ID");

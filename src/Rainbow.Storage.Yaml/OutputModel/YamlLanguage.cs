@@ -17,7 +17,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 
 		public int CompareTo(YamlLanguage other)
 		{
-			return String.Compare(Language, other.Language, StringComparison.Ordinal);
+			return string.Compare(Language, other.Language, StringComparison.Ordinal);
 		}
 
 		public void LoadFrom(IEnumerable<IItemVersion> versions, IFieldFormatter[] fieldFormatters)
