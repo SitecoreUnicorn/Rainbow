@@ -29,7 +29,7 @@ namespace Rainbow.Storage.Sc.Tests
 
 			dataStore.Save(item);
 
-			deserializer.Received().Deserialize(item, Arg.Any<bool>());
+			deserializer.Received().Deserialize(item);
 		}
 
 		[Fact]
