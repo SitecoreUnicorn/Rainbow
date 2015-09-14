@@ -32,7 +32,7 @@ namespace Rainbow.Storage.Sc
 		{
 			Assert.ArgumentNotNull(item, "item");
 
-			_deserializer.Deserialize(item, true);
+			_deserializer.Deserialize(item);
 		}
 
 		public void MoveOrRenameItem(IItemData itemWithFinalPath, string oldPath)
