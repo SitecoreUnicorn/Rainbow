@@ -481,6 +481,8 @@ namespace Rainbow.Storage.Sc.Deserialization
 			Field itemField = item.Fields[new ID(field.FieldId)];
 			if (itemField.IsBlobField && !ID.IsID(field.Value))
 			{
+				if(!field.BlobId.HasValue) throw new InvalidOperationException("Field " + field.FieldId + " is a blob field, but it had no blob ID.");
+
 				byte[] buffer = Convert.FromBase64String(field.Value);
 				ItemManager.SetBlobStream(new MemoryStream(buffer, false), field.BlobId.Value, item.Database);
 

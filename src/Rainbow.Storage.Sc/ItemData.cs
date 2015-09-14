@@ -18,6 +18,7 @@ namespace Rainbow.Storage.Sc
 		private readonly Item _item;
 		private readonly IDataStore _sourceDataStore;
 		private Item[] _itemVersions;
+		// ReSharper disable once RedundantDefaultMemberInitializer
 		private bool _fieldsLoaded = false;
 
 		public ItemData(Item item)
@@ -243,6 +244,7 @@ namespace Rainbow.Storage.Sc
 		protected class ItemVersionValue : IItemVersion
 		{
 			private readonly Item _version;
+			// ReSharper disable once RedundantDefaultMemberInitializer
 			private bool _fieldsLoaded = false;
 
 			public ItemVersionValue(Item version)

@@ -69,6 +69,7 @@ namespace Rainbow.Storage
 		private readonly FsCache<IItemMetadata> _metadataCache = new FsCache<IItemMetadata>(true);
 		private readonly TreeWatcher _treeWatcher;
 
+		// ReSharper disable once RedundantDefaultMemberInitializer
 		private bool _configuredForFastReads = false;
 		private readonly object _fastReadConfigurationLock = new object();
 
