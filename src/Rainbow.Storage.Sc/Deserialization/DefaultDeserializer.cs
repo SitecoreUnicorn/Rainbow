@@ -40,7 +40,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			_fieldFilter = fieldFilter;
 		}
 
-		public IItemData Deserialize(IItemData serializedItemData, bool ignoreMissingTemplateFields)
+		public IItemData Deserialize(IItemData serializedItemData)
 		{
 			Assert.ArgumentNotNull(serializedItemData, "serializedItem");
 
@@ -90,8 +90,12 @@ namespace Rainbow.Storage.Sc.Deserialization
 				ResetTemplateEngineIfItemIsTemplate(targetItem);
 				UpdateFieldSharingIfNeeded(serializedItemData, targetItem);
 
-				using (new EditContext(targetItem))
+				bool commitEditContext = false;
+
+				try
 				{
+					targetItem.Editing.BeginEdit();
+
 					targetItem.RuntimeSettings.ReadOnlyStatistics = true;
 					targetItem.RuntimeSettings.SaveAll = true;
 
@@ -101,12 +105,26 @@ namespace Rainbow.Storage.Sc.Deserialization
 						{
 							_logger.ResetFieldThatDidNotExistInSerialized(field);
 							field.Reset();
+							commitEditContext = true;
 						}
 					}
 
 					foreach (var field in serializedItemData.SharedFields)
-						PasteSyncField(targetItem, field, ignoreMissingTemplateFields, newItemWasCreated);
+					{
+						if (PasteSyncField(targetItem, field, newItemWasCreated))
+							commitEditContext = true;
+					}
+
+					// we commit the edit context - and write to the DB - only if we changed something
+					if(commitEditContext)
+						targetItem.Editing.EndEdit();
 				}
+				finally
+				{
+					if(targetItem.Editing.IsEditing)
+						targetItem.Editing.CancelEdit();
+				}
+				
 
 				ClearCaches(database, new ID(serializedItemData.Id));
 				targetItem.Reload();
@@ -121,7 +139,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 				foreach (var syncVersion in serializedItemData.Versions)
 				{
-					var version = PasteSyncVersion(targetItem, syncVersion, ignoreMissingTemplateFields, newItemWasCreated);
+					var version = PasteSyncVersion(targetItem, syncVersion, newItemWasCreated);
 					if (versionTable.ContainsKey(version.Uri))
 						versionTable.Remove(version.Uri);
 				}
@@ -147,12 +165,10 @@ namespace Rainbow.Storage.Sc.Deserialization
 			{
 				throw;
 			}
-#if SITECORE_7
 			catch (FieldIsMissingFromTemplateException)
 			{
 				throw;
 			}
-#endif
 			catch (Exception ex)
 			{
 				if (newItemWasCreated)
@@ -168,71 +184,69 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 		protected void RenameIfNeeded(IItemData serializedItemData, Item targetItem)
 		{
-			if (targetItem.Name != serializedItemData.Name || targetItem.BranchId.Guid != serializedItemData.BranchId)
+			if (targetItem.Name == serializedItemData.Name && targetItem.BranchId.Guid.Equals(serializedItemData.BranchId)) return;
+
+			string oldName = targetItem.Name;
+			Guid oldBranchId = targetItem.BranchId.Guid;
+
+			using (new EditContext(targetItem))
 			{
-				string oldName = targetItem.Name;
-				Guid oldBranchId = targetItem.BranchId.Guid;
-
-				using (new EditContext(targetItem))
-				{
-					targetItem.RuntimeSettings.ReadOnlyStatistics = true;
-					targetItem.Name = serializedItemData.Name;
-					targetItem.BranchId = ID.Parse(serializedItemData.BranchId);
-				}
-
-				ClearCaches(targetItem.Database, targetItem.ID);
-				targetItem.Reload();
-
-				if (oldName != serializedItemData.Name)
-					_logger.RenamedItem(targetItem, oldName);
-
-				if (oldBranchId != serializedItemData.BranchId)
-					_logger.ChangedBranchTemplate(targetItem, new ID(oldBranchId).ToString());
+				targetItem.RuntimeSettings.ReadOnlyStatistics = true;
+				targetItem.Name = serializedItemData.Name;
+				targetItem.BranchId = ID.Parse(serializedItemData.BranchId);
 			}
+
+			ClearCaches(targetItem.Database, targetItem.ID);
+			targetItem.Reload();
+
+			if (oldName != serializedItemData.Name)
+				_logger.RenamedItem(targetItem, oldName);
+
+			if (oldBranchId != serializedItemData.BranchId)
+				_logger.ChangedBranchTemplate(targetItem, new ID(oldBranchId).ToString());
 		}
 
 		protected void ChangeTemplateIfNeeded(IItemData serializedItemData, Item targetItem)
 		{
-			if (targetItem.TemplateID.Guid != serializedItemData.TemplateId)
+			if (targetItem.TemplateID.Guid == serializedItemData.TemplateId) return;
+
+			var oldTemplate = targetItem.Template;
+			var newTemplate = targetItem.Database.Templates[new ID(serializedItemData.TemplateId)];
+
+			Assert.IsNotNull(newTemplate, "Cannot change template of {0} because its new template {1} does not exist!", targetItem.ID, serializedItemData.TemplateId);
+
+			using (new EditContext(targetItem))
 			{
-				var oldTemplate = targetItem.Template;
-				var newTemplate = targetItem.Database.Templates[new ID(serializedItemData.TemplateId)];
-
-				Assert.IsNotNull(newTemplate, "Cannot change template of {0} because its new template {1} does not exist!", targetItem.ID, serializedItemData.TemplateId);
-
-				using (new EditContext(targetItem))
+				targetItem.RuntimeSettings.ReadOnlyStatistics = true;
+				try
 				{
-					targetItem.RuntimeSettings.ReadOnlyStatistics = true;
-					try
+					targetItem.ChangeTemplate(newTemplate);
+				}
+				catch
+				{
+					// this generally means that we tried to sync an item and change its template AND we already deleted the item's old template in the same sync
+					// the Sitecore change template API chokes if the item's CURRENT template is unavailable, but we can get around that
+					// issure reported to Sitecore Support (406546)
+					lock (targetItem.SyncRoot)
 					{
-						targetItem.ChangeTemplate(newTemplate);
-					}
-					catch
-					{
-						// this generally means that we tried to sync an item and change its template AND we already deleted the item's old template in the same sync
-						// the Sitecore change template API chokes if the item's CURRENT template is unavailable, but we can get around that
-						// issure reported to Sitecore Support (406546)
-						lock (targetItem.SyncRoot)
-						{
-							Template sourceTemplate = TemplateManager.GetTemplate(targetItem);
-							Template targetTemplate = TemplateManager.GetTemplate(newTemplate.ID, targetItem.Database);
-							
-							Error.AssertNotNull(targetTemplate, "Could not get target in ChangeTemplate");
+						Template sourceTemplate = TemplateManager.GetTemplate(targetItem);
+						Template targetTemplate = TemplateManager.GetTemplate(newTemplate.ID, targetItem.Database);
 
-							// this is probably true if we got here. This is the check the Sitecore API fails to make, and throws a NullReferenceException.
-							if (sourceTemplate == null) sourceTemplate = targetTemplate;
+						Error.AssertNotNull(targetTemplate, "Could not get target in ChangeTemplate");
 
-							TemplateChangeList templateChangeList = sourceTemplate.GetTemplateChangeList(targetTemplate);
-							TemplateManager.ChangeTemplate(targetItem, templateChangeList);
-						}
+						// this is probably true if we got here. This is the check the Sitecore API fails to make, and throws a NullReferenceException.
+						if (sourceTemplate == null) sourceTemplate = targetTemplate;
+
+						TemplateChangeList templateChangeList = sourceTemplate.GetTemplateChangeList(targetTemplate);
+						TemplateManager.ChangeTemplate(targetItem, templateChangeList);
 					}
 				}
-
-				ClearCaches(targetItem.Database, targetItem.ID);
-				targetItem.Reload();
-
-				_logger.ChangedTemplate(targetItem, oldTemplate);
 			}
+
+			ClearCaches(targetItem.Database, targetItem.ID);
+			targetItem.Reload();
+
+			_logger.ChangedTemplate(targetItem, oldTemplate);
 		}
 
 		/// <summary>
@@ -254,8 +268,8 @@ namespace Rainbow.Storage.Sc.Deserialization
 			var templateField = TemplateManager.GetTemplateField(targetItem.ID, targetItem.Parent.Parent.ID, targetItem.Database);
 
 			TemplateFieldSharing templateSharedness = TemplateFieldSharing.None;
-			if(templateField.IsShared) templateSharedness = TemplateFieldSharing.Shared;
-			else if(templateField.IsUnversioned) templateSharedness = TemplateFieldSharing.Unversioned;
+			if (templateField.IsShared) templateSharedness = TemplateFieldSharing.Shared;
+			else if (templateField.IsUnversioned) templateSharedness = TemplateFieldSharing.Unversioned;
 
 			if (templateSharedness == sharedness) return;
 
@@ -278,7 +292,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 			Item targetItem = ItemManager.AddFromTemplate(serializedItemData.Name, new ID(serializedItemData.TemplateId), destinationParentItem, new ID(serializedItemData.Id));
 
-			if(targetItem == null)
+			if (targetItem == null)
 				throw new DeserializationException("Creating " + serializedItemData.DatabaseName + ":" + serializedItemData.Path + " failed. API returned null.");
 
 			targetItem.Versions.RemoveAll(true);
@@ -286,7 +300,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			return targetItem;
 		}
 
-		protected virtual Item PasteSyncVersion(Item item, IItemVersion serializedVersion, bool ignoreMissingTemplateFields, bool creatingNewItem)
+		protected virtual Item PasteSyncVersion(Item item, IItemVersion serializedVersion, bool creatingNewItem)
 		{
 			Language language = Language.Parse(serializedVersion.Language.Name);
 			var targetVersion = Version.Parse(serializedVersion.VersionNumber);
@@ -307,20 +321,34 @@ namespace Rainbow.Storage.Sc.Deserialization
 					_logger.AddedNewVersion(languageVersionItem);
 			}
 
-			using (new EditContext(languageVersionItem))
+			bool commitEditContext = false;
+
+			try
 			{
+				languageVersionItem.Editing.BeginEdit();
+				
 				languageVersionItem.RuntimeSettings.ReadOnlyStatistics = true;
 
 				if (languageVersionItem.Versions.Count == 0)
 					languageVersionItem.Fields.ReadAll();
 
+				// find versioned fields that need to be reset to standard value, because they are not in serialized
+				// (we do all these checks so we can back out of the edit context and avoid a DB write if we don't need one)
 				foreach (Field field in languageVersionItem.Fields)
 				{
-					if (!field.Shared && serializedVersion.Fields.All(x => x.FieldId != field.ID.Guid))
-					{
-						_logger.ResetFieldThatDidNotExistInSerialized(field);
-						field.Reset();
-					}
+					// shared fields = ignore, those are handled in Paste
+					if (field.Shared) continue;
+					// if we have a value in the serialized item, we don't need to reset the field
+					if(serializedVersion.Fields.Any(x => x.FieldId == field.ID.Guid)) continue;
+					// if the field is one of revision, updated, or updated by we can specially ignore it, because these will get set below if actual field changes occur
+					// so there's no need to reset them as well
+					if (field.ID == FieldIDs.Revision || field.ID == FieldIDs.UpdatedBy || field.ID == FieldIDs.Updated) continue;
+					// if the field value is already blank - ignoring standard values - we can assume there's no need to reset it
+					if(field.GetValue(false, false) == string.Empty) continue;
+					
+					_logger.ResetFieldThatDidNotExistInSerialized(field);
+					field.Reset();
+					commitEditContext = true;
 				}
 
 				bool wasOwnerFieldParsed = false;
@@ -329,28 +357,53 @@ namespace Rainbow.Storage.Sc.Deserialization
 					if (field.FieldId == FieldIDs.Owner.Guid)
 						wasOwnerFieldParsed = true;
 
-					PasteSyncField(languageVersionItem, field, ignoreMissingTemplateFields, creatingNewItem);
+					if (PasteSyncField(languageVersionItem, field, creatingNewItem))
+						commitEditContext = true;
 				}
 
 				if (!wasOwnerFieldParsed)
+				{
 					languageVersionItem.Fields[FieldIDs.Owner].Reset();
+					commitEditContext = true;
+				}
 
-				// if the item came with blank statistics, let's set some sane defaults - update revision, set last updated, etc
-				// ReSharper disable once SimplifyLinqExpression
-				if (!serializedVersion.Fields.Any(f => f.FieldId == FieldIDs.Revision.Guid))
-					languageVersionItem.Fields[FieldIDs.Revision].SetValue(Guid.NewGuid().ToString(), true);
+				// if the item came with blank statistics, and we're creating the item or have version updates already, let's set some sane defaults - update revision, set last updated, etc
+				if (creatingNewItem || commitEditContext)
+				{
+					// ReSharper disable once SimplifyLinqExpression
+					if (!serializedVersion.Fields.Any(f => f.FieldId == FieldIDs.Revision.Guid))
+					{
+						languageVersionItem.Fields[FieldIDs.Revision].SetValue(Guid.NewGuid().ToString(), true);
+					}
 
-				// ReSharper disable once SimplifyLinqExpression
-				if (!serializedVersion.Fields.Any(f => f.FieldId == FieldIDs.Updated.Guid))
-					languageVersionItem[FieldIDs.Updated] = DateUtil.ToIsoDate(DateTime.UtcNow);
+					// ReSharper disable once SimplifyLinqExpression
+					if (!serializedVersion.Fields.Any(f => f.FieldId == FieldIDs.Updated.Guid))
+					{
+						languageVersionItem[FieldIDs.Updated] = DateUtil.ToIsoDate(DateTime.UtcNow);
+					}
 
-				// ReSharper disable once SimplifyLinqExpression
-				if (!serializedVersion.Fields.Any(f => f.FieldId == FieldIDs.UpdatedBy.Guid))
-					languageVersionItem[FieldIDs.UpdatedBy] = @"sitecore\unicorn";
+					// ReSharper disable once SimplifyLinqExpression
+					if (!serializedVersion.Fields.Any(f => f.FieldId == FieldIDs.UpdatedBy.Guid))
+					{
+						languageVersionItem[FieldIDs.UpdatedBy] = @"sitecore\unicorn";
+					}
+				}
+
+				// we commit the edit context - and write to the DB - only if we changed something
+				if (commitEditContext)
+					languageVersionItem.Editing.EndEdit();
+			}
+			finally
+			{
+				if (languageVersionItem.Editing.IsEditing)
+					languageVersionItem.Editing.CancelEdit();
 			}
 
-			ClearCaches(languageVersionItem.Database, languageVersionItem.ID);
-			ResetTemplateEngineIfItemIsTemplate(languageVersionItem);
+			if (commitEditContext)
+			{
+				ClearCaches(languageVersionItem.Database, languageVersionItem.ID);
+				ResetTemplateEngineIfItemIsTemplate(languageVersionItem);
+			}
 
 			return languageVersionItem;
 		}
@@ -360,15 +413,14 @@ namespace Rainbow.Storage.Sc.Deserialization
 		/// </summary>
 		/// <param name="item">The item.</param>
 		/// <param name="field">The field.</param>
-		/// <param name="ignoreMissingTemplateFields">Whether to ignore fields in the serialized item that do not exist on the Sitecore template</param>
 		/// <param name="creatingNewItem">Whether the item under update is new or not (controls logging verbosity)</param>
 		/// <exception cref="T:Sitecore.Data.Serialization.Exceptions.FieldIsMissingFromTemplateException"/>
-		protected virtual void PasteSyncField(Item item, IItemFieldValue field, bool ignoreMissingTemplateFields, bool creatingNewItem)
+		protected virtual bool PasteSyncField(Item item, IItemFieldValue field, bool creatingNewItem)
 		{
 			if (!_fieldFilter.Includes(field.FieldId))
 			{
 				_logger.SkippedPastingIgnoredField(item, field);
-				return;
+				return false;
 			}
 
 			Template template = AssertTemplate(item.Database, item.TemplateID, item.Paths.Path);
@@ -380,20 +432,10 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 			if (template.GetField(new ID(field.FieldId)) == null)
 			{
-				if (!ignoreMissingTemplateFields)
-				{
-#if SITECORE_7
-					throw new FieldIsMissingFromTemplateException("Field " + field.FieldId + " does not exist in template '" + template.Name + "'", item.Template.InnerItem.Paths.FullPath, item.Paths.FullPath, item.ID);
-#else
-					throw new Exception("Field " + field.FieldId + " does not exist in template '" + template.Name + "'");
-#endif
-				}
-
-				_logger.SkippedMissingTemplateField(item, field);
-				return;
+				throw new FieldIsMissingFromTemplateException("Field " + field.FieldId + " does not exist in template '" + template.Name + "'", item.Template.InnerItem.Paths.FullPath, item.Paths.FullPath, item.ID);
 			}
 
-			Field itemField = item.Fields[ID.Parse(field.FieldId)];
+			Field itemField = item.Fields[new ID(field.FieldId)];
 			if (itemField.IsBlobField && !ID.IsID(field.Value))
 			{
 				byte[] buffer = Convert.FromBase64String(field.Value);
@@ -401,14 +443,22 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 				if (!creatingNewItem)
 					_logger.WroteBlobStream(item, field);
+
+				return true;
 			}
-			else if (!field.Value.Equals(itemField.Value))
+
+			if (!field.Value.Equals(itemField.Value))
 			{
 				var oldValue = itemField.Value;
 				itemField.SetValue(field.Value, true);
+
 				if (!creatingNewItem)
 					_logger.UpdatedChangedFieldValue(item, field, oldValue);
+
+				return true;
 			}
+
+			return false;
 		}
 
 		/// <summary>
@@ -449,7 +499,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 				template = database.Engines.TemplateEngine.GetTemplate(templateId);
 			}
 
-			if(template == null)
+			if (template == null)
 				throw new DeserializationException("Template {0} for item {1} not found".FormatWith(templateId, itemPath));
 
 			return template;
