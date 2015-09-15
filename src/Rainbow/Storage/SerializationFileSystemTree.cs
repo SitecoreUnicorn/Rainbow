@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Rainbow.Formatting;
 using Rainbow.Model;
+using Rainbow.SourceControl;
 using Sitecore.Configuration;
 using Sitecore.Diagnostics;
 using Sitecore.IO;
@@ -193,14 +194,18 @@ namespace Rainbow.Storage
 			{
 				lock (FileUtil.GetFileLock(descendant.SerializedItemId))
 				{
-					File.Delete(descendant.SerializedItemId);
+				    var s = new SourceControlManager();
+                    using (var scm = s.GetSourceControlManager(descendant.SerializedItemId))
+				    {
+				        File.Delete(descendant.SerializedItemId);
 
-					var childrenDirectory = Path.ChangeExtension(descendant.SerializedItemId, null);
+				        var childrenDirectory = Path.ChangeExtension(descendant.SerializedItemId, null);
 
-					if (Directory.Exists(childrenDirectory)) Directory.Delete(childrenDirectory, true);
+				        if (Directory.Exists(childrenDirectory)) Directory.Delete(childrenDirectory, true);
 
-					var shortChildrenDirectory = Path.Combine(PhysicalRootPath, descendant.Id.ToString());
-					if (Directory.Exists(shortChildrenDirectory)) Directory.Delete(shortChildrenDirectory);
+				        var shortChildrenDirectory = Path.Combine(PhysicalRootPath, descendant.Id.ToString());
+				        if (Directory.Exists(shortChildrenDirectory)) Directory.Delete(shortChildrenDirectory);
+				    }
 				}
 			}
 
@@ -266,27 +271,31 @@ namespace Rainbow.Storage
 
 			lock (FileUtil.GetFileLock(path))
 			{
-				try
-				{
-					_treeWatcher.Stop();
+			    var s = new SourceControlManager();
+                using (var scm = s.GetSourceControlManager(path))
+			    {
+			        try
+			        {
+			            _treeWatcher.Stop();
 
-					var directory = Path.GetDirectoryName(path);
-					if (directory != null && !Directory.Exists(directory)) Directory.CreateDirectory(directory);
+			            var directory = Path.GetDirectoryName(path);
+			            if (directory != null && !Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
-					using (var writer = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.None))
-					{
-						_formatter.WriteSerializedItem(proxiedItem, writer);
-					}
-				}
-				catch
-				{
-					if (File.Exists(path)) File.Delete(path);
-					throw;
-				}
-				finally
-				{
-					_treeWatcher.Restart();
-				}
+			            using (var writer = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.None))
+			            {
+			                _formatter.WriteSerializedItem(proxiedItem, writer);
+			            }
+			        }
+			        catch
+			        {
+			            if (File.Exists(path)) File.Delete(path);
+			            throw;
+			        }
+			        finally
+			        {
+			            _treeWatcher.Restart();
+			        }
+			    }
 			}
 
 			AddToMetadataCache(item);
