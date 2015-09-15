@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Rainbow.Filtering;
 
 namespace Rainbow.Tests.Filtering
 {
 	public class FilteredItemTests
 	{
-		[Test]
+		[Fact]
 		public void FilteredItem_DoesNotContainExpectedSharedField()
 		{
 			Guid fieldId = Guid.NewGuid();
@@ -18,10 +18,10 @@ namespace Rainbow.Tests.Filtering
 
 			var filteredItem = new FilteredItem(testItem, filter);
 
-			Assert.IsFalse(filteredItem.SharedFields.Any(field => field.FieldId == fieldId));
+			Assert.False(filteredItem.SharedFields.Any(field => field.FieldId == fieldId));
 		}
 
-		[Test]
+		[Fact]
 		public void FilteredItem_ContainsExpectedSharedField()
 		{
 			Guid fieldId = Guid.NewGuid();
@@ -31,10 +31,10 @@ namespace Rainbow.Tests.Filtering
 
 			var filteredItem = new FilteredItem(testItem, filter);
 
-			Assert.IsTrue(filteredItem.SharedFields.Any(field => field.FieldId == fieldId));
+			Assert.True(filteredItem.SharedFields.Any(field => field.FieldId == fieldId));
 		}
 
-		[Test]
+		[Fact]
 		public void FilteredItem_DoesNotContainExpectedVersionedField()
 		{
 			Guid fieldId = Guid.NewGuid();
@@ -44,10 +44,10 @@ namespace Rainbow.Tests.Filtering
 
 			var filteredItem = new FilteredItem(testItem, filter);
 
-			Assert.IsFalse(filteredItem.Versions.First().Fields.Any(field => field.FieldId == fieldId));
+			Assert.False(filteredItem.Versions.First().Fields.Any(field => field.FieldId == fieldId));
 		}
 
-		[Test]
+		[Fact]
 		public void FilteredItem_ContainsExpectedVersionedField()
 		{
 			Guid fieldId = Guid.NewGuid();
@@ -57,7 +57,7 @@ namespace Rainbow.Tests.Filtering
 
 			var filteredItem = new FilteredItem(testItem, filter);
 
-			Assert.IsTrue(filteredItem.Versions.First().Fields.Any(field => field.FieldId == fieldId));
+			Assert.True(filteredItem.Versions.First().Fields.Any(field => field.FieldId == fieldId));
 		}
 
 		private class TestFieldFilter : IFieldFilter

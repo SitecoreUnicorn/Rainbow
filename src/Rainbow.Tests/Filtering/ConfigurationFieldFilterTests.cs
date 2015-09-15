@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Xml;
-using NUnit.Framework;
+using Xunit;
 using Rainbow.Filtering;
 
 namespace Rainbow.Tests.Filtering
 {
 	public class ConfigurationFieldFilterTests
 	{
-		[Test]
+		[Fact]
 		public void FieldFilter_IgnoresExpectedFields()
 		{
 			var configXml = new XmlDocument();
@@ -15,10 +15,10 @@ namespace Rainbow.Tests.Filtering
 
 			var filter = new ConfigurationFieldFilter(configXml.DocumentElement);
 
-			Assert.IsFalse(filter.Includes(new Guid("{B1E16562-F3F9-4DDD-84CA-6E099950ECC0}")));
+			Assert.False(filter.Includes(new Guid("{B1E16562-F3F9-4DDD-84CA-6E099950ECC0}")));
 		}
 
-		[Test]
+		[Fact]
 		public void FieldFilter_IncludesExpectedFields()
 		{
 			var configXml = new XmlDocument();
@@ -26,7 +26,7 @@ namespace Rainbow.Tests.Filtering
 
 			var filter = new ConfigurationFieldFilter(configXml.DocumentElement);
 
-			Assert.IsTrue(filter.Includes(Guid.NewGuid()));
+			Assert.True(filter.Includes(Guid.NewGuid()));
 		}
 	}
 }

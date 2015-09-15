@@ -4,7 +4,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 {
 	public interface IDeserializer
 	{
-		IItemData Deserialize(IItemData serializedItemData, bool ignoreMissingTemplateFields);
+		IItemData Deserialize(IItemData serializedItemData);
 		IDataStore ParentDataStore { set; }
 	}
 }

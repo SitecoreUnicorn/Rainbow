@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using NSubstitute;
-using NUnit.Framework;
 using Rainbow.Filtering;
 using Rainbow.Model;
 using Rainbow.Storage.Sc.Deserialization;
@@ -11,6 +10,7 @@ using Sitecore;
 using Sitecore.Data;
 using Sitecore.Data.Items;
 using Sitecore.FakeDb;
+using Xunit;
 
 namespace Rainbow.Storage.Sc.Tests.Deserialization
 {
@@ -21,7 +21,7 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 		private readonly ID _testSharedFieldId = ID.NewID;
 		private readonly ID _testVersionedFieldId = ID.NewID;
 
-		[Test]
+		[Fact]
 		public void Deserialize_DeserializesNewItem()
 		{
 			using (var db = new Db())
@@ -40,20 +40,20 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 						})
 					});
 
-				var deserialized = deserializer.Deserialize(item, false);
+				var deserialized = deserializer.Deserialize(item);
 
-				Assert.IsNotNull(deserialized);
+				Assert.NotNull(deserialized);
 
 				var fromDb = db.GetItem(new ID(item.Id));
 
-				Assert.IsNotNull(fromDb);
-				Assert.AreEqual("Hello", fromDb[_testVersionedFieldId]);
-				Assert.AreEqual(item.ParentId, fromDb.ParentID.Guid);
-				Assert.AreEqual(item.TemplateId, fromDb.TemplateID.Guid);
+				Assert.NotNull(fromDb);
+				Assert.Equal("Hello", fromDb[_testVersionedFieldId]);
+				Assert.Equal(item.ParentId, fromDb.ParentID.Guid);
+				Assert.Equal(item.TemplateId, fromDb.TemplateID.Guid);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void Deserialize_DeserializesExistingItem_WithSharedFieldChanges()
 		{
 			RunItemChangeTest(
@@ -65,12 +65,12 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 				 },
 				assert: dbItem =>
 				{
-					Assert.AreEqual("Shared Value", dbItem[_testSharedFieldId]);
+					Assert.Equal("Shared Value", dbItem[_testSharedFieldId]);
 				}
 			);
 		}
 
-		[Test]
+		[Fact]
 		public void Deserialize_DeserializesExistingItem_WithVersionedFieldChanges()
 		{
 			RunItemChangeTest(
@@ -83,12 +83,12 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 				},
 				assert: dbItem =>
 				{
-					Assert.AreEqual("Versioned Value", dbItem[_testVersionedFieldId]);
+					Assert.Equal("Versioned Value", dbItem[_testVersionedFieldId]);
 				}
 			);
 		}
 
-		[Test]
+		[Fact]
 		public void Deserialize_DeserializesExistingItem_WithRenamed()
 		{
 			RunItemChangeTest(
@@ -98,12 +98,12 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 				},
 				assert: dbItem =>
 				{
-					Assert.AreEqual("Testy Item", dbItem.Name);
+					Assert.Equal("Testy Item", dbItem.Name);
 				}
 			);
 		}
 
-		[Test]
+		[Fact]
 		public void Deserialize_DeserializesExistingItem_WithMoved()
 		{
 			RunItemChangeTest(
@@ -113,13 +113,13 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 				},
 				assert: dbItem =>
 				{
-					Assert.AreEqual(ItemIDs.TemplateRoot, dbItem.ParentID);
-					Assert.AreEqual("/sitecore/templates/test item", dbItem.Paths.FullPath);
+					Assert.Equal(ItemIDs.TemplateRoot, dbItem.ParentID);
+					Assert.Equal("/sitecore/templates/test item", dbItem.Paths.FullPath);
 				}
 			);
 		}
 
-		[Test]
+		[Fact]
 		public void Deserialize_DeserializesExistingItem_WithTemplateChanged()
 		{
 			RunItemChangeTest(
@@ -129,12 +129,12 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 				},
 				assert: dbItem =>
 				{
-					Assert.AreEqual(_testTemplate2Id, dbItem.TemplateID);
+					Assert.Equal(_testTemplate2Id, dbItem.TemplateID);
 				}
 			);
 		}
 
-		[Test]
+		[Fact]
 		public void Deserialize_DeserializesExistingItem_WithVersionAdded()
 		{
 			RunItemChangeTest(
@@ -147,12 +147,12 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 				},
 				assert: dbItem =>
 				{
-					Assert.AreEqual(2, dbItem.Versions.Count);
+					Assert.Equal(2, dbItem.Versions.Count);
 				}
 			);
 		}
 
-		[Test]
+		[Fact]
 		public void Deserialize_DeserializesExistingItem_WithVersionRemoved()
 		{
 			RunItemChangeTest(
@@ -163,12 +163,12 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 				},
 				assert: dbItem =>
 				{
-					Assert.AreEqual(0, dbItem.Versions.Count);
+					Assert.Equal(0, dbItem.Versions.Count);
 				}
 			);
 		}
 
-		[Test]
+		[Fact]
 		public void Deserialize_IgnoresField_ExcludedWithFieldFilter()
 		{
 			var ignoredFieldId = ID.NewID;
@@ -195,11 +195,11 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 				fields.Add(new FakeFieldValue("Changed Ignored Value", fieldId:ignoredFieldId.Guid));
 				((ProxyItemVersion)itemData.Versions.First()).Fields = fields;
 
-				deserializer.Deserialize(itemData, false);
+				deserializer.Deserialize(itemData);
 
 				var fromDb = db.GetItem(itemId);
 
-				Assert.AreEqual(fromDb[ignoredFieldId], "Test Value");
+				Assert.Equal(fromDb[ignoredFieldId], "Test Value");
 			}
 		}
 
@@ -249,11 +249,11 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 
 				setup(itemData);
 
-				deserializer.Deserialize(itemData, false);
+				deserializer.Deserialize(itemData);
 
 				var fromDb = db.GetItem(itemId);
 
-				Assert.IsNotNull(fromDb);
+				Assert.NotNull(fromDb);
 				assert(fromDb);
 			}
 		}

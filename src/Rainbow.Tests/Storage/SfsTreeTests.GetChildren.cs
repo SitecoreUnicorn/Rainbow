@@ -1,11 +1,11 @@
 ﻿using System.Linq;
-using NUnit.Framework;
+using Xunit;
 
 namespace Rainbow.Tests.Storage
 {
 	partial class SfsTreeTests
 	{
-		[Test]
+		[Fact]
 		public void GetChildren_ReturnsExpectedItem_WhenRootPathIsParent_AndTreeIsAtRoot()
 		{
 			using (var testTree = new TestSfsTree())
@@ -16,13 +16,13 @@ namespace Rainbow.Tests.Storage
 
 				var children = testTree.GetChildren(root).ToArray();
 
-				Assert.IsNotNull(children);
-				Assert.AreEqual(1, children.Length);
-				Assert.AreEqual(children[0].Name, "templates");
+				Assert.NotNull(children);
+				Assert.Equal(1, children.Length);
+				Assert.Equal(children[0].Name, "templates");
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetChildren_ReturnsExpectedItem_WhenRootPathIsParent_AndTreeIsNested()
 		{
 			using (var testTree = new TestSfsTree("/sitecore/templates"))
@@ -33,13 +33,13 @@ namespace Rainbow.Tests.Storage
 
 				var children = testTree.GetChildren(root).ToArray();
 
-				Assert.IsNotNull(children);
-				Assert.AreEqual(1, children.Length);
-				Assert.AreEqual(children[0].Name, "User Defined");
+				Assert.NotNull(children);
+				Assert.Equal(1, children.Length);
+				Assert.Equal(children[0].Name, "User Defined");
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetChildren_ReturnsExpectedItem_WhenRootPathIsParent_AndTreeIsNested_AndCacheIsCleared()
 		{
 			using (var testTree = new TestSfsTree("/sitecore/templates"))
@@ -52,13 +52,13 @@ namespace Rainbow.Tests.Storage
 
 				var children = testTree.GetChildren(root).ToArray();
 
-				Assert.IsNotNull(children);
-				Assert.AreEqual(1, children.Length);
-				Assert.AreEqual(children[0].Name, "User Defined");
+				Assert.NotNull(children);
+				Assert.Equal(1, children.Length);
+				Assert.Equal(children[0].Name, "User Defined");
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetChildren_ReturnsExpectedItems_WhenMultipleMatchesExist()
 		{
 			using (var testTree = new TestSfsTree())
@@ -74,15 +74,15 @@ namespace Rainbow.Tests.Storage
 				// get the children of the root, which should include the two items
 				var results = testTree.GetChildren(testTree.GetRootItem()).ToArray();
 
-				Assert.AreEqual(2, results.Length);
-				Assert.AreNotEqual(results[0].Id, results[1].Id);
-				Assert.AreNotEqual(results[0].SerializedItemId, results[1].SerializedItemId);
-				Assert.IsTrue(results.Any(result => result.Name == "templates"));
-				Assert.IsTrue(results.Any(result => result.Name == "system"));
+				Assert.Equal(2, results.Length);
+				Assert.NotEqual(results[0].Id, results[1].Id);
+				Assert.NotEqual(results[0].SerializedItemId, results[1].SerializedItemId);
+				Assert.True(results.Any(result => result.Name == "templates"));
+				Assert.True(results.Any(result => result.Name == "system"));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetChildren_ReturnsExpectedItems_WhenMultipleSameNamedMatchesExist()
 		{
 			using (var testTree = new TestSfsTree())
@@ -98,13 +98,13 @@ namespace Rainbow.Tests.Storage
 				// get the children of the root, which should include the two same named items
 				var results = testTree.GetChildren(testTree.GetRootItem()).ToArray();
 
-				Assert.AreEqual(2, results.Length);
-				Assert.AreNotEqual(results[0].Id, results[1].Id);
-				Assert.AreNotEqual(results[0].SerializedItemId, results[1].SerializedItemId);
+				Assert.Equal(2, results.Length);
+				Assert.NotEqual(results[0].Id, results[1].Id);
+				Assert.NotEqual(results[0].SerializedItemId, results[1].SerializedItemId);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetChildren_ReturnsExpectedItems_WhenNameTruncationCausesSimilarNames()
 		{
 			using (var testTree = new TestSfsTree())
@@ -133,14 +133,14 @@ namespace Rainbow.Tests.Storage
 				var multilistChildren = testTree.GetChildren(multilist).ToArray();
 				var multilistWithSearchChildren = testTree.GetChildren(multilistWithSearch).ToArray();
 
-				Assert.AreEqual(1, multilistChildren.Length);
-				Assert.AreEqual(multilistChild.Id, multilistChildren.First().Id);
-				Assert.AreEqual(1, multilistWithSearchChildren.Length);
-				Assert.AreEqual(multilistWithSearchChild.Id, multilistWithSearchChildren.First().Id);
+				Assert.Equal(1, multilistChildren.Length);
+				Assert.Equal(multilistChild.Id, multilistChildren.First().Id);
+				Assert.Equal(1, multilistWithSearchChildren.Length);
+				Assert.Equal(multilistWithSearchChild.Id, multilistWithSearchChildren.First().Id);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetChildren_ReturnsExpectedItems_WhenMultipleMatchesExist_ThroughSeparateParents()
 		{
 			using (var testTree = new TestSfsTree())
@@ -164,12 +164,12 @@ namespace Rainbow.Tests.Storage
 				// get the children of templates1, which should NOT include templates2's child
 				var results = testTree.GetChildren(templates1).ToArray();
 
-				Assert.AreEqual(1, results.Length);
-				Assert.AreEqual("User Defined", results[0].Name);
+				Assert.Equal(1, results.Length);
+				Assert.Equal("User Defined", results[0].Name);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetChildren_ReturnsEmptyEnumerable_WhenNoChildrenExist()
 		{
 			using (var testTree = new TestSfsTree())
@@ -179,12 +179,12 @@ namespace Rainbow.Tests.Storage
 				// get the children of the root, which be empty
 				var results = testTree.GetChildren(testTree.GetRootItem());
 
-				Assert.IsNotNull(results);
-				Assert.IsEmpty(results);
+				Assert.NotNull(results);
+				Assert.Empty(results);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetChildren_ReturnsExpectedItem_WhenNamesContainInvalidPathChars()
 		{
 			using (var testTree = new TestSfsTree("/<html>"))
@@ -195,9 +195,9 @@ namespace Rainbow.Tests.Storage
 
 				var children = testTree.GetChildren(root).ToArray();
 
-				Assert.IsNotNull(children);
-				Assert.AreEqual(1, children.Length);
-				Assert.AreEqual(children[0].Name, "$head");
+				Assert.NotNull(children);
+				Assert.Equal(1, children.Length);
+				Assert.Equal(children[0].Name, "$head");
 			}
 		}
 	}

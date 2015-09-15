@@ -3,51 +3,51 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 
 namespace Rainbow.Tests
 {
 	public class DocumentationUtilityTests
 	{
-		[Test]
+		[Fact]
 		public void GetFriendlyName_ReturnsExpectedValue_WhenItemIsDocumentable()
 		{
-			Assert.AreEqual("Test", DocumentationUtility.GetFriendlyName(new Documentable()));
+			Assert.Equal("Test", DocumentationUtility.GetFriendlyName(new Documentable()));
 		}
 
-		[Test]
+		[Fact]
 		public void GetFriendlyName_ReturnsExpectedValue_WhenItemIsNotDocumentable()
 		{
-			Assert.AreEqual(typeof(object).Name, DocumentationUtility.GetFriendlyName(new object()));
+			Assert.Equal(typeof(object).Name, DocumentationUtility.GetFriendlyName(new object()));
 		}
 
-		[Test]
+		[Fact]
 		public void GetDescription_ReturnsExpectedValue_WhenItemIsDocumentable()
 		{
-			Assert.AreEqual("Description", DocumentationUtility.GetDescription(new Documentable()));
+			Assert.Equal("Description", DocumentationUtility.GetDescription(new Documentable()));
 		}
 
-		[Test]
+		[Fact]
 		public void GetDescription_ReturnsExpectedValue_WhenItemIsNotDocumentable()
 		{
-			Assert.AreEqual(typeof(object).AssemblyQualifiedName, DocumentationUtility.GetDescription(new object()));
+			Assert.Equal(typeof(object).AssemblyQualifiedName, DocumentationUtility.GetDescription(new object()));
 		}
 
-		[Test]
+		[Fact]
 		public void GetConfigurationDetails_ReturnsExpectedValue_WhenItemIsDocumentable()
 		{
 			var details = DocumentationUtility.GetConfigurationDetails(new Documentable());
-			Assert.IsNotEmpty(details);
-			Assert.AreEqual("Test", details[0].Key);
+			Assert.NotEmpty(details);
+			Assert.Equal("Test", details[0].Key);
 		}
 
-		[Test]
+		[Fact]
 		public void GetConfigurationDetails_ReturnsExpectedValue_WhenItemIsNotDocumentable()
 		{
 			var details = DocumentationUtility.GetConfigurationDetails(new object());
 
-			Assert.IsNotNull(details);
-			Assert.IsEmpty(details);
+			Assert.NotNull(details);
+			Assert.Empty(details);
 		}
 
 		private class Documentable : IDocumentable

@@ -60,7 +60,7 @@ namespace Rainbow.Storage.Yaml
 			var guidString = mapFunction(expectedKey);
 			Guid result;
 
-			if (!Guid.TryParseExact(guidString, "D", out result)) throw new InvalidOperationException(CreateErrorMessage("Map value was not a valid GUID. Got " + guidString));
+			if (!Guid.TryParseExact(guidString, "D", out result)) throw new InvalidOperationException(CreateErrorMessage("YAML map value was not the valid GUID that was expected. Got " + guidString));
 
 			return result;
 		}
@@ -69,9 +69,9 @@ namespace Rainbow.Storage.Yaml
 		{
 			var map = mapFunction();
 
-			if (map == null) throw new InvalidOperationException(CreateErrorMessage("Unable to read expected " + expectedKey + " map; found end of file instead."));
+			if (map == null) throw new InvalidOperationException(CreateErrorMessage("Unable to read expected YAML map '" + expectedKey + "'; found end of file instead."));
 
-			if (!map.Value.Key.Equals(expectedKey, StringComparison.Ordinal)) throw new InvalidOperationException(CreateErrorMessage("Expected map key " + expectedKey + " was not found. Instead got " + map.Value.Key));
+			if (!map.Value.Key.Equals(expectedKey, StringComparison.Ordinal)) throw new InvalidOperationException(CreateErrorMessage("Expected YAML map key '" + expectedKey + "' was not found. Instead found '" + map.Value.Key + "'"));
 
 			return map.Value.Value;
 		}
@@ -172,7 +172,7 @@ namespace Rainbow.Storage.Yaml
 			} while (true);
 		}
 
-		protected string CreateErrorMessage(string message)
+		public string CreateErrorMessage(string message)
 		{
 			return "Line " + _readerAdapter.CurrentLine + ": " + message;
 		}

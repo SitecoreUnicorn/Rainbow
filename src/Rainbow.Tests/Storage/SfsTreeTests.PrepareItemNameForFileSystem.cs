@@ -1,37 +1,37 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 
 namespace Rainbow.Tests.Storage
 {
 	partial class SfsTreeTests
 	{
-		[Test]
-		[TestCase("hello.yml", "hello.yml")]
-		[TestCase("hello\\there.yml", "hello_there.yml")]
-		[TestCase("hello/there.yml", "hello_there.yml")]
-		[TestCase("$name", "_name")]
-		[TestCase("hello%d", "hello_d")]
-		[TestCase("hello? is it you?", "hello_ is it you_")]
-		[TestCase("<html>", "_html_")]
-		[TestCase("hello | %", "hello _ _")]
-		[TestCase("woo*", "woo_")]
-		[TestCase("yes \"sir\"", "yes _sir_")]
+		[Theory]
+		[InlineData("hello.yml", "hello.yml")]
+		[InlineData("hello\\there.yml", "hello_there.yml")]
+		[InlineData("hello/there.yml", "hello_there.yml")]
+		[InlineData("$name", "_name")]
+		[InlineData("hello%d", "hello_d")]
+		[InlineData("hello? is it you?", "hello_ is it you_")]
+		[InlineData("<html>", "_html_")]
+		[InlineData("hello | %", "hello _ _")]
+		[InlineData("woo*", "woo_")]
+		[InlineData("yes \"sir\"", "yes _sir_")]
 		public void PrepareItemNameForFileSystem_FiltersIllegalCharacters(string input, string expectedOutput)
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				Assert.AreEqual(expectedOutput, testTree.PrepareItemNameForFileSystemTest(input));
+				Assert.Equal(expectedOutput, testTree.PrepareItemNameForFileSystemTest(input));
 			}
 		}
 
-		[Test]
-		[TestCase("hello", "hello")]
-		[TestCase("hello hello", "hello hell")]
+		[Theory]
+		[InlineData("hello", "hello")]
+		[InlineData("hello hello", "hello hell")]
 		public void PrepareItemNameForFileSystem_TruncatesLongFileNames(string input, string expectedOutput)
 		{
 			using (var testTree = new TestSfsTree())
 			{
 				testTree.MaxFileNameLengthForTests = 10;
-				Assert.AreEqual(expectedOutput, testTree.PrepareItemNameForFileSystemTest(input));
+				Assert.Equal(expectedOutput, testTree.PrepareItemNameForFileSystemTest(input));
 			}
 		}
 	}

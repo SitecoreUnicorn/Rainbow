@@ -1,12 +1,12 @@
 ﻿using System.IO;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 
 namespace Rainbow.Tests.Storage
 {
 	partial class SfsTreeTests
 	{
-		[Test]
+		[Fact]
 		public void Remove_DeletesItem_WhenItemIsRoot()
 		{
 			using (var testTree = new TestSfsTree())
@@ -15,15 +15,15 @@ namespace Rainbow.Tests.Storage
 
 				testTree.Remove(testTree.GetRootItem());
 
-				Assert.IsEmpty(Directory.GetFileSystemEntries(testTree.PhysicalRootPathTest));
+				Assert.Empty(Directory.GetFileSystemEntries(testTree.PhysicalRootPathTest));
 
 				var root = testTree.GetRootItem();
 
-				Assert.IsNull(root);
+				Assert.Null(root);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void Remove_DeletesItem_WhenItemIsChild()
 		{
 			using (var testTree = new TestSfsTree())
@@ -34,12 +34,12 @@ namespace Rainbow.Tests.Storage
 
 				testTree.Remove(item);
 
-				Assert.IsEmpty(Directory.GetFileSystemEntries(Path.GetDirectoryName(item.SerializedItemId)));
-				Assert.IsEmpty(testTree.GetItemsByPath("/sitecore/content/foo"));
+				Assert.Empty(Directory.GetFileSystemEntries(Path.GetDirectoryName(item.SerializedItemId)));
+				Assert.Empty(testTree.GetItemsByPath("/sitecore/content/foo"));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void Remove_DeletesItem_WhenItemHasChildren()
 		{
 			using (var testTree = new TestSfsTree())
@@ -50,12 +50,12 @@ namespace Rainbow.Tests.Storage
 
 				testTree.Remove(item);
 
-				Assert.IsEmpty(Directory.GetFileSystemEntries(Path.GetDirectoryName(item.SerializedItemId)));
-				Assert.IsEmpty(testTree.GetItemsByPath("/sitecore/content"));
+				Assert.Empty(Directory.GetFileSystemEntries(Path.GetDirectoryName(item.SerializedItemId)));
+				Assert.Empty(testTree.GetItemsByPath("/sitecore/content"));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void Remove_DeletesItem_WhenItemHasChildren_AndCacheIsEmpty()
 		{
 			using (var testTree = new TestSfsTree())
@@ -68,12 +68,12 @@ namespace Rainbow.Tests.Storage
 
 				testTree.Remove(item);
 
-				Assert.IsEmpty(Directory.GetFileSystemEntries(Path.GetDirectoryName(item.SerializedItemId)));
-				Assert.IsEmpty(testTree.GetItemsByPath("/sitecore/content"));
+				Assert.Empty(Directory.GetFileSystemEntries(Path.GetDirectoryName(item.SerializedItemId)));
+				Assert.Empty(testTree.GetItemsByPath("/sitecore/content"));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void Remove_DeletesItem_WhenItemHasChildrenInLoopbackDirectory()
 		{
 			using (var testTree = new TestSfsTree())
@@ -89,13 +89,13 @@ namespace Rainbow.Tests.Storage
 
 				testTree.Remove(loopParent);
 
-				Assert.IsFalse(File.Exists(loopParent.SerializedItemId));
-				Assert.IsFalse(Directory.Exists(Path.Combine(testTree.PhysicalRootPathTest, loopParent.Id.ToString())));
-				Assert.IsFalse(File.Exists(helloItem.SerializedItemId));
+				Assert.False(File.Exists(loopParent.SerializedItemId));
+				Assert.False(Directory.Exists(Path.Combine(testTree.PhysicalRootPathTest, loopParent.Id.ToString())));
+				Assert.False(File.Exists(helloItem.SerializedItemId));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void Remove_DeletesItem_WhenItemHasChildrenInDoubleLoopbackDirectory()
 		{
 			using (var testTree = new TestSfsTree())
@@ -112,9 +112,9 @@ namespace Rainbow.Tests.Storage
 
 				testTree.Remove(loopParent);
 
-				Assert.IsFalse(File.Exists(loop2Parent.SerializedItemId));
-				Assert.IsFalse(Directory.Exists(Path.Combine(testTree.PhysicalRootPathTest, loop2Parent.Id.ToString())));
-				Assert.IsFalse(File.Exists(helloItem.SerializedItemId));
+				Assert.False(File.Exists(loop2Parent.SerializedItemId));
+				Assert.False(Directory.Exists(Path.Combine(testTree.PhysicalRootPathTest, loop2Parent.Id.ToString())));
+				Assert.False(File.Exists(helloItem.SerializedItemId));
 			}
 		}
 	}

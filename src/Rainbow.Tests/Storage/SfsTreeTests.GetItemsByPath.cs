@@ -1,11 +1,11 @@
 ﻿using System.Linq;
-using NUnit.Framework;
+using Xunit;
 
 namespace Rainbow.Tests.Storage
 {
 	partial class SfsTreeTests
 	{
-		[Test]
+		[Fact]
 		public void GetItemsByPath_ReturnsExpectedItem_WhenRootPathIsRequested_AndTreeIsAtRoot()
 		{
 			using (var testTree = new TestSfsTree())
@@ -14,13 +14,13 @@ namespace Rainbow.Tests.Storage
 
 				var root = testTree.GetItemsByPath("/sitecore").ToArray();
 
-				Assert.IsNotNull(root);
-				Assert.IsNotEmpty(root);
-				Assert.AreEqual(root.First().Name, "sitecore");
+				Assert.NotNull(root);
+				Assert.NotEmpty(root);
+				Assert.Equal(root.First().Name, "sitecore");
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetItemsByPath_ReturnsExpectedItem_WhenRootPathIsRequested_AndTreeIsNested()
 		{
 			using (var testTree = new TestSfsTree("/sitecore/templates"))
@@ -29,13 +29,13 @@ namespace Rainbow.Tests.Storage
 
 				var root = testTree.GetItemsByPath("/sitecore/templates").ToArray();
 
-				Assert.IsNotNull(root);
-				Assert.IsNotEmpty(root);
-				Assert.AreEqual(root.First().Name, "templates");
+				Assert.NotNull(root);
+				Assert.NotEmpty(root);
+				Assert.Equal(root.First().Name, "templates");
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetItemsByPath_ReturnsExpectedItem_WhenChildPathIsRequested_AndTreeIsAtRoot()
 		{
 			using (var testTree = new TestSfsTree())
@@ -44,13 +44,13 @@ namespace Rainbow.Tests.Storage
 
 				var root = testTree.GetItemsByPath("/sitecore/templates/User Defined").ToArray();
 
-				Assert.IsNotNull(root);
-				Assert.IsNotEmpty(root);
-				Assert.AreEqual(root.First().Name, "User Defined");
+				Assert.NotNull(root);
+				Assert.NotEmpty(root);
+				Assert.Equal(root.First().Name, "User Defined");
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetItemsByPath_ReturnsExpectedItem_WhenChildPathIsRequested_AndTreeIsAtRoot_CaseInsensitive()
 		{
 			using (var testTree = new TestSfsTree())
@@ -61,13 +61,13 @@ namespace Rainbow.Tests.Storage
 
 				var root = testTree.GetItemsByPath("/sitecore/templates/uSer dEfiNed").ToArray();
 
-				Assert.IsNotNull(root);
-				Assert.IsNotEmpty(root);
-				Assert.AreEqual(root.First().Name, "User Defined");
+				Assert.NotNull(root);
+				Assert.NotEmpty(root);
+				Assert.Equal(root.First().Name, "User Defined");
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetItemsByPath_ReturnsExpectedItem_WhenChildPathIsRequested_AndTreeIsNested()
 		{
 			using (var testTree = new TestSfsTree("/sitecore/templates"))
@@ -76,13 +76,13 @@ namespace Rainbow.Tests.Storage
 
 				var root = testTree.GetItemsByPath("/sitecore/templates/User Defined").ToArray();
 
-				Assert.IsNotNull(root);
-				Assert.IsNotEmpty(root);
-				Assert.AreEqual(root.First().Name, "User Defined");
+				Assert.NotNull(root);
+				Assert.NotEmpty(root);
+				Assert.Equal(root.First().Name, "User Defined");
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetItemsByPath_ReturnsExpectedItem_WhenChildPathIsRequested_AndNamesContainInvalidPathChars()
 		{
 			using (var testTree = new TestSfsTree("/?hello*"))
@@ -91,13 +91,13 @@ namespace Rainbow.Tests.Storage
 
 				var root = testTree.GetItemsByPath("/?hello*/%there%").ToArray();
 
-				Assert.IsNotNull(root);
-				Assert.IsNotEmpty(root);
-				Assert.AreEqual(root.First().Name, "%there%");
+				Assert.NotNull(root);
+				Assert.NotEmpty(root);
+				Assert.Equal(root.First().Name, "%there%");
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetItemsByPath_ReturnsExpectedItems_WhenChildPathIsRequested_AndMultipleMatchesExist()
 		{
 			using (var testTree = new TestSfsTree())
@@ -112,13 +112,13 @@ namespace Rainbow.Tests.Storage
 
 				var results = testTree.GetItemsByPath(treePath).ToArray();
 
-				Assert.AreEqual(2, results.Length);
-				Assert.AreNotEqual(results[0].Id, results[1].Id);
-				Assert.AreNotEqual(results[0].SerializedItemId, results[1].SerializedItemId);
+				Assert.Equal(2, results.Length);
+				Assert.NotEqual(results[0].Id, results[1].Id);
+				Assert.NotEqual(results[0].SerializedItemId, results[1].SerializedItemId);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetItemsByPath_ReturnsExpectedItems_WhenChildPathIsRequested_AndMultipleMatchesExist_ThroughSeparateParents()
 		{
 			using (var testTree = new TestSfsTree())
@@ -141,15 +141,15 @@ namespace Rainbow.Tests.Storage
 
 				var results = testTree.GetItemsByPath("/sitecore/templates").ToArray();
 
-				Assert.AreEqual(2, results.Length);
-				Assert.AreNotEqual(results[0].Id, results[1].Id);
-				Assert.AreNotEqual(results[0].SerializedItemId, results[1].SerializedItemId);
-				Assert.IsTrue(results.Any(result => result.Id == templates1.Id));
-				Assert.IsTrue(results.Any(result => result.Id == templates2.Id));
+				Assert.Equal(2, results.Length);
+				Assert.NotEqual(results[0].Id, results[1].Id);
+				Assert.NotEqual(results[0].SerializedItemId, results[1].SerializedItemId);
+				Assert.True(results.Any(result => result.Id == templates1.Id));
+				Assert.True(results.Any(result => result.Id == templates2.Id));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetItemByPath_GetsExpectedItem_WhenItemNameIsTooLong()
 		{
 			using (var testTree = new TestSfsTree())
@@ -160,13 +160,13 @@ namespace Rainbow.Tests.Storage
 
 				var overlengthItem = testTree.GetItemsByPath("/sitecore/hello hello").ToArray();
 
-				Assert.AreEqual(1, overlengthItem.Count());
+				Assert.Equal(1, overlengthItem.Count());
 
-				Assert.AreEqual("/sitecore/hello hello", overlengthItem.First().Path);
+				Assert.Equal("/sitecore/hello hello", overlengthItem.First().Path);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetItemByPath_GetsExpectedItem_WhenPathIsAChildOfShortenedName()
 		{
 			using (var testTree = new TestSfsTree())
@@ -177,13 +177,13 @@ namespace Rainbow.Tests.Storage
 
 				var overlengthChild = testTree.GetItemsByPath("/sitecore/hello hello/goodbye").ToArray();
 
-				Assert.AreEqual(1, overlengthChild.Count());
+				Assert.Equal(1, overlengthChild.Count());
 
-				Assert.AreEqual("/sitecore/hello hello/goodbye", overlengthChild.First().Path);
+				Assert.Equal("/sitecore/hello hello/goodbye", overlengthChild.First().Path);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetItemByPath_GetsExpectedItem_WhenItemNameIsTooLong_AndItemsWithSameShortenedNameExist()
 		{
 			using (var testTree = new TestSfsTree())
@@ -196,8 +196,8 @@ namespace Rainbow.Tests.Storage
 
 				var overlengthItem = testTree.GetItemsByPath("/sitecore/hello hello").ToArray();
 
-				Assert.AreEqual(1, overlengthItem.Count());
-				Assert.AreEqual("/sitecore/hello hello", overlengthItem.First().Path);
+				Assert.Equal(1, overlengthItem.Count());
+				Assert.Equal("/sitecore/hello hello", overlengthItem.First().Path);
 			}
 		}
 	}

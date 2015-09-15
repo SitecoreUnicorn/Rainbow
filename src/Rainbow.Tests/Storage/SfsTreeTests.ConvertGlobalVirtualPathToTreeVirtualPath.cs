@@ -1,24 +1,24 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 
 namespace Rainbow.Tests.Storage
 {
 	partial class SfsTreeTests
 	{
-		[Test]
+		[Fact]
 		public void ConvertGlobalVirtualPathToTreeVirtualPath_ReturnsExpectedValue_WhenTreeIsAtRoot()
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				Assert.AreEqual("/sitecore/hello", testTree.ConvertGlobalPathToTreePathTest("/sitecore/hello"));
+				Assert.Equal("/sitecore/hello", testTree.ConvertGlobalPathToTreePathTest("/sitecore/hello"));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void ConvertGlobalVirtualPathToTreeVirtualPath_ReturnsExpectedValue_WhenTreeIsNested()
 		{
 			using (var testTree = new TestSfsTree("/sitecore/content/templates"))
 			{
-				Assert.AreEqual("/templates/User Defined", testTree.ConvertGlobalPathToTreePathTest("/sitecore/content/templates/User Defined"));
+				Assert.Equal("/templates/User Defined", testTree.ConvertGlobalPathToTreePathTest("/sitecore/content/templates/User Defined"));
 			}
 		}
 	}

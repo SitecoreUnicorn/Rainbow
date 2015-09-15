@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 
 namespace Rainbow.Tests.Storage
 {
 	public class SfsDataStoreTests
 	{
-		[Test]
+		[Fact]
 		public void Save_SavesItem()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
@@ -17,7 +17,7 @@ namespace Rainbow.Tests.Storage
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void Save_ErrorWhenItemNotInTree()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
@@ -28,7 +28,7 @@ namespace Rainbow.Tests.Storage
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void MoveOrRename_RenamesItem()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
@@ -47,12 +47,12 @@ namespace Rainbow.Tests.Storage
 
 				var retrieved = dataStore.GetByPath("/sitecore/hexed", "master").ToArray();
 
-				Assert.IsNotEmpty(retrieved);
-				Assert.AreEqual("/sitecore/hexed", retrieved.First().Path);
+				Assert.NotEmpty(retrieved);
+				Assert.Equal("/sitecore/hexed", retrieved.First().Path);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetByPath_RetrievesItemByPath()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
@@ -63,12 +63,12 @@ namespace Rainbow.Tests.Storage
 
 				var retrieved = dataStore.GetByPath("/sitecore", "master").ToArray();
 
-				Assert.IsNotEmpty(retrieved);
-				Assert.AreEqual("/sitecore", retrieved.First().Path);
+				Assert.NotEmpty(retrieved);
+				Assert.Equal("/sitecore", retrieved.First().Path);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetByPathAndId_RetrievesItemByMetadataPath()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
@@ -79,12 +79,12 @@ namespace Rainbow.Tests.Storage
 
 				var retrieved = dataStore.GetByPathAndId(item.Path, item.Id, "master");
 
-				Assert.IsNotNull(retrieved);
-				Assert.AreEqual("/sitecore", retrieved.Path);
+				Assert.NotNull(retrieved);
+				Assert.Equal("/sitecore", retrieved.Path);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void Remove_RemovesItem()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
@@ -97,11 +97,11 @@ namespace Rainbow.Tests.Storage
 
 				var root = dataStore.GetByPath("/sitecore", "master");
 
-				Assert.IsEmpty(root);
+				Assert.Empty(root);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetChildren_GetsExpectedChildren()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
@@ -118,12 +118,12 @@ namespace Rainbow.Tests.Storage
 
 				var kids = dataStore.GetChildren(item).ToArray();
 
-				Assert.IsNotEmpty(kids);
-				Assert.AreEqual("/sitecore/test", kids.First().Path);
+				Assert.NotEmpty(kids);
+				Assert.Equal("/sitecore/test", kids.First().Path);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetMetadataByTemplateId_GetsExpectedItem_WhenTargetIsAtRoot()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
@@ -136,12 +136,12 @@ namespace Rainbow.Tests.Storage
 
 				var byTemplate = dataStore.GetMetadataByTemplateId(templateId, "master").ToArray();
 
-				Assert.AreEqual(1, byTemplate.Length);
-				Assert.AreEqual(templateId, byTemplate[0].TemplateId);
+				Assert.Equal(1, byTemplate.Length);
+				Assert.Equal(templateId, byTemplate[0].TemplateId);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetMetadataByTemplateId_GetsExpectedItem_WhenTargetIsMultipleChildren()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
@@ -158,12 +158,12 @@ namespace Rainbow.Tests.Storage
 
 				var byTemplate = dataStore.GetMetadataByTemplateId(templateId, "master").ToArray();
 
-				Assert.AreEqual(2, byTemplate.Length);
-				Assert.AreEqual(templateId, byTemplate[0].TemplateId);
+				Assert.Equal(2, byTemplate.Length);
+				Assert.Equal(templateId, byTemplate[0].TemplateId);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void Clear_ClearsTree()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
@@ -174,11 +174,11 @@ namespace Rainbow.Tests.Storage
 
 				dataStore.Clear();
 
-				Assert.IsEmpty(dataStore.GetByPath("/sitecore", "master"));
+				Assert.Empty(dataStore.GetByPath("/sitecore", "master"));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void GetById_GetsExpectedItem()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
@@ -188,7 +188,7 @@ namespace Rainbow.Tests.Storage
 
 				dataStore.Save(item);
 
-				Assert.IsNotNull(dataStore.GetById(id, "master"));
+				Assert.NotNull(dataStore.GetById(id, "master"));
 			}
 		}
 	}

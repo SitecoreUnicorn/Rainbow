@@ -20,8 +20,6 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 		void AddedNewVersion(Item newVersion);
 
-		void SkippedMissingTemplateField(Item item, IItemFieldValue field);
-
 		void WroteBlobStream(Item item, IItemFieldValue field);
 
 		void UpdatedChangedFieldValue(Item item, IItemFieldValue field, string oldValue);

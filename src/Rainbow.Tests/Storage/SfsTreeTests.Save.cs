@@ -1,56 +1,56 @@
 ﻿using System.IO;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 
 namespace Rainbow.Tests.Storage
 {
 	partial class SfsTreeTests
 	{
-		[Test]
+		[Fact]
 		public void Save_WritesItem_WhenItemIsRoot_AndTreeIsAtRoot()
 		{
 			using (var testTree = new TestSfsTree())
 			{
 				CreateTestTree("/sitecore", testTree);
 
-				Assert.IsTrue(File.Exists(Path.Combine(testTree.PhysicalRootPathTest, "sitecore.yml")));
+				Assert.True(File.Exists(Path.Combine(testTree.PhysicalRootPathTest, "sitecore.yml")));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void Save_WritesItem_WhenItemIsNested_AndTreeIsAtRoot()
 		{
 			using (var testTree = new TestSfsTree())
 			{
 				CreateTestTree("/sitecore/hello", testTree);
 
-				Assert.IsTrue(File.Exists(Path.Combine(testTree.PhysicalRootPathTest, "sitecore", "hello.yml")));
+				Assert.True(File.Exists(Path.Combine(testTree.PhysicalRootPathTest, "sitecore", "hello.yml")));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void Save_WritesItem_WhenItemIsRoot_AndTreeIsNested()
 		{
 			using (var testTree = new TestSfsTree("/sitecore/templates"))
 			{
 				CreateTestTree("/sitecore/templates", testTree);
 
-				Assert.IsTrue(File.Exists(Path.Combine(testTree.PhysicalRootPathTest, "templates.yml")));
+				Assert.True(File.Exists(Path.Combine(testTree.PhysicalRootPathTest, "templates.yml")));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void Save_WritesItem_WhenItemIsNested_AndTreeIsNested()
 		{
 			using (var testTree = new TestSfsTree("/sitecore/templates"))
 			{
 				CreateTestTree("/sitecore/templates/hello", testTree);
 
-				Assert.IsTrue(File.Exists(Path.Combine(testTree.PhysicalRootPathTest, "templates", "hello.yml")));
+				Assert.True(File.Exists(Path.Combine(testTree.PhysicalRootPathTest, "templates", "hello.yml")));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void Save_WritesItem_WhenPathRequiresLoopbackFolder()
 		{
 			using (var testTree = new TestSfsTree())
@@ -63,13 +63,13 @@ namespace Rainbow.Tests.Storage
 				
 				var loopedItem = testTree.GetChildren(rootItem).First();
 
-				Assert.AreEqual("/sitecore/content", loopedItem.Path);
+				Assert.Equal("/sitecore/content", loopedItem.Path);
 				// loopback path will have root item ID in it
-				Assert.IsTrue(loopedItem.SerializedItemId.Contains(rootItem.Id.ToString()));
+				Assert.True(loopedItem.SerializedItemId.Contains(rootItem.Id.ToString()));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void Save_WritesItem_WhenPathRequiresChildOfLoopbackFolder()
 		{
 			using (var testTree = new TestSfsTree())
@@ -83,13 +83,13 @@ namespace Rainbow.Tests.Storage
 				var loopParent = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet").First();
                 var helloItem = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet/e/hello").First();
 
-				Assert.AreEqual("/sitecore/content lorem/ipsum dolor/sit amet/e/hello", helloItem.Path);
+				Assert.Equal("/sitecore/content lorem/ipsum dolor/sit amet/e/hello", helloItem.Path);
 				// hello item will have looped id in it
-				Assert.IsTrue(helloItem.SerializedItemId.Contains(loopParent.Id.ToString()));
+				Assert.True(helloItem.SerializedItemId.Contains(loopParent.Id.ToString()));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void Save_WritesItem_WhenPathRequiresDoubleLoopbackFolder()
 		{
 			using (var testTree = new TestSfsTree())
@@ -106,17 +106,17 @@ namespace Rainbow.Tests.Storage
 
 				var secondLoopedItem = testTree.GetChildren(loopedItem).First();
 
-				Assert.AreEqual("/sitecore/content", loopedItem.Path);
+				Assert.Equal("/sitecore/content", loopedItem.Path);
 				// loopback path will have root item ID in it
-				Assert.IsTrue(loopedItem.SerializedItemId.Contains(rootItem.Id.ToString()));
+				Assert.True(loopedItem.SerializedItemId.Contains(rootItem.Id.ToString()));
 
-				Assert.AreEqual("/sitecore/content/hello", secondLoopedItem.Path);
+				Assert.Equal("/sitecore/content/hello", secondLoopedItem.Path);
 				// loopback path will have root item ID in it
-				Assert.IsTrue(secondLoopedItem.SerializedItemId.Contains(loopedItem.Id.ToString()));
+				Assert.True(secondLoopedItem.SerializedItemId.Contains(loopedItem.Id.ToString()));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void Save_WritesItem_WhenPathRequiresChildOfDoubleLoopbackFolder()
 		{
 			using (var testTree = new TestSfsTree())
@@ -130,13 +130,13 @@ namespace Rainbow.Tests.Storage
 				var loopParent = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet/elitr foo bar baz").First();
 				var helloItem = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet/elitr foo bar baz/h/hello").First();
 
-				Assert.AreEqual("/sitecore/content lorem/ipsum dolor/sit amet/elitr foo bar baz/h/hello", helloItem.Path);
+				Assert.Equal("/sitecore/content lorem/ipsum dolor/sit amet/elitr foo bar baz/h/hello", helloItem.Path);
 				// hello item will have looped id in it
-				Assert.IsTrue(helloItem.SerializedItemId.Contains(loopParent.Id.ToString()));
+				Assert.True(helloItem.SerializedItemId.Contains(loopParent.Id.ToString()));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void Save_WritesItem_WhenItemNameIsFullOfInvalidChars()
 		{
 			using (var testTree = new TestSfsTree())
@@ -147,11 +147,11 @@ namespace Rainbow.Tests.Storage
 
 				var charsItem = testTree.GetChildren(rootItem).First();
 
-				Assert.AreEqual("/sitecore/%<html>?*", charsItem.Path);
+				Assert.Equal("/sitecore/%<html>?*", charsItem.Path);
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void Save_WritesItem_WhenItemNameIsTooLong()
 		{
 			using (var testTree = new TestSfsTree())
@@ -164,13 +164,13 @@ namespace Rainbow.Tests.Storage
 
 				var overlengthItem = testTree.GetChildren(rootItem).First();
 
-				Assert.AreEqual("/sitecore/hello hello", overlengthItem.Path);
+				Assert.Equal("/sitecore/hello hello", overlengthItem.Path);
 				// name should be truncated
-				Assert.IsTrue(overlengthItem.SerializedItemId.EndsWith("hello hell.yml"));
+				Assert.True(overlengthItem.SerializedItemId.EndsWith("hello hell.yml"));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void Save_WritesExpectedItems_WhenItemNameIsTooLong_AndItemsWithSameShortenedNameExist()
 		{
 			using (var testTree = new TestSfsTree())
@@ -181,11 +181,34 @@ namespace Rainbow.Tests.Storage
 
 				testTree.Save(CreateTestItem("/sitecore/hello hello hello", testTree.GetRootItem().Id));
 
-				var overlengthItems = testTree.GetChildren(testTree.GetRootItem()).ToArray();
+				var overlengthItems = testTree.GetChildren(testTree.GetRootItem()).OrderBy(i => i.SerializedItemId).ToArray();
 
-				Assert.AreEqual(2, overlengthItems.Count());
-				Assert.IsTrue(overlengthItems.Any(item => item.Path == "/sitecore/hello hello"));
-				Assert.IsTrue(overlengthItems.Any(item => item.Path == "/sitecore/hello hello hello"));
+				Assert.Equal(2, overlengthItems.Length);
+				Assert.Equal("/sitecore/hello hello", overlengthItems[0].Path);
+				Assert.EndsWith("hello hell.yml", overlengthItems[0].SerializedItemId);
+				Assert.Equal("/sitecore/hello hello hello", overlengthItems[1].Path);
+				Assert.EndsWith("hello hell_" + overlengthItems[1].Id + ".yml", overlengthItems[1].SerializedItemId);
+			}
+		}
+
+		[Fact]
+		public void Save_WritesExpectedItems_WhenItemsWithSameNamePrefixExist()
+		{
+			using (var testTree = new TestSfsTree())
+			{
+				// longer name first
+				CreateTestTree("/sitecore/Html Editor Drop Down Button", testTree);
+
+				// shorter name second - name is unique, but has same prefix as longer
+				testTree.Save(CreateTestItem("/sitecore/Html Editor Drop Down", testTree.GetRootItem().Id));
+
+				var children = testTree.GetChildren(testTree.GetRootItem()).OrderBy(i => i.SerializedItemId).ToArray();
+
+				Assert.Equal(2, children.Length);
+				Assert.Equal("/sitecore/Html Editor Drop Down Button", children[0].Path);
+				Assert.EndsWith("Html Editor Drop Down Button.yml", children[0].SerializedItemId);
+				Assert.Equal(children[1].Path, "/sitecore/Html Editor Drop Down");
+				Assert.EndsWith("Html Editor Drop Down.yml", children[1].SerializedItemId);
 			}
 		}
 	}

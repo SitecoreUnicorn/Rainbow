@@ -1,23 +1,25 @@
 ﻿using System;
 using System.Linq;
+using FluentAssertions;
 using NSubstitute;
-using NUnit.Framework;
 using Rainbow.Storage.Sc.Deserialization;
 using Rainbow.Tests;
 using Sitecore.Data;
+using Sitecore.Data.Items;
 using Sitecore.FakeDb;
+using Xunit;
 
 namespace Rainbow.Storage.Sc.Tests
 {
 	public class SitecoreDataStoreTests
 	{
-		[Test]
+		[Fact]
 		public void GetDatabaseNames_ShouldReturnDatabaseNames()
 		{
 
 		}
 
-		[Test]
+		[Fact]
 		public void Save_ShouldDeserializeItem()
 		{
 			var deserializer = Substitute.For<IDeserializer>();
@@ -27,165 +29,129 @@ namespace Rainbow.Storage.Sc.Tests
 
 			dataStore.Save(item);
 
-			deserializer.Received().Deserialize(item, Arg.Any<bool>());
+			deserializer.Received().Deserialize(item);
 		}
 
-		[Test]
+		[Fact]
 		public void MoveOrRename_ThrowsNotImplementedException()
 		{
 			var dataStore = CreateTestDataStore();
 			Assert.Throws<NotImplementedException>(() => dataStore.MoveOrRenameItem(new FakeItem(), "/sitecore"));
 		}
 
-		[Test]
-		public void GetByPath_ReturnsExpectedItem_WhenPathExists()
+		[Theory, AutoDbData]
+		public void GetByPath_ReturnsExpectedItem_WhenPathExists(Db db)
 		{
-			using (new Db())
-			{
-				var dataStore = CreateTestDataStore();
+			var dataStore = CreateTestDataStore();
 
-				var item = dataStore.GetByPath("/sitecore/templates", "master").ToArray();
+			var item = dataStore.GetByPath("/sitecore/templates", "master").ToArray();
 
-				Assert.IsNotEmpty(item);
-				Assert.AreEqual("templates", item.First().Name);
-			}
+			Assert.NotEmpty(item);
+			Assert.Equal("templates", item.First().Name);
 		}
 
-		[Test]
-		public void GetByPath_ReturnsNull_WhenPathDoesNotExist()
+		[Theory, AutoDbData]
+		public void GetByPath_ReturnsNull_WhenPathDoesNotExist(Db db)
 		{
-			using (new Db())
-			{
-				var dataStore = CreateTestDataStore();
+			var dataStore = CreateTestDataStore();
 
-				var item = dataStore.GetByPath("/sitecore/templates/Monkey Bars", "master");
-
-				Assert.IsEmpty(item);
-			}
+			dataStore.GetByPath("/sitecore/templates/Monkey Bars", "master").Should().BeEmpty();
 		}
 
-		[Test]
+		[Fact]
 		public void GetByPathAndId_ReturnsItem_WhenItemIdExists()
 		{
-			GetById_ReturnsItem_WhenItemIdExists(); // for now. in case implementation changes later, keep this redundant test.
+			//GetById_ReturnsItem_WhenItemIdExists(); // for now. in case implementation changes later, keep this redundant test.
 		}
 
-		[Test]
-		public void GetById_ReturnsItem_WhenItemIdExists()
+		[Theory, AutoDbData]
+		public void GetById_ReturnsItem_WhenItemIdExists(Db db)
 		{
-			using (var db = new Db())
-			{
-				var id = new ID();
-				db.Add(new DbItem("Hello", id));
+			var id = new ID();
+			db.Add(new DbItem("Hello", id));
 
-				var dataStore = CreateTestDataStore();
+			var dataStore = CreateTestDataStore();
 
-				var item = dataStore.GetById(id.Guid, "master");
+			var item = dataStore.GetById(id.Guid, "master");
 
-				Assert.IsNotNull(item);
-				Assert.AreEqual("Hello", item.Name);
-			}
+			Assert.NotNull(item);
+			Assert.Equal("Hello", item.Name);
 		}
 
-		[Test]
-		public void GetById_ReturnsNull_WhenItemIdDoesNotExist()
+		[Theory, AutoDbData]
+		public void GetById_ReturnsNull_WhenItemIdDoesNotExist(Db db)
 		{
-			using (new Db())
-			{
-				var dataStore = CreateTestDataStore();
+			var dataStore = CreateTestDataStore();
 
-				var item = dataStore.GetById(Guid.NewGuid(), "master");
-
-				Assert.IsNull(item);
-			}
+			dataStore.GetById(Guid.NewGuid(), "master").Should().BeNull();
 		}
 
-		[Test]
+		[Fact]
 		public void GetMetadataByTemplateId_ThrowsNotImplementedException()
 		{
 			var dataStore = CreateTestDataStore();
 			Assert.Throws<NotImplementedException>(() => dataStore.GetMetadataByTemplateId(Guid.NewGuid(), "master"));
 		}
 
-		[Test]
-		public void GetChildren_ReturnsExpectedChildren()
+		[Theory, AutoDbData]
+		public void GetChildren_ReturnsExpectedChildren(Db db)
 		{
-			using (var db = new Db())
-			{
-				db.Add(new DbItem("Hello"));
+			db.Add(new DbItem("Hello"));
 
-				var dataStore = CreateTestDataStore();
+			var dataStore = CreateTestDataStore();
 
-				var parent = dataStore.GetByPath("/sitecore/content", "master").First();
+			var parent = dataStore.GetByPath("/sitecore/content", "master").First();
 
-				var children = dataStore.GetChildren(parent);
+			var children = dataStore.GetChildren(parent);
 
-				Assert.IsNotNull(children);
-				Assert.IsNotEmpty(children);
-				Assert.AreEqual("Hello", children.First().Name);
-			}
+			Assert.NotNull(children);
+			Assert.NotEmpty(children);
+			Assert.Equal("Hello", children.First().Name);
 		}
 
-		[Test]
-		public void GetChildren_ReturnsEmptyEnumerable_IfItemDoesNotExist()
+		[Theory, AutoDbData]
+		public void GetChildren_ReturnsEmptyEnumerable_IfItemDoesNotExist(Db db)
 		{
-			using (new Db())
-			{
-				var dataStore = CreateTestDataStore();
+			var dataStore = CreateTestDataStore();
 
-				var parent = new FakeItem(Guid.NewGuid(), name: "LOL");
+			var parent = new FakeItem(Guid.NewGuid(), name: "LOL");
 
-				var children = dataStore.GetChildren(parent);
-
-				Assert.IsNotNull(children);
-				Assert.IsEmpty(children);
-			}
+			dataStore.GetChildren(parent).Should().NotBeNull().And.BeEmpty();
 		}
 
-		[Test]
-		public void Remove_RemovesExpectedItem()
+		[Theory, AutoDbData]
+		public void Remove_RemovesExpectedItem([Content]Item item)
 		{
-			using (var db = new Db())
-			{
-				var id = new ID();
-				db.Add(new DbItem("Hello", id));
+			var dataStore = CreateTestDataStore();
 
-				var dataStore = CreateTestDataStore();
+			var dsItem = dataStore.GetById(item.ID.Guid, "master");
 
-				var item = dataStore.GetById(id.Guid, "master");
+			var result = dataStore.Remove(dsItem);
 
-				var result = dataStore.Remove(item);
+			var itemAfterDelete = dataStore.GetById(item.ID.Guid, "master");
 
-				var itemAfterDelete = dataStore.GetById(id.Guid, "master");
-
-				Assert.IsTrue(result);
-				Assert.IsNull(itemAfterDelete);
-			}
+			result.Should().BeTrue();
+			itemAfterDelete.Should().BeNull();
 		}
 
-		[Test]
-		public void Remove_ReturnsFalse_WhenItemDoesNotExist()
+		[Theory, AutoDbData]
+		public void Remove_ReturnsFalse_WhenItemDoesNotExist(Db db)
 		{
-			using (new Db())
-			{
-				var dataStore = CreateTestDataStore();
+			var dataStore = CreateTestDataStore();
 
-				var item = new FakeItem(Guid.NewGuid(), name: "lol");
+			var item = new FakeItem(Guid.NewGuid(), name: "lol");
 
-				var result = dataStore.Remove(item);
-
-				Assert.IsFalse(result);
-			}
+			dataStore.Remove(item).Should().BeFalse();
 		}
 
-		[Test]
+		[Fact]
 		public void RegisterForChanges_ThrowsNotImplementedException()
 		{
 			var dataStore = CreateTestDataStore();
 			Assert.Throws<NotImplementedException>(() => dataStore.RegisterForChanges((metadata, s) => { }));
 		}
 
-		[Test]
+		[Fact]
 		public void Clear_ThrowsNotImplementedException()
 		{
 			var dataStore = CreateTestDataStore();

@@ -1,213 +1,156 @@
 ﻿using System;
 using System.Linq;
-using NUnit.Framework;
+using FluentAssertions;
 using Rainbow.Model;
 using Sitecore.Data;
+using Sitecore.Data.Items;
 using Sitecore.FakeDb;
+using Xunit;
 
 namespace Rainbow.Storage.Sc.Tests
 {
 	public class ItemDataTests
 	{
-		[Test]
-		public void Id_ReturnsExpectedValue()
-		{
-			var id = ID.NewID;
-			var item = new DbItem("hello", id);
 
-			RunItemTest(item, (testItem, db) =>
-			{
-				Assert.AreEqual(id.Guid, testItem.Id);
-			});
+		[Theory, AutoDbData]
+		public void Id_ReturnsExpectedValue([Content]Item item)
+		{
+			new ItemData(item).Id.Should().Be(item.ID.Guid);
 		}
 
-		[Test]
-		public void DatabaseName_ReturnsExpectedValue()
+		[Theory, AutoDbData]
+		public void DatabaseName_ReturnsExpectedValue([Content]Item item)
 		{
-			var item = new DbItem("hello");
-
-			RunItemTest(item, (testItem, db) =>
-			{
-				Assert.AreEqual("master", testItem.DatabaseName);
-			});
+			new ItemData(item).DatabaseName.Should().Be(item.Database.Name);
 		}
 
-		[Test]
-		public void ParentId_ReturnsExpectedValue()
+		[Theory, AutoDbData]
+		public void ParentId_ReturnsExpectedValue([Content]Item item)
 		{
-			var pid = ID.NewID;
-			var item = new DbItem("hello", pid);
-
-			RunItemTest(item, (testItem, db) =>
-			{
-				db.Add(new DbItem("hellochild") { ParentID = pid });
-
-				var child = db.GetItem("/sitecore/content/hello/hellochild");
-
-				Assert.AreEqual(pid, child.ParentID);
-			});
+			new ItemData(item).ParentId.Should().Be(item.ParentID.Guid);
 		}
 
-		[Test]
-		public void Path_ReturnsExpectedValue()
+		[Theory, AutoDbData]
+		public void Path_ReturnsExpectedValue([Content]Item item)
 		{
-			var item = new DbItem("hello");
-
-			RunItemTest(item, (testItem, db) =>
-			{
-				Assert.AreEqual("/sitecore/content/hello", testItem.Path);
-			});
+			new ItemData(item).Path.Should().Be(item.Paths.Path);
 		}
 
-		[Test]
-		public void Name_ReturnsExpectedValue()
+		[Theory, AutoDbData]
+		public void Name_ReturnsExpectedValue([Content]Item item)
 		{
-			var item = new DbItem("hello");
-
-			RunItemTest(item, (testItem, db) =>
-			{
-				Assert.AreEqual("hello", testItem.Name);
-			});
+			new ItemData(item).Name.Should().Be(item.Name);
 		}
 
-		[Test]
-		public void BranchId_ReturnsExpectedValue()
+		[Theory, AutoDbData]
+		public void BranchId_ReturnsExpectedValue(Db db, DbItem item, Guid branchId)
 		{
-			var id = ID.NewID;
-			var item = new DbItem("hello") { BranchId = id };
+			item.BranchId = new ID(branchId);
+			db.Add(item);
 
-			RunItemTest(item, (testItem, db) =>
-			{
-				Assert.AreEqual(id.Guid, testItem.BranchId);
-			});
+			var dbItem = db.GetItem(item.ID);
+
+			new ItemData(dbItem).BranchId.Should().Be(branchId);
 		}
 
-		[Test]
-		public void TemplateId_ReturnsExpectedValue()
+		[Theory, AutoDbData]
+		public void TemplateId_ReturnsExpectedValue([Content]Item item)
 		{
-			var id = ID.NewID;
-			var item = new DbItem("hello") { TemplateID = id };
-
-			RunItemTest(item, (testItem, db) =>
-			{
-				Assert.AreEqual(id.Guid, testItem.TemplateId);
-			});
+			new ItemData(item).TemplateId.Should().Be(item.TemplateID.Guid);
 		}
 
-		[Test]
-		public void SharedFields_ReturnsExpectedValues()
+		[Theory, AutoDbData]
+		public void SharedFields_ReturnsExpectedValues(Db db, DbItem item, Guid fieldId)
 		{
-			var id = ID.NewID;
-			var item = new DbItem("hello")
-			{
-				new DbField(id) { Shared = true, Value = "test field"}
-			};
+			item.Fields.Add(new DbField(new ID(fieldId)) { Shared = true, Value = "test field" });
 
-			RunItemTest(item, (testItem, db) =>
-			{
-				Assert.IsTrue(testItem.SharedFields.Any(f => f.FieldId == id.Guid));
-			});
+			db.Add(item);
+
+			var dbItem = db.GetItem(item.ID);
+
+			new ItemData(dbItem).SharedFields.Any(f => f.FieldId == fieldId).Should().BeTrue();
 		}
 
-		[Test]
-		public void Versions_ReturnsExpectedVersions()
+		[Theory, AutoDbData]
+		public void Versions_ReturnsExpectedVersions(Db db, DbItem item, Guid fieldId)
 		{
-			var id = ID.NewID;
-			var item = new DbItem("hello")
-			{
-				new DbField(id)
+			item.Fields.Add(new DbField(new ID(fieldId))
 				{
 					{"en", 1, "test value"},
 					{"en", 2, "test v2"}
-				}
-			};
+				});
 
-			RunItemTest(item, (testItem, db) =>
-			{
-				Assert.AreEqual(2, testItem.Versions.Count());
-				Assert.IsTrue(testItem.Versions.Any(v => v.Language.Name == "en" && v.VersionNumber == 1));
-				Assert.IsTrue(testItem.Versions.Any(v => v.Language.Name == "en" && v.VersionNumber == 2));
-			});
+			db.Add(item);
+
+			var dbItem = db.GetItem(item.ID);
+			var itemData = new ItemData(dbItem);
+
+			dbItem.Versions.Count.Should().Be(itemData.Versions.Count());
+			itemData.Versions.Any(v => v.Language.Name == "en" && v.VersionNumber == 1).Should().BeTrue();
+			itemData.Versions.Any(v => v.Language.Name == "en" && v.VersionNumber == 2).Should().BeTrue();
 		}
 
-		[Test]
-		public void Field_Value_ReturnsExpectedValue()
+		[Theory, AutoDbData]
+		public void Field_Value_ReturnsExpectedValue(Db db, DbItem item, Guid fieldId)
 		{
-			var id = ID.NewID;
-			var item = new DbItem("hello")
+			item.Fields.Add(new DbField(new ID(fieldId))
 			{
-				new DbField(id)
-				{
-					Shared = true,
-					Value = "test"
-				}
-			};
-
-			RunItemTest(item, (testItem, db) =>
-			{
-				Assert.AreEqual(id.Guid, testItem.SharedFields.First(f => f.FieldId == id.Guid).FieldId);
+				Shared = true,
+				Value = "test"
 			});
+		
+			db.Add(item);
+
+			var dbItem = db.GetItem(item.ID);
+
+			new ItemData(dbItem).SharedFields.First(f => f.FieldId == fieldId).FieldId.Should().Be(fieldId);
 		}
 
-		[Test]
-		public void Field_FieldType_ReturnsExpectedValue()
+		[Theory, AutoDbData]
+		public void Field_FieldType_ReturnsExpectedValue(Db db, DbItem item, Guid fieldId)
 		{
-			var id = ID.NewID;
-			var item = new DbItem("hello")
+			item.Fields.Add(new DbField(new ID(fieldId))
 			{
-				new DbField(id) {Value = "test", Type = "test type", Shared = true}
-			};
-
-			RunItemTest(item, (testItem, db) =>
-			{
-				Assert.AreEqual("test type", testItem.SharedFields.First(f => f.FieldId == id.Guid).FieldType);
+				Type = "test type",
+				Shared = true
 			});
+
+			db.Add(item);
+
+			var dbItem = db.GetItem(item.ID);
+
+			new ItemData(dbItem).SharedFields.First(f => f.FieldId == fieldId).FieldType.Should().Be("test type");
 		}
 
-		[Test]
-		public void Field_NameHint_ReturnsExpectedValue()
+		[Theory, AutoDbData]
+		public void Field_NameHint_ReturnsExpectedValue(Db db, DbItem item, Guid fieldId)
 		{
-			var id = ID.NewID;
-			var item = new DbItem("hello")
+			item.Fields.Add(new DbField(new ID(fieldId))
 			{
-				new DbField(id) {Value = "test", Name = "Foo", Shared = true}
-			};
-
-			RunItemTest(item, (testItem, db) =>
-			{
-				Assert.AreEqual("Foo", testItem.SharedFields.First(f => f.FieldId == id.Guid).NameHint);
+				Name = "Foo",
+				Shared = true
 			});
+
+			db.Add(item);
+
+			var dbItem = db.GetItem(item.ID);
+
+			new ItemData(dbItem).SharedFields.First(f => f.FieldId == fieldId).NameHint.Should().Be("Foo");
 		}
 
-		[Test]
-		public void Version_Fields_ReturnsExpectedValues()
+		[Theory, AutoDbData]
+		public void Version_Fields_ReturnsExpectedValues(Db db, DbItem item, Guid fieldId)
 		{
-			var id = ID.NewID;
-			var item = new DbItem("hello")
+			item.Fields.Add(new DbField(new ID(fieldId))
 			{
-				new DbField(id)
-				{
-					{"en", 1, "test"}
-				}
-			};
-
-			RunItemTest(item, (testItem, db) =>
-			{
-				var version = testItem.Versions.First();
-				Assert.AreEqual("test", version.Fields.FirstOrDefault(f => f.FieldId == id.Guid).Value);
+				{"en", 1, "test"}
 			});
-		}
 
-		private void RunItemTest(DbItem testItem, Action<IItemData, Db> test)
-		{
-			using (var db = new Db())
-			{
-				db.Add(testItem);
+			db.Add(item);
 
-				var item = db.GetItem(testItem.ID);
+			var dbItem = db.GetItem(item.ID);
 
-				test(new ItemData(item), db);
-			}
+			new ItemData(dbItem).Versions.First().Fields.First(f => f.FieldId == fieldId).Value.Should().Be("test");
 		}
 	}
 }

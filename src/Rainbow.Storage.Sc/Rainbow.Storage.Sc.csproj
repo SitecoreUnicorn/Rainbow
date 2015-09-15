@@ -43,6 +43,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Deserialization\DefaultDeserializer.cs" />
+    <Compile Include="Deserialization\TemplateMissingFieldException.cs" />
     <Compile Include="Deserialization\DeserializationException.cs" />
     <Compile Include="Deserialization\IDefaultDeserializerLogger.cs" />
     <Compile Include="Deserialization\IDeserializer.cs" />
