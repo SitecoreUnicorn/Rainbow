@@ -6,39 +6,25 @@ using Microsoft.TeamFoundation.VersionControl.Client;
 
 namespace Rainbow.SourceControl
 {
-	public class TfsManager : IDisposable
+	public class TfsFileSync : ISourceControlSync
 	{
-		private readonly bool _fileExistsOnFileSystem;
-		private readonly bool _fileExistsOnServer;
-		private readonly NetworkCredential _networkCredential;
 		private readonly string _filename;
+		private readonly NetworkCredential _networkCredential;
 		private readonly WorkspaceInfo _workspaceInfo;
 
-		public TfsManager(string filename)
+		public TfsFileSync(string filename)
 		{
+			_filename = filename;
 			_workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(filename);
 			AssertWorkspace();
 
 			_networkCredential = new NetworkCredential("123", "123", "123");
-
-			_filename = filename;
-			_fileExistsOnFileSystem = File.Exists(filename);
-			_fileExistsOnServer = FileExistsOnServer();
-
-			bool canCheckOut = _fileExistsOnFileSystem && _fileExistsOnServer;
-			if (canCheckOut)
-			{
-				CheckoutFile();
-			}
 		}
 
 		private void AssertWorkspace()
 		{
 			if (_workspaceInfo != null) return;
-
-			var message = "[Rainbow] TFS Manager: No workspace is available or defined for the path " + _filename;
-			Sitecore.Diagnostics.Log.Error(message, this);
-			throw new Exception(message);
+			throw new Exception("[Rainbow] TFS Manager: No workspace is available or defined for the path " + _filename);
 		}
 
 		private bool FileExistsOnServer()
@@ -68,8 +54,20 @@ namespace Rainbow.SourceControl
 			return fileExistsInTfs;
 		}
 
-		private bool CheckoutFile()
+		public bool CheckoutFile()
 		{
+			bool fileExistsOnFileSystem = File.Exists(_filename);
+			if (!fileExistsOnFileSystem)
+			{
+				throw new Exception("[Rainbow] TFS Manager: Cannot checkout a file that does not exist on disk for " + _filename);
+			}
+
+			bool fileExistsOnServer = FileExistsOnServer();
+			if (!fileExistsOnServer)
+			{
+				throw new Exception("[Rainbow] TFS Manager: Cannot checkout a file that does not exist in TFS for " + _filename);
+			}
+
 			bool updateSuccess;
 
 			using (var collection = new TfsTeamProjectCollection(_workspaceInfo.ServerUri, _networkCredential))
@@ -102,8 +100,20 @@ namespace Rainbow.SourceControl
 			}
 		}
 
-		private bool AddFile()
+		public bool AddFile()
 		{
+			bool fileExistsOnFileSystem = File.Exists(_filename);
+			if (!fileExistsOnFileSystem)
+			{
+				throw new Exception("[Rainbow] TFS Manager: Cannot add a file that does not exist on disk for " + _filename);
+			}
+
+			bool fileExistsOnServer = FileExistsOnServer();
+			if (fileExistsOnServer)
+			{
+				throw new Exception("[Rainbow] TFS Manager: Cannot add a file that already exists in TFS for " + _filename);
+			}
+
 			bool addSuccess;
 
 			using (var collection = new TfsTeamProjectCollection(_workspaceInfo.ServerUri, _networkCredential))
@@ -140,15 +150,6 @@ namespace Rainbow.SourceControl
 		{
 			var message = e.Exception != null ? e.Exception.Message : e.Failure.Message;
 			Sitecore.Diagnostics.Log.Error("[Rainbow] TFS Manager: Non-fatal exception: " + message, this);
-		}
-
-		public void Dispose()
-		{
-			bool canAdd = _fileExistsOnFileSystem && !_fileExistsOnServer;
-			if (canAdd)
-			{
-				AddFile();
-			}
 		}
 	}
 }

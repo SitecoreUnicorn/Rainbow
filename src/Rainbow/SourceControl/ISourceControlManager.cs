@@ -4,6 +4,8 @@ namespace Rainbow.SourceControl
 {
 	public interface ISourceControlManager
 	{
-		IDisposable GetSourceControlManager(string filename);
+		bool Edit();
+		bool Add();
+		bool Remove();
 	}
 }
