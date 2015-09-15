@@ -11,7 +11,7 @@ namespace Rainbow.Formatting.FieldFormatters
 		{
 			get
 			{
-				return new[] { "Checklist", "Multilist", "Multilist with Search", "Treelist", "Treelist with Search", "TreelistEx" };
+				return new[] { "Checklist", "Multilist", "Multilist with Search", "Treelist", "Treelist with Search", "TreelistEx", "tree list" };
 			}
 		}
 
