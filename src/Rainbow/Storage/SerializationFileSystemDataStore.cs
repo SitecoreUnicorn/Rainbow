@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web.Hosting;
 using Rainbow.Formatting;
 using Rainbow.Model;
+using Rainbow.SourceControl;
 using Sitecore.Diagnostics;
 using Sitecore.StringExtensions;
 

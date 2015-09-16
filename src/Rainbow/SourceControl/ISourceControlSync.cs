@@ -2,7 +2,8 @@ namespace Rainbow.SourceControl
 {
 	public interface ISourceControlSync
 	{
-		bool CheckoutFile();
+		bool CheckoutFileForDelete();
+		bool CheckoutFileForEdit();
 		bool AddFile();
 	}
 }

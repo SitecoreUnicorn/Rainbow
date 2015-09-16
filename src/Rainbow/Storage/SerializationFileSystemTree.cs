@@ -69,6 +69,7 @@ namespace Rainbow.Storage
 		private readonly FsCache<IItemData> _dataCache;
 		private readonly FsCache<IItemMetadata> _metadataCache = new FsCache<IItemMetadata>(true);
 		private readonly TreeWatcher _treeWatcher;
+		private readonly ISourceControlManager _sourceControlManager;
 
 		// ReSharper disable once RedundantDefaultMemberInitializer
 		private bool _configuredForFastReads = false;
@@ -104,6 +105,8 @@ namespace Rainbow.Storage
 			_dataCache = new FsCache<IItemData>(useDataCache);
 			Name = name;
 			DatabaseName = databaseName;
+
+			_sourceControlManager = new SourceControlManager();
 
 			if (!Directory.Exists(PhysicalRootPath)) Directory.CreateDirectory(PhysicalRootPath);
 
@@ -195,14 +198,22 @@ namespace Rainbow.Storage
 			{
 				lock (FileUtil.GetFileLock(descendant.SerializedItemId))
 				{
-				    File.Delete(descendant.SerializedItemId);
+					_sourceControlManager.Remove(descendant.SerializedItemId);
+					File.Delete(descendant.SerializedItemId);
 
-				    var childrenDirectory = Path.ChangeExtension(descendant.SerializedItemId, null);
+					var childrenDirectory = Path.ChangeExtension(descendant.SerializedItemId, null);
+					if (Directory.Exists(childrenDirectory))
+					{
+						_sourceControlManager.Remove(childrenDirectory);
+						Directory.Delete(childrenDirectory, true);
+					}
 
-				    if (Directory.Exists(childrenDirectory)) Directory.Delete(childrenDirectory, true);
-
-				    var shortChildrenDirectory = Path.Combine(PhysicalRootPath, descendant.Id.ToString());
-				    if (Directory.Exists(shortChildrenDirectory)) Directory.Delete(shortChildrenDirectory);
+					var shortChildrenDirectory = Path.Combine(PhysicalRootPath, descendant.Id.ToString());
+					if (Directory.Exists(shortChildrenDirectory))
+					{
+						_sourceControlManager.Remove(shortChildrenDirectory);
+						Directory.Delete(shortChildrenDirectory);
+					}
 				}
 			}
 
@@ -275,10 +286,21 @@ namespace Rainbow.Storage
 			        var directory = Path.GetDirectoryName(path);
 			        if (directory != null && !Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
+				    bool isOverwrite = File.Exists(path);
+					if (isOverwrite)
+				    {
+						_sourceControlManager.Edit(path);
+				    }
+
 			        using (var writer = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.None))
 			        {
 			            _formatter.WriteSerializedItem(proxiedItem, writer);
 			        }
+
+				    if (!isOverwrite)
+				    {
+						_sourceControlManager.Add(path);
+				    }
 			    }
 			    catch
 			    {

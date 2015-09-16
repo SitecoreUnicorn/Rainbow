@@ -82,11 +82,12 @@
     <Compile Include="Model\ProxyItem.cs" />
     <Compile Include="Model\ProxyItemVersion.cs" />
     <Compile Include="Model\ItemDecorator.cs" />
-    <Compile Include="SourceControl\DefaultManager.cs" />
+    <Compile Include="SourceControl\FileSyncDefault.cs" />
     <Compile Include="SourceControl\ISourceControlManager.cs" />
     <Compile Include="SourceControl\ISourceControlSync.cs" />
+    <Compile Include="SourceControl\ScmSettings.cs" />
     <Compile Include="SourceControl\SourceControlManager.cs" />
-    <Compile Include="SourceControl\TfsFileSync.cs" />
+    <Compile Include="SourceControl\FileSyncTfs.cs" />
     <Compile Include="Storage\FastDirectoryEnumerator.cs" />
     <Compile Include="Storage\FsCache.cs" />
     <Compile Include="Storage\IDataStore.cs" />
