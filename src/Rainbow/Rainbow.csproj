@@ -88,6 +88,7 @@
     <Compile Include="SourceControl\ScmSettings.cs" />
     <Compile Include="SourceControl\SourceControlManager.cs" />
     <Compile Include="SourceControl\FileSyncTfs.cs" />
+    <Compile Include="SourceControl\TfsPersistentConnection.cs" />
     <Compile Include="Storage\FastDirectoryEnumerator.cs" />
     <Compile Include="Storage\FsCache.cs" />
     <Compile Include="Storage\IDataStore.cs" />

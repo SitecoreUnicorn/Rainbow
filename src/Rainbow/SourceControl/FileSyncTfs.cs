@@ -13,13 +13,27 @@ namespace Rainbow.SourceControl
 		private readonly NetworkCredential _networkCredential;
 		private readonly WorkspaceInfo _workspaceInfo;
 
+		protected TfsConnection TfsTeamProjectCollection
+		{
+			get
+			{
+				var connection = TfsPersistentConnection.Instance(_workspaceInfo.ServerUri, _networkCredential);
+				return connection.TfsTeamProjectCollection;
+			}
+		}
+
 		public FileSyncTfs(ScmSettings settings)
 		{
 			_filename = settings.Filename;
-			_workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(_filename);
+			_workspaceInfo = GetWorkspaceInfo();
 			AssertWorkspace();
 
 			_networkCredential = new NetworkCredential(settings.Username, settings.Password, settings.Domain);
+		}
+
+		protected virtual WorkspaceInfo GetWorkspaceInfo()
+		{
+			return Workstation.Current.GetLocalWorkspaceInfo(_filename);
 		}
 
 		private void AssertWorkspace()
@@ -30,40 +44,43 @@ namespace Rainbow.SourceControl
 
 		private void AssertFileExistsOnFileSystem()
 		{
-			bool fileExistsOnFileSystem = File.Exists(_filename);
+			bool fileExistsOnFileSystem = FileExistsOnFileSystem();
 			if (!fileExistsOnFileSystem)
 			{
 				throw new Exception("[Rainbow] TFS Manager: file does not exist on disk for " + _filename);
 			}
 		}
 
-		private void AssertFileExistsInTfs(TfsTeamProjectCollection collection)
+		private void AssertFileExistsInTfs()
 		{
-			bool fileExistsOnServer = FileExistsOnServer(collection);
+			bool fileExistsOnServer = FileExistsOnServer();
 			if (!fileExistsOnServer)
 			{
 				throw new Exception("[Rainbow] TFS Manager: file does not exist in TFS for " + _filename);
 			}
 		}
 
-		private void AssertFileDoesNotExistInTfs(TfsTeamProjectCollection collection)
+		private void AssertFileDoesNotExistInTfs()
 		{
-			bool fileExistsOnServer = FileExistsOnServer(collection);
+			bool fileExistsOnServer = FileExistsOnServer();
 			if (fileExistsOnServer)
 			{
 				throw new Exception("[Rainbow] TFS Manager: file exists in TFS for " + _filename);
 			}
 		}
 
-		private bool FileExistsOnServer(TfsTeamProjectCollection collection)
+		protected virtual bool FileExistsOnFileSystem()
+		{
+			return File.Exists(_filename);
+		}
+
+		private bool FileExistsOnServer()
 		{
 			bool fileExistsInTfs;
 
 			try
 			{
-				collection.EnsureAuthenticated();
-
-				var versionControlServer = (VersionControlServer) collection.GetService(typeof (VersionControlServer));
+				var versionControlServer = (VersionControlServer)TfsTeamProjectCollection.GetService(typeof(VersionControlServer));
 				versionControlServer.NonFatalError += OnNonFatalError;
 
 				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
@@ -79,15 +96,13 @@ namespace Rainbow.SourceControl
 			return fileExistsInTfs;
 		}
 
-		private bool HasPendingChanges(TfsTeamProjectCollection collection)
+		private bool HasPendingChanges()
 		{
 			bool hasChanges;
 
 			try
 			{
-				collection.EnsureAuthenticated();
-
-				var versionControlServer = (VersionControlServer) collection.GetService(typeof (VersionControlServer));
+				var versionControlServer = (VersionControlServer)TfsTeamProjectCollection.GetService(typeof(VersionControlServer));
 				versionControlServer.NonFatalError += OnNonFatalError;
 
 				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
@@ -112,43 +127,35 @@ namespace Rainbow.SourceControl
 				Sitecore.Diagnostics.Log.Warn("[Rainbow] TFS Manager: Attempting to delete a file that doesn't exist on the local filesystem for " + _filename, this);
 			}
 
-			using (var collection = new TfsTeamProjectCollection(_workspaceInfo.ServerUri, _networkCredential))
+			// if the file doesn't exist on the TFS server, we're out of sync. Allow the deletion.
+			bool fileExistsOnServer = FileExistsOnServer();
+			if (!fileExistsOnServer)
 			{
-				// if the file doesn't exist on the TFS server, we're out of sync. Allow the deletion.
-				bool fileExistsOnServer = FileExistsOnServer(collection);
-				if (!fileExistsOnServer)
-				{
-					Sitecore.Diagnostics.Log.Warn("[Rainbow] TFS Manager: Attempting to delete a file that doesn't exist on the server for " + _filename, this);
-					return true;
-				}
-
-				// if the file is already under edit, no need to checkout again
-				return HasPendingChanges(collection) || CheckoutFile(collection);
+				Sitecore.Diagnostics.Log.Warn("[Rainbow] TFS Manager: Attempting to delete a file that doesn't exist on the server for " + _filename, this);
+				return true;
 			}
+
+			// if the file is already under edit, no need to checkout again
+			return HasPendingChanges() || CheckoutFile();
 		}
 
 		public bool CheckoutFileForEdit()
 		{
 			AssertFileExistsOnFileSystem();
 
-			using (var collection = new TfsTeamProjectCollection(_workspaceInfo.ServerUri, _networkCredential))
-			{
-				// if the file is already under edit, no need to checkout again
-				if (HasPendingChanges(collection)) return true;
+			// if the file is already under edit, no need to checkout again
+			if (HasPendingChanges()) return true;
 
-				AssertFileExistsInTfs(collection);
+			AssertFileExistsInTfs();
 			
-				return CheckoutFile(collection);
-			}
+			return CheckoutFile();
 		}
 
-		private bool CheckoutFile(TfsTeamProjectCollection collection)
+		private bool CheckoutFile()
 		{
 			try
 			{
-				collection.EnsureAuthenticated();
-
-				var versionControlServer = (VersionControlServer)collection.GetService(typeof(VersionControlServer));
+				var versionControlServer = (VersionControlServer)TfsTeamProjectCollection.GetService(typeof(VersionControlServer));
 				versionControlServer.NonFatalError += OnNonFatalError;
 
 				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
@@ -173,36 +180,30 @@ namespace Rainbow.SourceControl
 		public bool AddFile()
 		{
 			AssertFileExistsOnFileSystem();
+			AssertFileDoesNotExistInTfs();
 
-			using (var collection = new TfsTeamProjectCollection(_workspaceInfo.ServerUri, _networkCredential))
+			try
 			{
-				AssertFileDoesNotExistInTfs(collection);
+				var versionControlServer = (VersionControlServer)TfsTeamProjectCollection.GetService(typeof(VersionControlServer));
+				versionControlServer.NonFatalError += OnNonFatalError;
 
-				try
+				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
+
+				var updateResult = workspace.PendAdd(_filename);
+				var addSuccess = updateResult == 1;
+				if (addSuccess == false)
 				{
-					collection.EnsureAuthenticated();
-
-					var versionControlServer = (VersionControlServer)collection.GetService(typeof(VersionControlServer));
-					versionControlServer.NonFatalError += OnNonFatalError;
-
-					var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
-
-					var updateResult = workspace.PendAdd(_filename);
-					var addSuccess = updateResult == 1;
-					if (addSuccess == false)
-					{
-						var message = string.Format("TFS add was unsuccessful for {0}", _filename);
-						throw new Exception(message);
-					}
+					var message = string.Format("TFS add was unsuccessful for {0}", _filename);
+					throw new Exception(message);
 				}
-				catch (Exception ex)
-				{
-					Sitecore.Diagnostics.Log.Error("[Rainbow] TFS Manager: Could not add file to TFS for " + _filename, ex, this);
-					throw;
-				}
-
-				return true;
 			}
+			catch (Exception ex)
+			{
+				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS Manager: Could not add file to TFS for " + _filename, ex, this);
+				throw;
+			}
+
+			return true;
 		}
 
 		private void OnNonFatalError(Object sender, ExceptionEventArgs e)
