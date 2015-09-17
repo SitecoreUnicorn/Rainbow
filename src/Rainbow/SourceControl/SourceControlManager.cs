@@ -102,19 +102,19 @@ namespace Rainbow.SourceControl
 			};
 		}
 
-		public bool Edit(string filename)
+		public bool EditPreProcessing(string filename)
 		{
-			return _sourceControlSync.CheckoutFileForEdit(filename);
+			return _sourceControlSync.EditPreProcessing(filename);
 		}
 
-		public bool Add(string filename)
+		public bool EditPostProcessing(string filename)
 		{
-			return _sourceControlSync.AddFile(filename);
+			return _sourceControlSync.EditPostProcessing(filename);
 		}
 
-		public bool Remove(string filename)
+		public bool DeletePreProcessing(string filename)
 		{
-			return _sourceControlSync.CheckoutFileForDelete(filename);
+			return _sourceControlSync.DeletePreProcessing(filename);
 		}
 	}
 }

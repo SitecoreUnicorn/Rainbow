@@ -2,17 +2,17 @@ namespace Rainbow.SourceControl
 {
 	public class FileSyncDefault : ISourceControlSync
 	{
-		public bool CheckoutFileForDelete(string filename)
+		public bool DeletePreProcessing(string filename)
 		{
 			return true;
 		}
 
-		public bool CheckoutFileForEdit(string filename)
+		public bool EditPreProcessing(string filename)
 		{
 			return true;
 		}
 
-		public bool AddFile(string filename)
+		public bool EditPostProcessing(string filename)
 		{
 			return true;
 		}

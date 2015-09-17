@@ -12,6 +12,9 @@ namespace Rainbow.SourceControl
 		private readonly WorkspaceInfo _workspaceInfo;
 		private readonly string _filename;
 
+		public bool FileExistsOnServer { get; private set; }
+		public bool FileExistsOnFileSystem { get; private set; }
+
 		public TfsFileHandler(TfsTeamProjectCollection tfsTeamProjectCollection, string filename)
 		{
 			_tfsTeamProjectCollection = tfsTeamProjectCollection;
@@ -19,47 +22,47 @@ namespace Rainbow.SourceControl
 
 			_workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(filename);
 			AssertWorkspace(_workspaceInfo, filename);
+
+			FileExistsOnFileSystem = GetFileExistsOnFileSystem();
+			FileExistsOnServer = GetFileExistsOnServer();
 		}
 
 		private void AssertWorkspace(WorkspaceInfo workspaceInfo, string filename)
 		{
 			if (workspaceInfo != null) return;
-			throw new Exception("[Rainbow] TFS Manager: No workspace is available or defined for the path " + filename);
+			throw new Exception("[Rainbow] TFS File Handler: No workspace is available or defined for the path " + filename);
 		}
 
 		private void AssertFileExistsOnFileSystem()
 		{
-			bool fileExistsOnFileSystem = FileExistsOnFileSystem();
-			if (!fileExistsOnFileSystem)
+			if (!FileExistsOnFileSystem)
 			{
-				throw new Exception("[Rainbow] TFS Manager: file does not exist on disk for " + _filename);
+				throw new Exception("[Rainbow] TFS File Handler: file does not exist on disk for " + _filename);
 			}
 		}
 
 		private void AssertFileExistsInTfs()
 		{
-			bool fileExistsOnServer = FileExistsOnServer();
-			if (!fileExistsOnServer)
+			if (!FileExistsOnServer)
 			{
-				throw new Exception("[Rainbow] TFS Manager: file does not exist in TFS for " + _filename);
+				throw new Exception("[Rainbow] TFS File Handler: file does not exist in TFS for " + _filename);
 			}
 		}
 
 		private void AssertFileDoesNotExistInTfs()
 		{
-			bool fileExistsOnServer = FileExistsOnServer();
-			if (fileExistsOnServer)
+			if (FileExistsOnServer)
 			{
-				throw new Exception("[Rainbow] TFS Manager: file exists in TFS for " + _filename);
+				throw new Exception("[Rainbow] TFS File Handler: file exists in TFS for " + _filename);
 			}
 		}
 
-		protected virtual bool FileExistsOnFileSystem()
+		private bool GetFileExistsOnFileSystem()
 		{
 			return File.Exists(_filename);
 		}
 
-		private bool FileExistsOnServer()
+		private bool GetFileExistsOnServer()
 		{
 			bool fileExistsInTfs;
 
@@ -74,7 +77,7 @@ namespace Rainbow.SourceControl
 			}
 			catch (Exception ex)
 			{
-				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS Manager: Could not communicate with TFS Server for " + _filename, ex, this);
+				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS File Handler: Could not communicate with TFS Server for " + _filename, ex, this);
 				throw;
 			}
 
@@ -94,22 +97,50 @@ namespace Rainbow.SourceControl
 				versionControlServer.NonFatalError += OnNonFatalError;
 
 				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
-				var changes = workspace.GetPendingChanges(_filename, RecursionType.None, false);
 
+				// cannot undo a pending change of a file in conflict
+				var conflicts = workspace.QueryConflicts(new[] { _filename }, false);
+				bool hasConflicts = conflicts.Any();
+				if (hasConflicts)
+				{
+
+				}
+
+				// undo workspace changes
+				var changes = workspace.GetPendingChanges(_filename, RecursionType.None, false);
 				var change = changes.FirstOrDefault(c => c.ChangeType != changeType);
 				if (change != null)
 				{
-					workspace.Undo(_filename);
+					bool writeToDisk = !FileExistsOnFileSystem;
+					workspace.Undo(new[] { _filename }, writeToDisk);
+					
+					conflicts = workspace.QueryConflicts(new[] { _filename }, writeToDisk);
+					hasConflicts = conflicts.Any();
+					if (hasConflicts)
+					{
 
-					// Grab a copy of the file from TFS and overwrite our local to keep TFS from complaining about it not being downloaded
-					// If not downloaded, TFS won't allow any additional pending edits and stuff breaks
-					var serverCopy = versionControlServer.GetItem(change.ItemId, change.Version, GetItemsOptions.Download);
-					serverCopy.DownloadFile(_filename);
+					}
+
+
+					//workspace.Get(new[] {_filename}, VersionSpec.Latest, RecursionType.None, GetOptions.Overwrite);
+
+					//foreach (var conflict in conflicts)
+					//{
+					//	workspace.ResolveConflict(conflict);
+					//}
+
+
+					//workspace.Get(_filename, VersionSpec.
+
+					//// Grab a copy of the file from TFS and overwrite our local to keep TFS from complaining about it not being downloaded
+					//// If not downloaded, TFS won't allow any additional pending edits and stuff breaks.
+					//var serverCopy = versionControlServer.GetItem(change.ItemId, change.Version, GetItemsOptions.Download);
+					//serverCopy.DownloadFile(_filename);
 				}
 			}
 			catch (Exception ex)
 			{
-				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS Manager: Could not revert pending change for " + _filename, ex, this);
+				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS File Handler: Could not revert pending change for " + _filename, ex, this);
 				throw;
 			}
 		}
@@ -130,33 +161,25 @@ namespace Rainbow.SourceControl
 			}
 			catch (Exception ex)
 			{
-				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS Manager: Could not communicate with TFS Server for " + _filename, ex, this);
+				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS File Handler: Could not communicate with TFS Server for " + _filename, ex, this);
 				throw;
 			}
 
 			return hasRequestedChange;
 		}
 
-		public bool CheckoutFileForEdit()
-		{
-			bool fileExistsOnTfsServer = FileExistsOnServer();
-			return fileExistsOnTfsServer ? EditFile() : AddFile();
-		}
-
 		public bool CheckoutFileForDelete()
 		{
 			// if the file doesn't exist on the local filesystem, we're out of sync. Record in logs and allow to pass through.
-			bool fileExistsOnFileSystem = File.Exists(_filename);
-			if (!fileExistsOnFileSystem)
+			if (!FileExistsOnFileSystem)
 			{
-				Sitecore.Diagnostics.Log.Warn("[Rainbow] TFS Manager: Attempting to delete a file that doesn't exist on the local filesystem for " + _filename, this);
+				Sitecore.Diagnostics.Log.Warn("[Rainbow] TFS File Handler: Attempting to delete a file that doesn't exist on the local filesystem for " + _filename, this);
 			}
 
 			// if the file doesn't exist on the TFS server, we're out of sync. Allow the local deletion.
-			bool fileExistsOnServer = FileExistsOnServer();
-			if (!fileExistsOnServer)
+			if (!FileExistsOnServer)
 			{
-				Sitecore.Diagnostics.Log.Warn("[Rainbow] TFS Manager: Attempting to delete a file that doesn't exist on the server for " + _filename, this);
+				Sitecore.Diagnostics.Log.Warn("[Rainbow] TFS File Handler: Attempting to delete a file that doesn't exist on the server for " + _filename, this);
 				return true;
 			}
 
@@ -164,9 +187,25 @@ namespace Rainbow.SourceControl
 			return DeleteFile();
 		}
 
-		private bool EditFile()
+		private void TryRefreshLocalWithTfs()
 		{
-			AssertFileExistsOnFileSystem();
+			try
+			{
+				var versionControlServer = (VersionControlServer) _tfsTeamProjectCollection.GetService(typeof (VersionControlServer));
+				versionControlServer.NonFatalError += OnNonFatalError;
+
+				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
+				workspace.Get(new[] {_filename}, VersionSpec.Latest, RecursionType.None, GetOptions.Overwrite);
+			}
+			catch (Exception ex)
+			{
+				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS File Handler: Could not refresh local from TFS " + _filename, ex, this);
+				throw;
+			}
+		}
+
+		public bool CheckoutFileForEdit()
+		{
 			AssertFileExistsInTfs();
 
 			// if the file is already under edit, no need to checkout again
@@ -174,6 +213,12 @@ namespace Rainbow.SourceControl
 
 			// revert any conflicting TFS pending changes that prevent us from submitting a pending edit
 			UndoNonMatchingPendingChanges(ChangeType.Edit);
+
+			// if we're out of sync, pull down from TFS to keep it from complaining on edit
+			if (FileExistsOnServer && !FileExistsOnFileSystem)
+			{
+				TryRefreshLocalWithTfs();
+			}
 
 			try
 			{
@@ -191,14 +236,14 @@ namespace Rainbow.SourceControl
 			}
 			catch (Exception ex)
 			{
-				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS Manager: Could not checkout file in TFS for " + _filename, ex, this);
+				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS File Handler: Could not checkout file in TFS for " + _filename, ex, this);
 				throw;
 			}
 
 			return true;
 		}
 
-		private bool AddFile()
+		public bool AddFile()
 		{
 			AssertFileExistsOnFileSystem();
 			AssertFileDoesNotExistInTfs();
@@ -219,7 +264,7 @@ namespace Rainbow.SourceControl
 			}
 			catch (Exception ex)
 			{
-				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS Manager: Could not add file to TFS for " + _filename, ex, this);
+				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS File Handler: Could not add file to TFS for " + _filename, ex, this);
 				throw;
 			}
 
@@ -249,7 +294,7 @@ namespace Rainbow.SourceControl
 			}
 			catch (Exception ex)
 			{
-				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS Manager: Could not checkout file in TFS for " + _filename, ex, this);
+				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS File Handler: Could not checkout file in TFS for " + _filename, ex, this);
 				throw;
 			}
 
@@ -259,7 +304,17 @@ namespace Rainbow.SourceControl
 		private void OnNonFatalError(Object sender, ExceptionEventArgs e)
 		{
 			var message = e.Exception != null ? e.Exception.Message : e.Failure.Message;
-			Sitecore.Diagnostics.Log.Error("[Rainbow] TFS Manager: Non-fatal exception: " + message, this);
+			Sitecore.Diagnostics.Log.Error("[Rainbow] TFS File Handler: Non-fatal exception: " + message, this);
 		}
+
+		//private void AutoResolveConflistKeepLocal(Workspace workspace)
+		//{
+		//	// auto-resolve conflict by trusting local copy
+		//	var conflicts = workspace.QueryConflicts(new [] {_filename}, false);
+		//	foreach (var conflict in conflicts)
+		//	{
+		//		workspace.ResolveConflict(conflict);
+		//	}
+		//}
 	}
 }

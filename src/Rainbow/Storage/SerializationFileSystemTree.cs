@@ -198,20 +198,20 @@ namespace Rainbow.Storage
 			{
 				lock (FileUtil.GetFileLock(descendant.SerializedItemId))
 				{
-					_sourceControlManager.Remove(descendant.SerializedItemId);
+					_sourceControlManager.DeletePreProcessing(descendant.SerializedItemId);
 					File.Delete(descendant.SerializedItemId);
 
 					var childrenDirectory = Path.ChangeExtension(descendant.SerializedItemId, null);
 					if (Directory.Exists(childrenDirectory))
 					{
-						_sourceControlManager.Remove(childrenDirectory);
+						_sourceControlManager.DeletePreProcessing(childrenDirectory);
 						Directory.Delete(childrenDirectory, true);
 					}
 
 					var shortChildrenDirectory = Path.Combine(PhysicalRootPath, descendant.Id.ToString());
 					if (Directory.Exists(shortChildrenDirectory))
 					{
-						_sourceControlManager.Remove(shortChildrenDirectory);
+						_sourceControlManager.DeletePreProcessing(shortChildrenDirectory);
 						Directory.Delete(shortChildrenDirectory);
 					}
 				}
@@ -279,28 +279,21 @@ namespace Rainbow.Storage
 
 			lock (FileUtil.GetFileLock(path))
 			{
-			    try
-			    {
-			        _treeWatcher.Stop();
+				try
+				{
+					_treeWatcher.Stop();
 
-			        var directory = Path.GetDirectoryName(path);
-			        if (directory != null && !Directory.Exists(directory)) Directory.CreateDirectory(directory);
+					var directory = Path.GetDirectoryName(path);
+					if (directory != null && !Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
-				    bool isOverwrite = File.Exists(path);
-					if (isOverwrite)
-				    {
-						_sourceControlManager.Edit(path);
-				    }
+					_sourceControlManager.EditPreProcessing(path);
 
-			        using (var writer = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.None))
-			        {
-			            _formatter.WriteSerializedItem(proxiedItem, writer);
-			        }
-
-				    if (!isOverwrite)
-				    {
-						_sourceControlManager.Add(path);
-				    }
+					using (var writer = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.None))
+					{
+						_formatter.WriteSerializedItem(proxiedItem, writer);
+					}
+					
+					_sourceControlManager.EditPostProcessing(path);
 			    }
 			    catch
 			    {

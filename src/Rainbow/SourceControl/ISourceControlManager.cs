@@ -2,8 +2,8 @@
 {
 	public interface ISourceControlManager
 	{
-		bool Edit(string filename);
-		bool Add(string filename);
-		bool Remove(string filename);
+		bool EditPreProcessing(string filename);
+		bool EditPostProcessing(string filename);
+		bool DeletePreProcessing(string filename);
 	}
 }
