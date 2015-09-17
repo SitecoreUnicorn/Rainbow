@@ -30,22 +30,22 @@ namespace Rainbow.SourceControl
 		public bool CheckoutFileForDelete(string filename)
 		{
 			var connection = GetTfsPersistentConnection();
-			var handler = new TfsFileHandler(connection, filename);
+			var handler = new TfsFileHandler(connection.TfsTeamProjectCollection, filename);
 			return handler.CheckoutFileForDelete();
 		}
 
 		public bool CheckoutFileForEdit(string filename)
 		{
 			var connection = GetTfsPersistentConnection();
-			var handler = new TfsFileHandler(connection, filename);
+			var handler = new TfsFileHandler(connection.TfsTeamProjectCollection, filename);
 			return handler.CheckoutFileForEdit();
 		}
 
 		public bool AddFile(string filename)
 		{
 			var connection = GetTfsPersistentConnection();
-			var handler = new TfsFileHandler(connection, filename);
-			return handler.AddFile();
+			var handler = new TfsFileHandler(connection.TfsTeamProjectCollection, filename);
+			return handler.CheckoutFileForEdit();
 		}
 	}
 }

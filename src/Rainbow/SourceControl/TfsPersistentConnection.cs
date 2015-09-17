@@ -60,6 +60,8 @@ namespace Rainbow.SourceControl
 					var connection = new TfsTeamProjectCollection(uri, credentials);
 					_instance = new TfsPersistentConnection(connection);
 					_instance.TfsTeamProjectCollection.EnsureAuthenticated();
+
+					Sitecore.Diagnostics.Log.Info("[Rainbow] TFS Persistent Connection: successfully established new connection with TFS server.", credentials);
 				}
 				catch (Exception ex)
 				{

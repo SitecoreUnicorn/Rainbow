@@ -1,19 +1,20 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.VersionControl.Client;
 
 namespace Rainbow.SourceControl
 {
 	public class TfsFileHandler
 	{
-		private readonly TfsPersistentConnection _connection;
+		private readonly TfsTeamProjectCollection _tfsTeamProjectCollection;
 		private readonly WorkspaceInfo _workspaceInfo;
 		private readonly string _filename;
 
-		public TfsFileHandler(TfsPersistentConnection tfsPersistentConnection, string filename)
+		public TfsFileHandler(TfsTeamProjectCollection tfsTeamProjectCollection, string filename)
 		{
-			_connection = tfsPersistentConnection;
+			_tfsTeamProjectCollection = tfsTeamProjectCollection;
 			_filename = filename;
 
 			_workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(filename);
@@ -64,7 +65,7 @@ namespace Rainbow.SourceControl
 
 			try
 			{
-				var versionControlServer = (VersionControlServer) _connection.TfsTeamProjectCollection.GetService(typeof (VersionControlServer));
+				var versionControlServer = (VersionControlServer)_tfsTeamProjectCollection.GetService(typeof(VersionControlServer));
 				versionControlServer.NonFatalError += OnNonFatalError;
 
 				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
@@ -80,18 +81,52 @@ namespace Rainbow.SourceControl
 			return fileExistsInTfs;
 		}
 
-		private bool HasPendingChanges()
+		/// <summary>
+		/// Undo any pending change that does not match the action we're performing. For example, if we request an edit and the pending change
+		/// is delete, undo the delete so we can place the item in pending edit. Without the undo, an exceptionw would be thrown.
+		/// </summary>
+		/// <param name="changeType">Requested change</param>
+		private void UndoNonMatchingPendingChanges(ChangeType changeType)
 		{
-			bool hasChanges;
-
 			try
 			{
-				var versionControlServer = (VersionControlServer) _connection.TfsTeamProjectCollection.GetService(typeof (VersionControlServer));
+				var versionControlServer = (VersionControlServer)_tfsTeamProjectCollection.GetService(typeof(VersionControlServer));
 				versionControlServer.NonFatalError += OnNonFatalError;
 
 				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
 				var changes = workspace.GetPendingChanges(_filename, RecursionType.None, false);
-				hasChanges = changes.Any();
+
+				var change = changes.FirstOrDefault(c => c.ChangeType != changeType);
+				if (change != null)
+				{
+					workspace.Undo(_filename);
+
+					// Grab a copy of the file from TFS and overwrite our local to keep TFS from complaining about it not being downloaded
+					// If not downloaded, TFS won't allow any additional pending edits and stuff breaks
+					var serverCopy = versionControlServer.GetItem(change.ItemId, change.Version, GetItemsOptions.Download);
+					serverCopy.DownloadFile(_filename);
+				}
+			}
+			catch (Exception ex)
+			{
+				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS Manager: Could not revert pending change for " + _filename, ex, this);
+				throw;
+			}
+		}
+
+		private bool HasPendingChanges(ChangeType changeType)
+		{
+			bool hasRequestedChange;
+
+			try
+			{
+				var versionControlServer = (VersionControlServer)_tfsTeamProjectCollection.GetService(typeof(VersionControlServer));
+				versionControlServer.NonFatalError += OnNonFatalError;
+
+				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
+				var changes = workspace.GetPendingChanges(_filename, RecursionType.None, false);
+				
+				hasRequestedChange = changes.Any(c => c.ChangeType == changeType);
 			}
 			catch (Exception ex)
 			{
@@ -99,7 +134,13 @@ namespace Rainbow.SourceControl
 				throw;
 			}
 
-			return hasChanges;
+			return hasRequestedChange;
+		}
+
+		public bool CheckoutFileForEdit()
+		{
+			bool fileExistsOnTfsServer = FileExistsOnServer();
+			return fileExistsOnTfsServer ? EditFile() : AddFile();
 		}
 
 		public bool CheckoutFileForDelete()
@@ -111,7 +152,7 @@ namespace Rainbow.SourceControl
 				Sitecore.Diagnostics.Log.Warn("[Rainbow] TFS Manager: Attempting to delete a file that doesn't exist on the local filesystem for " + _filename, this);
 			}
 
-			// if the file doesn't exist on the TFS server, we're out of sync. Allow the deletion.
+			// if the file doesn't exist on the TFS server, we're out of sync. Allow the local deletion.
 			bool fileExistsOnServer = FileExistsOnServer();
 			if (!fileExistsOnServer)
 			{
@@ -120,26 +161,23 @@ namespace Rainbow.SourceControl
 			}
 
 			// if the file is already under edit, no need to checkout again
-			return HasPendingChanges() || CheckoutFile();
+			return DeleteFile();
 		}
 
-		public bool CheckoutFileForEdit()
+		private bool EditFile()
 		{
 			AssertFileExistsOnFileSystem();
-
-			// if the file is already under edit, no need to checkout again
-			if (HasPendingChanges()) return true;
-
 			AssertFileExistsInTfs();
 
-			return CheckoutFile();
-		}
+			// if the file is already under edit, no need to checkout again
+			if (HasPendingChanges(ChangeType.Edit)) return true;
 
-		private bool CheckoutFile()
-		{
+			// revert any conflicting TFS pending changes that prevent us from submitting a pending edit
+			UndoNonMatchingPendingChanges(ChangeType.Edit);
+
 			try
 			{
-				var versionControlServer = (VersionControlServer) _connection.TfsTeamProjectCollection.GetService(typeof (VersionControlServer));
+				var versionControlServer = (VersionControlServer)_tfsTeamProjectCollection.GetService(typeof(VersionControlServer));
 				versionControlServer.NonFatalError += OnNonFatalError;
 
 				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
@@ -160,14 +198,14 @@ namespace Rainbow.SourceControl
 			return true;
 		}
 
-		public bool AddFile()
+		private bool AddFile()
 		{
 			AssertFileExistsOnFileSystem();
 			AssertFileDoesNotExistInTfs();
 
 			try
 			{
-				var versionControlServer = (VersionControlServer) _connection.TfsTeamProjectCollection.GetService(typeof (VersionControlServer));
+				var versionControlServer = (VersionControlServer)_tfsTeamProjectCollection.GetService(typeof(VersionControlServer));
 				versionControlServer.NonFatalError += OnNonFatalError;
 
 				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
@@ -182,6 +220,36 @@ namespace Rainbow.SourceControl
 			catch (Exception ex)
 			{
 				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS Manager: Could not add file to TFS for " + _filename, ex, this);
+				throw;
+			}
+
+			return true;
+		}
+
+		private bool DeleteFile()
+		{
+			if (HasPendingChanges(ChangeType.Delete)) return true;
+
+			// revert any conflicting TFS pending changes that prevent us from submitting a pending delete
+			UndoNonMatchingPendingChanges(ChangeType.Delete);
+
+			try
+			{
+				var versionControlServer = (VersionControlServer)_tfsTeamProjectCollection.GetService(typeof(VersionControlServer));
+				versionControlServer.NonFatalError += OnNonFatalError;
+
+				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
+				var updateResult = workspace.PendDelete(_filename);
+				var updateSuccess = updateResult == 1;
+				if (updateSuccess == false)
+				{
+					var message = string.Format("TFS checkout was unsuccessful for {0}", _filename);
+					throw new Exception(message);
+				}
+			}
+			catch (Exception ex)
+			{
+				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS Manager: Could not checkout file in TFS for " + _filename, ex, this);
 				throw;
 			}
 
