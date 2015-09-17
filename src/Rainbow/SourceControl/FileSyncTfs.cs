@@ -6,15 +6,14 @@ namespace Rainbow.SourceControl
 {
 	public class FileSyncTfs : ISourceControlSync
 	{
-		private readonly TfsPersistentConnection _connection;
+		private readonly WorkspaceInfo _workspaceInfo;
+		private readonly NetworkCredential _networkCredential;
 
 		public FileSyncTfs(ScmSettings settings)
 		{
-			var networkCredential = new NetworkCredential(settings.Username, settings.Password, settings.Domain);
-			var workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(settings.ApplicationRootPath);
-			AssertWorkspace(workspaceInfo, settings.ApplicationRootPath);
-
-			_connection = TfsPersistentConnection.Instance(workspaceInfo.ServerUri, networkCredential);
+			_networkCredential = new NetworkCredential(settings.Username, settings.Password, settings.Domain);
+			_workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(settings.ApplicationRootPath);
+			AssertWorkspace(_workspaceInfo, settings.ApplicationRootPath);
 		}
 
 		private void AssertWorkspace(WorkspaceInfo workspaceInfo, string filename)
@@ -23,21 +22,29 @@ namespace Rainbow.SourceControl
 			throw new Exception("[Rainbow] TFS Manager: No workspace is available or defined for the path " + filename);
 		}
 
+		private TfsPersistentConnection GetTfsPersistentConnection()
+		{
+			return TfsPersistentConnection.Instance(_workspaceInfo.ServerUri, _networkCredential);
+		}
+
 		public bool CheckoutFileForDelete(string filename)
 		{
-			var handler = new TfsFileHandler(_connection, filename);
+			var connection = GetTfsPersistentConnection();
+			var handler = new TfsFileHandler(connection, filename);
 			return handler.CheckoutFileForDelete();
 		}
 
 		public bool CheckoutFileForEdit(string filename)
 		{
-			var handler = new TfsFileHandler(_connection, filename);
+			var connection = GetTfsPersistentConnection();
+			var handler = new TfsFileHandler(connection, filename);
 			return handler.CheckoutFileForEdit();
 		}
 
 		public bool AddFile(string filename)
 		{
-			var handler = new TfsFileHandler(_connection, filename);
+			var connection = GetTfsPersistentConnection();
+			var handler = new TfsFileHandler(connection, filename);
 			return handler.AddFile();
 		}
 	}
