@@ -36,6 +36,7 @@ namespace Rainbow.SourceControl
 		{
 			var connection = GetTfsPersistentConnection();
 			var versionControlServer = (VersionControlServer)connection.TfsTeamProjectCollection.GetService(typeof(VersionControlServer));
+
 			Workstation.Current.UpdateWorkspaceInfoCache(versionControlServer, versionControlServer.AuthorizedUser);
 			Workstation.Current.EnsureUpdateWorkspaceInfoCache(versionControlServer, versionControlServer.AuthorizedUser);
 		}

@@ -13,7 +13,7 @@ namespace Rainbow.SourceControl
 		private readonly string _filename;
 
 		public bool FileExistsOnServer { get; private set; }
-		public bool FileExistsOnFileSystem { get; private set; }
+		public bool FileExistsOnFileSystem { get { return File.Exists(_filename); } }
 
 		public TfsFileHandler(TfsTeamProjectCollection tfsTeamProjectCollection, string filename)
 		{
@@ -23,7 +23,6 @@ namespace Rainbow.SourceControl
 			_workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(filename);
 			AssertWorkspace(_workspaceInfo, filename);
 
-			FileExistsOnFileSystem = GetFileExistsOnFileSystem();
 			FileExistsOnServer = GetFileExistsOnServer();
 		}
 
@@ -55,11 +54,6 @@ namespace Rainbow.SourceControl
 			{
 				throw new Exception("[Rainbow] TFS File Handler: file exists in TFS for " + _filename);
 			}
-		}
-
-		private bool GetFileExistsOnFileSystem()
-		{
-			return File.Exists(_filename);
 		}
 
 		private bool GetFileExistsOnServer()
@@ -98,45 +92,14 @@ namespace Rainbow.SourceControl
 
 				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
 
-				// cannot undo a pending change of a file in conflict
-				var conflicts = workspace.QueryConflicts(new[] { _filename }, false);
-				bool hasConflicts = conflicts.Any();
-				if (hasConflicts)
-				{
-
-				}
-
-				// undo workspace changes
+				// get pending changes that differ from changeType
 				var changes = workspace.GetPendingChanges(_filename, RecursionType.None, false);
 				var change = changes.FirstOrDefault(c => c.ChangeType != changeType);
-				if (change != null)
-				{
-					bool writeToDisk = !FileExistsOnFileSystem;
-					workspace.Undo(new[] { _filename }, writeToDisk);
-					
-					conflicts = workspace.QueryConflicts(new[] { _filename }, writeToDisk);
-					hasConflicts = conflicts.Any();
-					if (hasConflicts)
-					{
+				if (change == null) return;
 
-					}
-
-
-					//workspace.Get(new[] {_filename}, VersionSpec.Latest, RecursionType.None, GetOptions.Overwrite);
-
-					//foreach (var conflict in conflicts)
-					//{
-					//	workspace.ResolveConflict(conflict);
-					//}
-
-
-					//workspace.Get(_filename, VersionSpec.
-
-					//// Grab a copy of the file from TFS and overwrite our local to keep TFS from complaining about it not being downloaded
-					//// If not downloaded, TFS won't allow any additional pending edits and stuff breaks.
-					//var serverCopy = versionControlServer.GetItem(change.ItemId, change.Version, GetItemsOptions.Download);
-					//serverCopy.DownloadFile(_filename);
-				}
+				// update our workspace and refresh the local copy
+				bool writeToDisk = !FileExistsOnFileSystem;
+				workspace.Undo(new[] { _filename }, writeToDisk);
 			}
 			catch (Exception ex)
 			{
@@ -168,6 +131,23 @@ namespace Rainbow.SourceControl
 			return hasRequestedChange;
 		}
 
+		private void TryRefreshLocalWithTfs()
+		{
+			try
+			{
+				var versionControlServer = (VersionControlServer)_tfsTeamProjectCollection.GetService(typeof(VersionControlServer));
+				versionControlServer.NonFatalError += OnNonFatalError;
+
+				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
+				workspace.Get(new[] { _filename }, VersionSpec.Latest, RecursionType.None, GetOptions.Overwrite);
+			}
+			catch (Exception ex)
+			{
+				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS File Handler: Could not refresh local from TFS " + _filename, ex, this);
+				throw;
+			}
+		}
+
 		public bool CheckoutFileForDelete()
 		{
 			// if the file doesn't exist on the local filesystem, we're out of sync. Record in logs and allow to pass through.
@@ -183,25 +163,12 @@ namespace Rainbow.SourceControl
 				return true;
 			}
 
-			// if the file is already under edit, no need to checkout again
+			if (HasPendingChanges(ChangeType.Delete)) return true;
+
+			// revert any conflicting TFS pending changes that prevent us from submitting a pending delete
+			UndoNonMatchingPendingChanges(ChangeType.Delete);
+
 			return DeleteFile();
-		}
-
-		private void TryRefreshLocalWithTfs()
-		{
-			try
-			{
-				var versionControlServer = (VersionControlServer) _tfsTeamProjectCollection.GetService(typeof (VersionControlServer));
-				versionControlServer.NonFatalError += OnNonFatalError;
-
-				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
-				workspace.Get(new[] {_filename}, VersionSpec.Latest, RecursionType.None, GetOptions.Overwrite);
-			}
-			catch (Exception ex)
-			{
-				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS File Handler: Could not refresh local from TFS " + _filename, ex, this);
-				throw;
-			}
 		}
 
 		public bool CheckoutFileForEdit()
@@ -220,9 +187,17 @@ namespace Rainbow.SourceControl
 				TryRefreshLocalWithTfs();
 			}
 
+			return EditFile();
+		}
+
+		private bool EditFile()
+		{
+			AssertFileExistsOnFileSystem();
+			AssertFileExistsInTfs();
+
 			try
 			{
-				var versionControlServer = (VersionControlServer)_tfsTeamProjectCollection.GetService(typeof(VersionControlServer));
+				var versionControlServer = (VersionControlServer) _tfsTeamProjectCollection.GetService(typeof (VersionControlServer));
 				versionControlServer.NonFatalError += OnNonFatalError;
 
 				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
@@ -273,10 +248,7 @@ namespace Rainbow.SourceControl
 
 		private bool DeleteFile()
 		{
-			if (HasPendingChanges(ChangeType.Delete)) return true;
-
-			// revert any conflicting TFS pending changes that prevent us from submitting a pending delete
-			UndoNonMatchingPendingChanges(ChangeType.Delete);
+			AssertFileExistsInTfs();
 
 			try
 			{
@@ -306,15 +278,5 @@ namespace Rainbow.SourceControl
 			var message = e.Exception != null ? e.Exception.Message : e.Failure.Message;
 			Sitecore.Diagnostics.Log.Error("[Rainbow] TFS File Handler: Non-fatal exception: " + message, this);
 		}
-
-		//private void AutoResolveConflistKeepLocal(Workspace workspace)
-		//{
-		//	// auto-resolve conflict by trusting local copy
-		//	var conflicts = workspace.QueryConflicts(new [] {_filename}, false);
-		//	foreach (var conflict in conflicts)
-		//	{
-		//		workspace.ResolveConflict(conflict);
-		//	}
-		//}
 	}
 }
