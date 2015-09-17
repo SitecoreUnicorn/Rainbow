@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Web;
 using Sitecore.Configuration;
 
 namespace Rainbow.SourceControl
@@ -9,6 +10,7 @@ namespace Rainbow.SourceControl
 		private string _password;
 		private string _domain;
 		private string _sourceControlProvider;
+		private readonly ISourceControlSync _sourceControlSync;
 
 		private const string UsernameKey = "Rainbow.SCM.Login";
 		private const string PasswordKey = "Rainbow.SCM.Password";
@@ -67,18 +69,12 @@ namespace Rainbow.SourceControl
 			}
 		}
 
-		private ScmSettings GetSettings(string filename)
+		public SourceControlManager()
 		{
-			return new ScmSettings()
-			{
-				Domain = Domain,
-				Filename = filename,
-				Password = Password,
-				Username = Username
-			};
+			_sourceControlSync = GetSourceControlSyncInstance();
 		}
 
-		private ISourceControlSync GetSourceControlSyncInstance(string filename)
+		private ISourceControlSync GetSourceControlSyncInstance()
 		{
 			var type = Type.GetType(SourceControlProvider);
 			if (type == null)
@@ -86,7 +82,7 @@ namespace Rainbow.SourceControl
 				throw new Exception(string.Format("Cannot resolve type {0} from setting {1}", SourceControlProvider, SourceControlProviderKey));
 			}
 
-			var sourceControlSync = Activator.CreateInstance(type, GetSettings(filename)) as ISourceControlSync;
+			var sourceControlSync = Activator.CreateInstance(type, GetSettings()) as ISourceControlSync;
 			if (sourceControlSync == null)
 			{
 				throw new Exception(string.Format("Cannot create instance of type {0}", SourceControlProvider));
@@ -95,22 +91,30 @@ namespace Rainbow.SourceControl
 			return sourceControlSync;
 		}
 
+		private ScmSettings GetSettings()
+		{
+			return new ScmSettings()
+			{
+				Domain = Domain,
+				Password = Password,
+				Username = Username,
+				ApplicationRootPath = HttpContext.Current.Server.MapPath("/")
+			};
+		}
+
 		public bool Edit(string filename)
 		{
-			var sourceControlSync = GetSourceControlSyncInstance(filename);
-			return sourceControlSync.CheckoutFileForEdit();
+			return _sourceControlSync.CheckoutFileForEdit(filename);
 		}
 
 		public bool Add(string filename)
 		{
-			var sourceControlSync = GetSourceControlSyncInstance(filename);
-			return sourceControlSync.AddFile();
+			return _sourceControlSync.AddFile(filename);
 		}
 
 		public bool Remove(string filename)
 		{
-			var sourceControlSync = GetSourceControlSyncInstance(filename);
-			return sourceControlSync.CheckoutFileForDelete();
+			return _sourceControlSync.CheckoutFileForDelete(filename);
 		}
 	}
 }
