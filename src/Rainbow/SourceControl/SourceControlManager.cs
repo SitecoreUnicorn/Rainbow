@@ -76,6 +76,11 @@ namespace Rainbow.SourceControl
 			_sourceControlSync = GetSourceControlSyncInstance();
 		}
 
+		public SourceControlManager(ISourceControlSync sourceControlSync)
+		{
+			_sourceControlSync = sourceControlSync;
+		}
+
 		private ISourceControlSync GetSourceControlSyncInstance()
 		{
 			var type = Type.GetType(SourceControlProvider);
@@ -106,17 +111,26 @@ namespace Rainbow.SourceControl
 
 		public bool EditPreProcessing(string filename)
 		{
-			return _sourceControlSync.EditPreProcessing(filename);
+			bool success = _sourceControlSync.EditPreProcessing(filename);
+			if (success) return true;
+
+			throw new Exception("[Rainbow] Edit pre-processing failed for " + filename);
 		}
 
 		public bool EditPostProcessing(string filename)
 		{
-			return _sourceControlSync.EditPostProcessing(filename);
+			bool success = _sourceControlSync.EditPostProcessing(filename);
+			if (success) return true;
+
+			throw new Exception("[Rainbow] Edit post-processing failed for " + filename);
 		}
 
 		public bool DeletePreProcessing(string filename)
 		{
-			return _sourceControlSync.DeletePreProcessing(filename);
+			bool success = _sourceControlSync.DeletePreProcessing(filename);
+			if (success) return true;
+
+			throw new Exception("[Rainbow] Delete pre-processing failed for " + filename);
 		}
 	}
 }

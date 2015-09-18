@@ -9,27 +9,31 @@ namespace Rainbow.SourceControl
 	public class TfsFileHandler
 	{
 		private readonly TfsTeamProjectCollection _tfsTeamProjectCollection;
-		private readonly WorkspaceInfo _workspaceInfo;
 		private readonly string _filename;
 
-		public bool FileExistsOnServer { get; private set; }
-		public bool FileExistsOnFileSystem { get { return File.Exists(_filename); } }
+		public virtual bool FileExistsOnServer { get; private set; }
+		public virtual bool FileExistsOnFileSystem { get { return File.Exists(_filename); } }
 
 		public TfsFileHandler(TfsTeamProjectCollection tfsTeamProjectCollection, string filename)
 		{
 			_tfsTeamProjectCollection = tfsTeamProjectCollection;
 			_filename = filename;
 
-			_workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(filename);
-			AssertWorkspace(_workspaceInfo, filename);
-
 			FileExistsOnServer = GetFileExistsOnServer();
 		}
 
-		private void AssertWorkspace(WorkspaceInfo workspaceInfo, string filename)
+		private WorkspaceInfo GetLocalWorkspaceInfo()
+		{
+			var workspace = Workstation.Current.GetLocalWorkspaceInfo(_filename);
+			AssertWorkspace(workspace);
+
+			return workspace;
+		}
+
+		private void AssertWorkspace(WorkspaceInfo workspaceInfo)
 		{
 			if (workspaceInfo != null) return;
-			throw new Exception("[Rainbow] TFS File Handler: No workspace is available or defined for the path " + filename);
+			throw new Exception("[Rainbow] TFS File Handler: No workspace is available or defined for the path " + _filename);
 		}
 
 		private void AssertFileExistsOnFileSystem()
@@ -56,7 +60,22 @@ namespace Rainbow.SourceControl
 			}
 		}
 
-		private bool GetFileExistsOnServer()
+		private Workspace GetWorkspace()
+		{
+			var versionControlServer = (VersionControlServer)_tfsTeamProjectCollection.GetService(typeof(VersionControlServer));
+			versionControlServer.NonFatalError += OnNonFatalError;
+
+			return GetWorkspace(versionControlServer);
+		}
+
+		private Workspace GetWorkspace(VersionControlServer versionControlServer)
+		{
+			var workspaceInfo = GetLocalWorkspaceInfo();
+			var workspace = versionControlServer.GetWorkspace(workspaceInfo);
+			return workspace;
+		}
+
+		protected virtual bool GetFileExistsOnServer()
 		{
 			bool fileExistsInTfs;
 
@@ -65,7 +84,7 @@ namespace Rainbow.SourceControl
 				var versionControlServer = (VersionControlServer)_tfsTeamProjectCollection.GetService(typeof(VersionControlServer));
 				versionControlServer.NonFatalError += OnNonFatalError;
 
-				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
+				var workspace = GetWorkspace(versionControlServer);
 				var serverFilePath = workspace.GetServerItemForLocalItem(_filename);
 				fileExistsInTfs = versionControlServer.ServerItemExists(serverFilePath, ItemType.Any);
 			}
@@ -83,14 +102,11 @@ namespace Rainbow.SourceControl
 		/// is delete, undo the delete so we can place the item in pending edit. Without the undo, an exceptionw would be thrown.
 		/// </summary>
 		/// <param name="changeType">Requested change</param>
-		private void UndoNonMatchingPendingChanges(ChangeType changeType)
+		protected virtual void UndoNonMatchingPendingChanges(ChangeType changeType)
 		{
 			try
 			{
-				var versionControlServer = (VersionControlServer)_tfsTeamProjectCollection.GetService(typeof(VersionControlServer));
-				versionControlServer.NonFatalError += OnNonFatalError;
-
-				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
+				var workspace = GetWorkspace();
 
 				// get pending changes that differ from changeType
 				var changes = workspace.GetPendingChanges(_filename, RecursionType.None, false);
@@ -108,16 +124,13 @@ namespace Rainbow.SourceControl
 			}
 		}
 
-		private bool HasPendingChanges(ChangeType changeType)
+		protected virtual bool HasPendingChanges(ChangeType changeType)
 		{
 			bool hasRequestedChange;
 
 			try
 			{
-				var versionControlServer = (VersionControlServer)_tfsTeamProjectCollection.GetService(typeof(VersionControlServer));
-				versionControlServer.NonFatalError += OnNonFatalError;
-
-				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
+				var workspace = GetWorkspace();
 				var changes = workspace.GetPendingChanges(_filename, RecursionType.None, false);
 				
 				hasRequestedChange = changes.Any(c => c.ChangeType == changeType);
@@ -141,7 +154,7 @@ namespace Rainbow.SourceControl
 				var item = versionControlServer.GetItem(_filename, VersionSpec.Latest, DeletedState.Any, GetItemsOptions.Download);
 				item.DownloadFile(_filename);
 
-				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
+				var workspace = GetWorkspace(versionControlServer);
 				workspace.Get(new[] { _filename }, VersionSpec.Latest, RecursionType.None, GetOptions.Overwrite);
 			}
 			catch (Exception ex)
@@ -171,7 +184,8 @@ namespace Rainbow.SourceControl
 			// revert any conflicting TFS pending changes that prevent us from submitting a pending delete
 			UndoNonMatchingPendingChanges(ChangeType.Delete);
 
-			return DeleteFile();
+			var updateResult = DeleteFileInTfs();
+			return updateResult == 1;
 		}
 
 		public bool CheckoutFileForEdit()
@@ -190,35 +204,10 @@ namespace Rainbow.SourceControl
 				TryRefreshLocalWithTfs();
 			}
 
-			return EditFile();
-		}
-
-		private bool EditFile()
-		{
 			AssertFileExistsOnFileSystem();
-			AssertFileExistsInTfs();
 
-			try
-			{
-				var versionControlServer = (VersionControlServer) _tfsTeamProjectCollection.GetService(typeof (VersionControlServer));
-				versionControlServer.NonFatalError += OnNonFatalError;
-
-				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
-				var updateResult = workspace.PendEdit(_filename);
-				var updateSuccess = updateResult == 1;
-				if (updateSuccess == false)
-				{
-					var message = string.Format("TFS checkout was unsuccessful for {0}", _filename);
-					throw new Exception(message);
-				}
-			}
-			catch (Exception ex)
-			{
-				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS File Handler: Could not checkout file in TFS for " + _filename, ex, this);
-				throw;
-			}
-
-			return true;
+			var updateResult = EditFileInTfs();
+			return updateResult == 1;
 		}
 
 		public bool AddFile()
@@ -226,54 +215,50 @@ namespace Rainbow.SourceControl
 			AssertFileExistsOnFileSystem();
 			AssertFileDoesNotExistInTfs();
 
+			var updateResult = AddFileToTfs();
+			return updateResult == 1;
+		}
+
+		protected virtual int AddFileToTfs()
+		{
 			try
 			{
-				var versionControlServer = (VersionControlServer)_tfsTeamProjectCollection.GetService(typeof(VersionControlServer));
-				versionControlServer.NonFatalError += OnNonFatalError;
-
-				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
-				var updateResult = workspace.PendAdd(_filename);
-				var addSuccess = updateResult == 1;
-				if (addSuccess == false)
-				{
-					var message = string.Format("TFS add was unsuccessful for {0}", _filename);
-					throw new Exception(message);
-				}
+				var workspace = GetWorkspace();
+				return workspace.PendAdd(_filename);
 			}
 			catch (Exception ex)
 			{
 				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS File Handler: Could not add file to TFS for " + _filename, ex, this);
 				throw;
 			}
-
-			return true;
 		}
 
-		private bool DeleteFile()
+		protected virtual int EditFileInTfs()
 		{
-			AssertFileExistsInTfs();
-
 			try
 			{
-				var versionControlServer = (VersionControlServer)_tfsTeamProjectCollection.GetService(typeof(VersionControlServer));
-				versionControlServer.NonFatalError += OnNonFatalError;
-
-				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
-				var updateResult = workspace.PendDelete(_filename);
-				var updateSuccess = updateResult == 1;
-				if (updateSuccess == false)
-				{
-					var message = string.Format("TFS checkout was unsuccessful for {0}", _filename);
-					throw new Exception(message);
-				}
+				var workspace = GetWorkspace();
+				return workspace.PendEdit(_filename);
 			}
 			catch (Exception ex)
 			{
 				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS File Handler: Could not checkout file in TFS for " + _filename, ex, this);
 				throw;
 			}
+		}
 
-			return true;
+		protected virtual int DeleteFileInTfs()
+		{
+			try
+			{
+				var workspace = GetWorkspace();
+				return workspace.PendDelete(_filename);
+			}
+			catch (Exception ex)
+			{
+				Sitecore.Diagnostics.Log.Error("[Rainbow] TFS File Handler: Could not checkout file in TFS for " + _filename, ex, this);
+				throw;
+			}
 		}
 
 		private void OnNonFatalError(Object sender, ExceptionEventArgs e)
