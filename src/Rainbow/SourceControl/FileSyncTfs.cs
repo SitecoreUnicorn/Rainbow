@@ -9,6 +9,8 @@ namespace Rainbow.SourceControl
 		private readonly WorkspaceInfo _workspaceInfo;
 		private readonly NetworkCredential _networkCredential;
 
+		public bool AllowFileSystemClear { get { return false; } }
+
 		public FileSyncTfs(ScmSettings settings)
 		{
 			_networkCredential = new NetworkCredential(settings.Username, settings.Password, settings.Domain);
@@ -21,7 +23,7 @@ namespace Rainbow.SourceControl
 		private void AssertWorkspace(WorkspaceInfo workspaceInfo, string filename)
 		{
 			if (workspaceInfo != null) return;
-			throw new Exception("[Rainbow] TFS Manager: No workspace is available or defined for the path " + filename);
+			throw new Exception("[Rainbow] TFS Manager: No workspace is available or defined for the path. Verify your ASP.NET impersonation credentials in IIS for local TFS cache access. File " + filename);
 		}
 
 		private TfsPersistentConnection GetTfsPersistentConnection()

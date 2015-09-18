@@ -69,6 +69,8 @@ namespace Rainbow.SourceControl
 			}
 		}
 
+		public bool AllowFileSystemClear { get { return _sourceControlSync.AllowFileSystemClear; } }
+
 		public SourceControlManager()
 		{
 			_sourceControlSync = GetSourceControlSyncInstance();

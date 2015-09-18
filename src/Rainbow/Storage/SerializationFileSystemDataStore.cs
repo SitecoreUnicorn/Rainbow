@@ -23,6 +23,7 @@ namespace Rainbow.Storage
 		private readonly ISerializationFormatter _formatter;
 		protected readonly List<SerializationFileSystemTree> Trees;
 		protected readonly List<Action<IItemMetadata, string>> ChangeWatchers = new List<Action<IItemMetadata, string>>();
+		private readonly ISourceControlManager _sourceControlManager;
 
 		public SerializationFileSystemDataStore(string physicalRootPath, bool useDataCache, ITreeRootFactory rootFactory, ISerializationFormatter formatter)
 		{
@@ -37,6 +38,8 @@ namespace Rainbow.Storage
 			_rootFactory = rootFactory;
 			_formatter = formatter;
 			_formatter.ParentDataStore = this;
+			
+			_sourceControlManager = new SourceControlManager();
 
 			// ReSharper disable once DoNotCallOverridableMethodsInConstructor
 			Trees = InitializeTrees();
@@ -176,6 +179,12 @@ namespace Rainbow.Storage
 		public virtual void Clear()
 		{
 			if (!Directory.Exists(PhysicalRootPath)) return;
+
+			if (!_sourceControlManager.AllowFileSystemClear)
+			{
+				throw new InvalidOperationException("Cannot clear the local file system. The serialization tree must first be cleared in source control before continuing.");
+			}
+
 			var children = Directory.GetDirectories(PhysicalRootPath);
 
 			foreach (var child in children)

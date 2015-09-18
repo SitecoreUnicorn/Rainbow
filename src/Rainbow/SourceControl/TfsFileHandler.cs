@@ -67,7 +67,7 @@ namespace Rainbow.SourceControl
 
 				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
 				var serverFilePath = workspace.GetServerItemForLocalItem(_filename);
-				fileExistsInTfs = versionControlServer.ServerItemExists(serverFilePath, ItemType.File);
+				fileExistsInTfs = versionControlServer.ServerItemExists(serverFilePath, ItemType.Any);
 			}
 			catch (Exception ex)
 			{
@@ -137,6 +137,9 @@ namespace Rainbow.SourceControl
 			{
 				var versionControlServer = (VersionControlServer)_tfsTeamProjectCollection.GetService(typeof(VersionControlServer));
 				versionControlServer.NonFatalError += OnNonFatalError;
+
+				var item = versionControlServer.GetItem(_filename, VersionSpec.Latest, DeletedState.Any, GetItemsOptions.Download);
+				item.DownloadFile(_filename);
 
 				var workspace = versionControlServer.GetWorkspace(_workspaceInfo);
 				workspace.Get(new[] { _filename }, VersionSpec.Latest, RecursionType.None, GetOptions.Overwrite);
