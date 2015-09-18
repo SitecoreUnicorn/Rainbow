@@ -191,5 +191,19 @@ namespace Rainbow.Tests.Storage
 				Assert.NotNull(dataStore.GetById(id, "master"));
 			}
 		}
+
+		[Fact]
+		public void GetById_ReturnsNull_WhenDatabaseIsIncorrect()
+		{
+			using (var dataStore = new TestSfsDataStore("/sitecore"))
+			{
+				var id = Guid.NewGuid();
+				var item = new FakeItem(path: "/sitecore", id: id);
+
+				dataStore.Save(item);
+
+				Assert.Null(dataStore.GetById(id, "core"));
+			}
+		}
 	}
 }

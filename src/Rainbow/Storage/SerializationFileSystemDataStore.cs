@@ -121,7 +121,7 @@ namespace Rainbow.Storage
 			{
 				var result = tree.GetItemById(id);
 
-				if (result != null)
+				if (result != null && result.DatabaseName.Equals(database))
 				{
 					return result;
 				}
