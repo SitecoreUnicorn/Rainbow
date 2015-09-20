@@ -90,7 +90,7 @@ namespace Rainbow.Storage
 		/// <param name="physicalRootPath">The physical root path to write items in this tree to. Will be created if it does not exist.</param>
 		/// <param name="formatter">The formatter to use when reading or writing items to disk</param>
 		/// <param name="useDataCache">Whether to cache items read in memory for later rapid retrieval. Great for small trees, or if you have plenty of RAM. Bad for media trees :)</param>
-		public SerializationFileSystemTree(string name, string globalRootItemPath, string databaseName, string physicalRootPath, ISerializationFormatter formatter, bool useDataCache)
+		public SerializationFileSystemTree(string name, string globalRootItemPath, string databaseName, string physicalRootPath, ISerializationFormatter formatter, bool useDataCache, ISourceControlManager sourceControlManager)
 		{
 			Assert.ArgumentNotNullOrEmpty(globalRootItemPath, "globalRootItemPath");
 			Assert.ArgumentNotNullOrEmpty(databaseName, "databaseName");
@@ -102,11 +102,10 @@ namespace Rainbow.Storage
 			_globalRootItemPath = globalRootItemPath.TrimEnd('/');
 			PhysicalRootPath = physicalRootPath;
 			_formatter = formatter;
+			_sourceControlManager = sourceControlManager;
 			_dataCache = new FsCache<IItemData>(useDataCache);
 			Name = name;
 			DatabaseName = databaseName;
-
-			_sourceControlManager = new SourceControlManager();
 
 			if (!Directory.Exists(PhysicalRootPath)) Directory.CreateDirectory(PhysicalRootPath);
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Web;
 using Microsoft.TeamFoundation.VersionControl.Client;
 
 namespace Rainbow.SourceControl
@@ -11,11 +12,13 @@ namespace Rainbow.SourceControl
 
 		public bool AllowFileSystemClear { get { return false; } }
 
-		public FileSyncTfs(ScmSettings settings)
+		public FileSyncTfs(string username, string password, string domain)
 		{
-			_networkCredential = new NetworkCredential(settings.Username, settings.Password, settings.Domain);
-			_workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(settings.ApplicationRootPath);
-			AssertWorkspace(_workspaceInfo, settings.ApplicationRootPath);
+			_networkCredential = new NetworkCredential(username, password, domain);
+
+			var applicationRootPath = HttpContext.Current.Server.MapPath("/");
+			_workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(applicationRootPath);
+			AssertWorkspace(_workspaceInfo, applicationRootPath);
 
 			EnsureUpdateWorkspaceInfoCache();
 		}

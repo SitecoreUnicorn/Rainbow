@@ -25,7 +25,7 @@ namespace Rainbow.Storage
 		protected readonly List<Action<IItemMetadata, string>> ChangeWatchers = new List<Action<IItemMetadata, string>>();
 		private readonly ISourceControlManager _sourceControlManager;
 
-		public SerializationFileSystemDataStore(string physicalRootPath, bool useDataCache, ITreeRootFactory rootFactory, ISerializationFormatter formatter)
+		public SerializationFileSystemDataStore(string physicalRootPath, bool useDataCache, ITreeRootFactory rootFactory, ISerializationFormatter formatter, ISourceControlManager sourceControlManager)
 		{
 			Assert.ArgumentNotNullOrEmpty(physicalRootPath, "rootPath");
 			Assert.ArgumentNotNull(formatter, "formatter");
@@ -37,10 +37,9 @@ namespace Rainbow.Storage
 			_useDataCache = useDataCache;
 			_rootFactory = rootFactory;
 			_formatter = formatter;
+			_sourceControlManager = sourceControlManager;
 			_formatter.ParentDataStore = this;
 			
-			_sourceControlManager = new SourceControlManager();
-
 			// ReSharper disable once DoNotCallOverridableMethodsInConstructor
 			Trees = InitializeTrees();
 		}
@@ -233,7 +232,7 @@ namespace Rainbow.Storage
 
 		protected virtual SerializationFileSystemTree CreateTree(TreeRoot root)
 		{
-			var tree = new SerializationFileSystemTree(root.Name, root.Path, root.DatabaseName, Path.Combine(PhysicalRootPath, root.Name), _formatter, _useDataCache);
+			var tree = new SerializationFileSystemTree(root.Name, root.Path, root.DatabaseName, Path.Combine(PhysicalRootPath, root.Name), _formatter, _useDataCache, _sourceControlManager);
 			tree.TreeItemChanged += metadata =>
 			{
 				foreach (var watcher in ChangeWatchers) watcher(metadata, tree.DatabaseName);
