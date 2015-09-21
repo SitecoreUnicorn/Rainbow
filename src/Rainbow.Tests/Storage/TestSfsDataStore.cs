@@ -2,16 +2,16 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Rainbow.SourceControl;
 using Rainbow.Storage;
 using Rainbow.Storage.Yaml;
-using Rainbow.Tests.SourceControl;
 
 namespace Rainbow.Tests.Storage
 {
 	internal class TestSfsDataStore : SerializationFileSystemDataStore, IDisposable
 	{
 		public TestSfsDataStore(params string[] rootPaths) : 
-			base(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()), false, new FakeRootFactory(rootPaths), new YamlSerializationFormatter(null, null), new TestableSourceControlManager(true))
+			base(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()), false, new FakeRootFactory(rootPaths), new YamlSerializationFormatter(null, null), new FileSyncDefault())
 		{
 		}
 

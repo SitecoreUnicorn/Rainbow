@@ -37,11 +37,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.TeamFoundation.Client, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.TeamFoundation.Common, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.TeamFoundation.VersionControl.Client, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.TeamFoundation.WorkItemTracking.Client.DataStoreLoader, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=x86" />
-    <Reference Include="Microsoft.VisualStudio.Services.Common, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Sitecore.Kernel">
       <HintPath>..\..\lib\Sitecore\v7\Sitecore.Kernel.dll</HintPath>
     </Reference>
@@ -86,9 +81,6 @@
     <Compile Include="SourceControl\ISourceControlManager.cs" />
     <Compile Include="SourceControl\ISourceControlSync.cs" />
     <Compile Include="SourceControl\SourceControlManager.cs" />
-    <Compile Include="SourceControl\FileSyncTfs.cs" />
-    <Compile Include="SourceControl\TfsFileHandler.cs" />
-    <Compile Include="SourceControl\TfsPersistentConnection.cs" />
     <Compile Include="Storage\FastDirectoryEnumerator.cs" />
     <Compile Include="Storage\FsCache.cs" />
     <Compile Include="Storage\IDataStore.cs" />
