@@ -4,18 +4,17 @@ namespace Rainbow.SourceControl
 {
 	public class SourceControlManager : ISourceControlManager
 	{
-		private readonly ISourceControlSync _sourceControlSync;
-
-		public bool AllowFileSystemClear { get { return _sourceControlSync.AllowFileSystemClear; } }
+		public ISourceControlSync SourceControlSync { get; private set; }
+		public bool AllowFileSystemClear { get { return SourceControlSync.AllowFileSystemClear; } }
 
 		public SourceControlManager(ISourceControlSync sourceControlSync)
 		{
-			_sourceControlSync = sourceControlSync;
+			SourceControlSync = sourceControlSync;
 		}
 
 		public bool EditPreProcessing(string filename)
 		{
-			bool success = _sourceControlSync.EditPreProcessing(filename);
+			bool success = SourceControlSync.EditPreProcessing(filename);
 			if (success) return true;
 
 			throw new Exception("[Rainbow] Edit pre-processing failed for " + filename);
@@ -23,7 +22,7 @@ namespace Rainbow.SourceControl
 
 		public bool EditPostProcessing(string filename)
 		{
-			bool success = _sourceControlSync.EditPostProcessing(filename);
+			bool success = SourceControlSync.EditPostProcessing(filename);
 			if (success) return true;
 
 			throw new Exception("[Rainbow] Edit post-processing failed for " + filename);
@@ -31,7 +30,7 @@ namespace Rainbow.SourceControl
 
 		public bool DeletePreProcessing(string filename)
 		{
-			bool success = _sourceControlSync.DeletePreProcessing(filename);
+			bool success = SourceControlSync.DeletePreProcessing(filename);
 			if (success) return true;
 
 			throw new Exception("[Rainbow] Delete pre-processing failed for " + filename);
