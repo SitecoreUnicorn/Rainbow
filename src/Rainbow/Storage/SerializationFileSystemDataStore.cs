@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web.Hosting;
 using Rainbow.Formatting;
 using Rainbow.Model;
+using Rainbow.SourceControl;
 using Sitecore.Diagnostics;
 using Sitecore.StringExtensions;
 
@@ -22,8 +23,9 @@ namespace Rainbow.Storage
 		private readonly ISerializationFormatter _formatter;
 		protected readonly List<SerializationFileSystemTree> Trees;
 		protected readonly List<Action<IItemMetadata, string>> ChangeWatchers = new List<Action<IItemMetadata, string>>();
-
-		public SerializationFileSystemDataStore(string physicalRootPath, bool useDataCache, ITreeRootFactory rootFactory, ISerializationFormatter formatter)
+		private readonly ISourceControlManager _sourceControlManager;
+		
+		public SerializationFileSystemDataStore(string physicalRootPath, bool useDataCache, ITreeRootFactory rootFactory, ISerializationFormatter formatter, ISourceControlSync sourceControlSync)
 		{
 			Assert.ArgumentNotNullOrEmpty(physicalRootPath, "rootPath");
 			Assert.ArgumentNotNull(formatter, "formatter");
@@ -35,8 +37,9 @@ namespace Rainbow.Storage
 			_useDataCache = useDataCache;
 			_rootFactory = rootFactory;
 			_formatter = formatter;
+			_sourceControlManager = new SourceControlManager(sourceControlSync);
 			_formatter.ParentDataStore = this;
-
+			
 			// ReSharper disable once DoNotCallOverridableMethodsInConstructor
 			Trees = InitializeTrees();
 		}
@@ -175,6 +178,12 @@ namespace Rainbow.Storage
 		public virtual void Clear()
 		{
 			if (!Directory.Exists(PhysicalRootPath)) return;
+
+			if (!_sourceControlManager.AllowFileSystemClear)
+			{
+				throw new InvalidOperationException("Cannot clear the local file system. The serialization tree must first be cleared in source control before continuing.");
+			}
+
 			var children = Directory.GetDirectories(PhysicalRootPath);
 
 			foreach (var child in children)
@@ -223,7 +232,7 @@ namespace Rainbow.Storage
 
 		protected virtual SerializationFileSystemTree CreateTree(TreeRoot root)
 		{
-			var tree = new SerializationFileSystemTree(root.Name, root.Path, root.DatabaseName, Path.Combine(PhysicalRootPath, root.Name), _formatter, _useDataCache);
+			var tree = new SerializationFileSystemTree(root.Name, root.Path, root.DatabaseName, Path.Combine(PhysicalRootPath, root.Name), _formatter, _useDataCache, _sourceControlManager.SourceControlSync);
 			tree.TreeItemChanged += metadata =>
 			{
 				foreach (var watcher in ChangeWatchers) watcher(metadata, tree.DatabaseName);

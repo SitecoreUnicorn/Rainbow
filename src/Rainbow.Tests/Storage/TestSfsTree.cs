@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Rainbow.SourceControl;
 using Rainbow.Storage;
 using Rainbow.Storage.Yaml;
 
@@ -8,7 +9,7 @@ namespace Rainbow.Tests.Storage
 	internal class TestSfsTree : SerializationFileSystemTree, IDisposable
 	{
 		public TestSfsTree(string globalRootItemPath = "/sitecore")
-			: base("Unit Testing", globalRootItemPath, "UnitTesting", Path.Combine(Path.GetTempPath(), Guid.NewGuid() + " rb"), new YamlSerializationFormatter(null, null), false)
+			: base("Unit Testing", globalRootItemPath, "UnitTesting", Path.Combine(Path.GetTempPath(), Guid.NewGuid() + " rb"), new YamlSerializationFormatter(null, null), false, new FileSyncDefault())
 		{
 			GlobalRootItemPath = globalRootItemPath;
 			MaxPathLengthForTests = base.MaxRelativePathLength;

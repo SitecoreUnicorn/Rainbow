@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Rainbow.Formatting;
 using Rainbow.Model;
+using Rainbow.SourceControl;
 using Sitecore.Configuration;
 using Sitecore.Diagnostics;
 using Sitecore.IO;
@@ -68,6 +69,7 @@ namespace Rainbow.Storage
 		private readonly FsCache<IItemData> _dataCache;
 		private readonly FsCache<IItemMetadata> _metadataCache = new FsCache<IItemMetadata>(true);
 		private readonly TreeWatcher _treeWatcher;
+		private readonly ISourceControlManager _sourceControlManager;
 
 		// ReSharper disable once RedundantDefaultMemberInitializer
 		private bool _configuredForFastReads = false;
@@ -88,7 +90,8 @@ namespace Rainbow.Storage
 		/// <param name="physicalRootPath">The physical root path to write items in this tree to. Will be created if it does not exist.</param>
 		/// <param name="formatter">The formatter to use when reading or writing items to disk</param>
 		/// <param name="useDataCache">Whether to cache items read in memory for later rapid retrieval. Great for small trees, or if you have plenty of RAM. Bad for media trees :)</param>
-		public SerializationFileSystemTree(string name, string globalRootItemPath, string databaseName, string physicalRootPath, ISerializationFormatter formatter, bool useDataCache)
+		/// <param name="sourceControlSync">Keeps source control and file system in sync</param>
+		public SerializationFileSystemTree(string name, string globalRootItemPath, string databaseName, string physicalRootPath, ISerializationFormatter formatter, bool useDataCache, ISourceControlSync sourceControlSync)
 		{
 			Assert.ArgumentNotNullOrEmpty(globalRootItemPath, "globalRootItemPath");
 			Assert.ArgumentNotNullOrEmpty(databaseName, "databaseName");
@@ -100,6 +103,7 @@ namespace Rainbow.Storage
 			_globalRootItemPath = globalRootItemPath.TrimEnd('/');
 			PhysicalRootPath = physicalRootPath;
 			_formatter = formatter;
+			_sourceControlManager = new SourceControlManager(sourceControlSync);
 			_dataCache = new FsCache<IItemData>(useDataCache);
 			Name = name;
 			DatabaseName = databaseName;
@@ -194,14 +198,22 @@ namespace Rainbow.Storage
 			{
 				lock (FileUtil.GetFileLock(descendant.SerializedItemId))
 				{
+					_sourceControlManager.DeletePreProcessing(descendant.SerializedItemId);
 					File.Delete(descendant.SerializedItemId);
 
 					var childrenDirectory = Path.ChangeExtension(descendant.SerializedItemId, null);
-
-					if (Directory.Exists(childrenDirectory)) Directory.Delete(childrenDirectory, true);
+					if (Directory.Exists(childrenDirectory))
+					{
+						_sourceControlManager.DeletePreProcessing(childrenDirectory);
+						Directory.Delete(childrenDirectory, true);
+					}
 
 					var shortChildrenDirectory = Path.Combine(PhysicalRootPath, descendant.Id.ToString());
-					if (Directory.Exists(shortChildrenDirectory)) Directory.Delete(shortChildrenDirectory);
+					if (Directory.Exists(shortChildrenDirectory))
+					{
+						_sourceControlManager.DeletePreProcessing(shortChildrenDirectory);
+						Directory.Delete(shortChildrenDirectory);
+					}
 				}
 			}
 
@@ -274,20 +286,24 @@ namespace Rainbow.Storage
 					var directory = Path.GetDirectoryName(path);
 					if (directory != null && !Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
+					_sourceControlManager.EditPreProcessing(path);
+
 					using (var writer = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.None))
 					{
 						_formatter.WriteSerializedItem(proxiedItem, writer);
 					}
-				}
-				catch
-				{
-					if (File.Exists(path)) File.Delete(path);
-					throw;
-				}
-				finally
-				{
-					_treeWatcher.Restart();
-				}
+					
+					_sourceControlManager.EditPostProcessing(path);
+			    }
+			    catch
+			    {
+			        if (File.Exists(path)) File.Delete(path);
+			        throw;
+			    }
+			    finally
+			    {
+			        _treeWatcher.Restart();
+			    }
 			}
 
 			AddToMetadataCache(item);
