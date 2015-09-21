@@ -73,6 +73,7 @@
     <Compile Include="Formatting\FieldFormatters\XmlFieldFormatterTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SourceControl\SourceControlManagerTests.cs" />
+    <Compile Include="SourceControl\TestableFileSync.cs" />
     <Compile Include="SourceControl\TestableSourceControlManager.cs" />
     <Compile Include="Storage\SfsDataStoreTests.cs" />
     <Compile Include="Storage\SfsTreeTests.ConvertGlobalVirtualPathToTreeVirtualPath.cs" />

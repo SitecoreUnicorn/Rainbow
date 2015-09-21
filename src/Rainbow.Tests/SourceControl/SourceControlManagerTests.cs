@@ -1,3 +1,4 @@
+using System;
 using Xunit;
 
 namespace Rainbow.Tests.SourceControl
@@ -28,6 +29,27 @@ namespace Rainbow.Tests.SourceControl
 			var scm = new TestableSourceControlManager(true);
 			var result = scm.DeletePreProcessing(Filename);
 			Assert.True(result);
+		}
+
+		[Fact]
+		public void EditPreProcessing_Failure_ThrowsException()
+		{
+			var scm = new TestableSourceControlManager(false);
+			Assert.Throws<Exception>(() => scm.EditPreProcessing(Filename));
+		}
+
+		[Fact]
+		public void EditPostProcessing_Failure_ThrowsException()
+		{
+			var scm = new TestableSourceControlManager(false);
+			Assert.Throws<Exception>(() => scm.EditPostProcessing(Filename));
+		}
+
+		[Fact]
+		public void DeletePreProcessing_Failure_ThrowsException()
+		{
+			var scm = new TestableSourceControlManager(false);
+			Assert.Throws<Exception>(() => scm.DeletePreProcessing(Filename));
 		}
 	}
 }

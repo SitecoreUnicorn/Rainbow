@@ -4,6 +4,6 @@ namespace Rainbow.Tests.SourceControl
 {
 	public class TestableSourceControlManager : SourceControlManager
 	{
-		public TestableSourceControlManager(bool success) : base(new FileSyncDefault()) { }
+		public TestableSourceControlManager(bool success) : base(new TestableFileSync(success)) { }
 	}
 }
