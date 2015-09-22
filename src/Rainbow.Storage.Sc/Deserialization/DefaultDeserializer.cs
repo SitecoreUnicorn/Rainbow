@@ -479,12 +479,24 @@ namespace Rainbow.Storage.Sc.Deserialization
 			}
 
 			Field itemField = item.Fields[new ID(field.FieldId)];
-			if (itemField.IsBlobField && !ID.IsID(field.Value))
+			if (itemField.IsBlobField)
 			{
 				if(!field.BlobId.HasValue) throw new InvalidOperationException("Field " + field.FieldId + " is a blob field, but it had no blob ID.");
 
+				// check if existing blob is here with the same ID; abort if so
+				Guid existingBlobId;
+				if (Guid.TryParse(itemField.Value, out existingBlobId) && existingBlobId == field.BlobId.Value) return false;
+
 				byte[] buffer = Convert.FromBase64String(field.Value);
+
+				// if an existing blob of a different ID exists, drop it from the database
+				if (existingBlobId != default(Guid)) ItemManager.RemoveBlobStream(existingBlobId, item.Database);
+
+				// write the new blob to the database
 				ItemManager.SetBlobStream(new MemoryStream(buffer, false), field.BlobId.Value, item.Database);
+
+				// set the value of the blob field to the correct blob ID
+				itemField.SetValue(MainUtil.GuidToString(field.BlobId.Value), true);
 
 				if (!creatingNewItem)
 					_logger.WroteBlobStream(item, field);
