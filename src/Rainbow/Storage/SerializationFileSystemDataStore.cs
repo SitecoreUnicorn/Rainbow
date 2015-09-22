@@ -17,11 +17,11 @@ namespace Rainbow.Storage
 	public class SerializationFileSystemDataStore : IDataStore, IDocumentable, IDisposable
 	{
 		protected readonly string PhysicalRootPath;
-		private readonly bool _useDataCache;
 		private readonly ITreeRootFactory _rootFactory;
-		private readonly ISerializationFormatter _formatter;
 		protected readonly List<SerializationFileSystemTree> Trees;
 		protected readonly List<Action<IItemMetadata, string>> ChangeWatchers = new List<Action<IItemMetadata, string>>();
+		protected bool UseDataCache { get; private set; }
+		protected ISerializationFormatter Formatter { get; private set; }
 
 		public SerializationFileSystemDataStore(string physicalRootPath, bool useDataCache, ITreeRootFactory rootFactory, ISerializationFormatter formatter)
 		{
@@ -32,10 +32,10 @@ namespace Rainbow.Storage
 			// ReSharper disable once DoNotCallOverridableMethodsInConstructor
 			PhysicalRootPath = InitializeRootPath(physicalRootPath);
 
-			_useDataCache = useDataCache;
+			UseDataCache = useDataCache;
 			_rootFactory = rootFactory;
-			_formatter = formatter;
-			_formatter.ParentDataStore = this;
+			Formatter = formatter;
+			Formatter.ParentDataStore = this;
 
 			// ReSharper disable once DoNotCallOverridableMethodsInConstructor
 			Trees = InitializeTrees();
@@ -223,7 +223,7 @@ namespace Rainbow.Storage
 
 		protected virtual SerializationFileSystemTree CreateTree(TreeRoot root)
 		{
-			var tree = new SerializationFileSystemTree(root.Name, root.Path, root.DatabaseName, Path.Combine(PhysicalRootPath, root.Name), _formatter, _useDataCache);
+			var tree = new SerializationFileSystemTree(root.Name, root.Path, root.DatabaseName, Path.Combine(PhysicalRootPath, root.Name), Formatter, UseDataCache);
 			tree.TreeItemChanged += metadata =>
 			{
 				foreach (var watcher in ChangeWatchers) watcher(metadata, tree.DatabaseName);
@@ -268,7 +268,7 @@ namespace Rainbow.Storage
 		{
 			return new[]
 			{
-				new KeyValuePair<string, string>("Serialization formatter", DocumentationUtility.GetFriendlyName(_formatter)),
+				new KeyValuePair<string, string>("Serialization formatter", DocumentationUtility.GetFriendlyName(Formatter)),
 				new KeyValuePair<string, string>("Physical root path", PhysicalRootPath),
 				new KeyValuePair<string, string>("Total internal SFS trees", Trees.Count.ToString())
 			};
