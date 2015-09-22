@@ -6,7 +6,7 @@ namespace Rainbow.Diff.Fields
 	/// <summary>
 	/// Comparer for multi line text fields and rich text fields. Ignores line ending differences.
 	/// </summary>
-	public class MultiLineTextComparison : FieldTypeBasedComparer
+	public class MultiLineTextComparison : FieldTypeBasedComparison
 	{
 		public override bool AreEqual(IItemFieldValue field1, IItemFieldValue field2)
 		{

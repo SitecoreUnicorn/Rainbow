@@ -3,7 +3,7 @@ using Rainbow.Model;
 
 namespace Rainbow.Diff.Fields
 {
-	public class XmlComparison : FieldTypeBasedComparer
+	public class XmlComparison : FieldTypeBasedComparison
 	{
 		public override bool AreEqual(IItemFieldValue field1, IItemFieldValue field2)
 		{

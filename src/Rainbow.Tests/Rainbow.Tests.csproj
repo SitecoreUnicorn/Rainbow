@@ -56,6 +56,7 @@
     </Compile>
     <Compile Include="Diff\Fields\DefaultComparisonTests.cs" />
     <Compile Include="Diff\Fields\FieldComparerTest.cs" />
+    <Compile Include="Diff\Fields\MultilistComparisonTests.cs" />
     <Compile Include="Diff\Fields\MultilineTextComparisonTests.cs" />
     <Compile Include="Diff\Fields\XmlComparisonTests.cs" />
     <Compile Include="Diff\ItemComparerTests.cs" />

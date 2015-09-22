@@ -4,7 +4,7 @@ using Rainbow.Model;
 
 namespace Rainbow.Diff.Fields
 {
-	public abstract class FieldTypeBasedComparer : IFieldComparer
+	public abstract class FieldTypeBasedComparison : IFieldComparer
 	{
 		public virtual bool CanCompare(IItemFieldValue field1, IItemFieldValue field2)
 		{
