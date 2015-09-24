@@ -194,14 +194,26 @@ namespace Rainbow.Storage
 			{
 				lock (FileUtil.GetFileLock(descendant.SerializedItemId))
 				{
+					BeforeFilesystemDelete(descendant.SerializedItemId);
 					File.Delete(descendant.SerializedItemId);
+					AfterFilesystemDelete(descendant.SerializedItemId);
 
 					var childrenDirectory = Path.ChangeExtension(descendant.SerializedItemId, null);
 
-					if (Directory.Exists(childrenDirectory)) Directory.Delete(childrenDirectory, true);
+					if (Directory.Exists(childrenDirectory))
+					{
+						BeforeFilesystemDelete(childrenDirectory);
+						Directory.Delete(childrenDirectory, true);
+						AfterFilesystemDelete(childrenDirectory);
+					}
 
 					var shortChildrenDirectory = Path.Combine(PhysicalRootPath, descendant.Id.ToString());
-					if (Directory.Exists(shortChildrenDirectory)) Directory.Delete(shortChildrenDirectory);
+					if (Directory.Exists(shortChildrenDirectory))
+					{
+						BeforeFilesystemDelete(shortChildrenDirectory);
+						Directory.Delete(shortChildrenDirectory);
+						AfterFilesystemDelete(shortChildrenDirectory);
+					}
 				}
 			}
 
@@ -765,6 +777,22 @@ namespace Rainbow.Storage
 
 				if (TreeItemChanged != null) TreeItemChanged(null);
 			}
+		}
+
+		/// <summary>
+		/// Fired before SFS deletes a file or directory
+		/// </summary>
+		protected virtual void BeforeFilesystemDelete(string path)
+		{
+			
+		}
+
+		/// <summary>
+		/// Fired after SFS deletes a file or directory
+		/// </summary>
+		protected virtual void AfterFilesystemDelete(string path)
+		{
+			
 		}
 
 		protected class WrittenItemMetadata : IItemMetadata
