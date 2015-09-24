@@ -531,7 +531,7 @@ namespace Rainbow.Storage
 		{
 			Assert.ArgumentNotNullOrEmpty(name, "name");
 
-			var validifiedName = Regex.Replace(name, @"[%\$\\/:\*\?<>\|""]+", "_", RegexOptions.Compiled);
+			var validifiedName = string.Join("_", name.TrimStart(' ').Split(Path.GetInvalidFileNameChars()));
 
 			if (validifiedName.Length > MaxItemNameLengthBeforeTruncation)
 				validifiedName = validifiedName.Substring(0, MaxItemNameLengthBeforeTruncation);
