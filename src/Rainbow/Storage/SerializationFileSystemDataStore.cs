@@ -20,8 +20,7 @@ namespace Rainbow.Storage
 		private readonly ITreeRootFactory _rootFactory;
 		protected readonly List<SerializationFileSystemTree> Trees;
 		protected readonly List<Action<IItemMetadata, string>> ChangeWatchers = new List<Action<IItemMetadata, string>>();
-		protected bool UseDataCache { get; private set; }
-		protected ISerializationFormatter Formatter { get; private set; }
+		private readonly ISerializationFormatter _formatter;
 
 		public SerializationFileSystemDataStore(string physicalRootPath, bool useDataCache, ITreeRootFactory rootFactory, ISerializationFormatter formatter)
 		{
@@ -29,16 +28,15 @@ namespace Rainbow.Storage
 			Assert.ArgumentNotNull(formatter, "formatter");
 			Assert.ArgumentNotNull(rootFactory, "rootFactory");
 
+			_rootFactory = rootFactory;
+			_formatter = formatter;
+			_formatter.ParentDataStore = this;
+
 			// ReSharper disable once DoNotCallOverridableMethodsInConstructor
 			PhysicalRootPath = InitializeRootPath(physicalRootPath);
 
-			UseDataCache = useDataCache;
-			_rootFactory = rootFactory;
-			Formatter = formatter;
-			Formatter.ParentDataStore = this;
-
 			// ReSharper disable once DoNotCallOverridableMethodsInConstructor
-			Trees = InitializeTrees();
+			Trees = InitializeTrees(_formatter, useDataCache);
 		}
 
 		public virtual void Save(IItemData item)
@@ -202,11 +200,6 @@ namespace Rainbow.Storage
 			return rootPath;
 		}
 
-		protected virtual List<SerializationFileSystemTree> InitializeTrees()
-		{
-			return _rootFactory.CreateTreeRoots().Select(CreateTree).ToList();
-		}
-
 		protected virtual SerializationFileSystemTree GetTreeForPath(string path, string database)
 		{
 			var trees = Trees.Where(tree => tree.DatabaseName.Equals(database, StringComparison.OrdinalIgnoreCase) && tree.ContainsPath(path)).ToArray();
@@ -221,9 +214,16 @@ namespace Rainbow.Storage
 			return trees[0];
 		}
 
-		protected virtual SerializationFileSystemTree CreateTree(TreeRoot root)
+		// note: we pass in these params (formatter, datacache) so that overriding classes may get access to private vars indirectly (can't get at them otherwise because this is called from the constructor)
+		protected virtual List<SerializationFileSystemTree> InitializeTrees(ISerializationFormatter formatter, bool useDataCache)
 		{
-			var tree = new SerializationFileSystemTree(root.Name, root.Path, root.DatabaseName, Path.Combine(PhysicalRootPath, root.Name), Formatter, UseDataCache);
+			return _rootFactory.CreateTreeRoots().Select(tree => CreateTree(tree, formatter, useDataCache)).ToList();
+		}
+
+		// note: we pass in these params (formatter, datacache) so that overriding classes may get access to private vars indirectly (can't get at them otherwise because this is called from the constructor)
+		protected virtual SerializationFileSystemTree CreateTree(TreeRoot root, ISerializationFormatter formatter, bool useDataCache)
+		{
+			var tree = new SerializationFileSystemTree(root.Name, root.Path, root.DatabaseName, Path.Combine(PhysicalRootPath, root.Name), formatter, useDataCache);
 			tree.TreeItemChanged += metadata =>
 			{
 				foreach (var watcher in ChangeWatchers) watcher(metadata, tree.DatabaseName);
@@ -268,7 +268,7 @@ namespace Rainbow.Storage
 		{
 			return new[]
 			{
-				new KeyValuePair<string, string>("Serialization formatter", DocumentationUtility.GetFriendlyName(Formatter)),
+				new KeyValuePair<string, string>("Serialization formatter", DocumentationUtility.GetFriendlyName(_formatter)),
 				new KeyValuePair<string, string>("Physical root path", PhysicalRootPath),
 				new KeyValuePair<string, string>("Total internal SFS trees", Trees.Count.ToString())
 			};
