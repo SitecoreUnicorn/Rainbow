@@ -605,7 +605,7 @@ namespace Rainbow.Storage
 					int expectedPhysicalPathMaxConstant = Settings.GetIntSetting("Rainbow.SFS.SerializationFolderPathMaxLength", 80);
 
 					if (PhysicalRootPath.Length > expectedPhysicalPathMaxConstant)
-						throw new InvalidOperationException("The physical root path of this SFS tree, {0}, is longer than the configured max base path length {1}. If the tree contains any loopback paths, unexpected behavior may occur. You should increase the Serialization.SerializationFolderPathMaxLength setting to greater than {2} and perform a reserialization from a master content database."
+						throw new InvalidOperationException("The physical root path of this SFS tree, {0}, is longer than the configured max base path length {1}. If the tree contains any loopback paths, unexpected behavior may occur. You should increase the Rainbow.SFS.SerializationFolderPathMaxLength setting in Rainbow.config to greater than {2} and perform a reserialization from a master content database."
 								.FormatWith(PhysicalRootPath, expectedPhysicalPathMaxConstant, PhysicalRootPath.Length));
 
 					_maxRelativePathLength = windowsMaxPathLength - expectedPhysicalPathMaxConstant;
