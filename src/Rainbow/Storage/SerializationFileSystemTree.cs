@@ -195,7 +195,14 @@ namespace Rainbow.Storage
 				lock (FileUtil.GetFileLock(descendant.SerializedItemId))
 				{
 					BeforeFilesystemDelete(descendant.SerializedItemId);
-					File.Delete(descendant.SerializedItemId);
+					try
+					{
+						File.Delete(descendant.SerializedItemId);
+					}
+					catch (Exception exception)
+					{
+						throw new SfsDeleteException("Error deleting SFS item " + descendant.SerializedItemId, exception);
+					}
 					AfterFilesystemDelete(descendant.SerializedItemId);
 
 					var childrenDirectory = Path.ChangeExtension(descendant.SerializedItemId, null);
@@ -203,7 +210,14 @@ namespace Rainbow.Storage
 					if (Directory.Exists(childrenDirectory))
 					{
 						BeforeFilesystemDelete(childrenDirectory);
-						Directory.Delete(childrenDirectory, true);
+						try
+						{
+							Directory.Delete(childrenDirectory, true);
+						}
+						catch (Exception exception)
+						{
+							throw new SfsDeleteException("Error deleting SFS directory " + childrenDirectory, exception);
+						}
 						AfterFilesystemDelete(childrenDirectory);
 					}
 
@@ -211,7 +225,14 @@ namespace Rainbow.Storage
 					if (Directory.Exists(shortChildrenDirectory))
 					{
 						BeforeFilesystemDelete(shortChildrenDirectory);
-						Directory.Delete(shortChildrenDirectory);
+						try
+						{
+							Directory.Delete(shortChildrenDirectory);
+						}
+						catch (Exception exception)
+						{
+							throw new SfsDeleteException("Error deleting SFS directory " + shortChildrenDirectory, exception);
+						}
 						AfterFilesystemDelete(shortChildrenDirectory);
 					}
 				}
@@ -241,14 +262,21 @@ namespace Rainbow.Storage
 
 			return _dataCache.GetValue(path, fileInfo =>
 			{
-				using (var reader = fileInfo.OpenRead())
+				try
 				{
-					var readItem = _formatter.ReadSerializedItem(reader, path);
-					readItem.DatabaseName = DatabaseName;
+					using (var reader = fileInfo.OpenRead())
+					{
+						var readItem = _formatter.ReadSerializedItem(reader, path);
+						readItem.DatabaseName = DatabaseName;
 
-					AddToMetadataCache(readItem);
+						AddToMetadataCache(readItem);
 
-					return readItem;
+						return readItem;
+					}
+				}
+				catch (Exception exception)
+				{
+					throw new SfsReadException("Error while reading SFS item " + path, exception);
 				}
 			});
 		}
@@ -259,13 +287,20 @@ namespace Rainbow.Storage
 
 			return _metadataCache.GetValue(path, fileInfo =>
 			{
-				using (var reader = fileInfo.OpenRead())
+				try
 				{
-					var readItem = _formatter.ReadSerializedItemMetadata(reader, path);
+					using (var reader = fileInfo.OpenRead())
+					{
+						var readItem = _formatter.ReadSerializedItemMetadata(reader, path);
 
-					_idCache[readItem.Id] = readItem;
+						_idCache[readItem.Id] = readItem;
 
-					return readItem;
+						return readItem;
+					}
+				}
+				catch (Exception exception)
+				{
+					throw new SfsReadException("Error while reading SFS metadata " + path, exception);
 				}
 			});
 		}
@@ -282,7 +317,6 @@ namespace Rainbow.Storage
 				try
 				{
 					_treeWatcher.Stop();
-
 					var directory = Path.GetDirectoryName(path);
 					if (directory != null && !Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
@@ -291,10 +325,10 @@ namespace Rainbow.Storage
 						_formatter.WriteSerializedItem(proxiedItem, writer);
 					}
 				}
-				catch
+				catch (Exception exception)
 				{
 					if (File.Exists(path)) File.Delete(path);
-					throw;
+					throw new SfsWriteException("Error while writing SFS item " + path, exception);
 				}
 				finally
 				{
@@ -784,7 +818,7 @@ namespace Rainbow.Storage
 		/// </summary>
 		protected virtual void BeforeFilesystemDelete(string path)
 		{
-			
+
 		}
 
 		/// <summary>
@@ -792,7 +826,7 @@ namespace Rainbow.Storage
 		/// </summary>
 		protected virtual void AfterFilesystemDelete(string path)
 		{
-			
+
 		}
 
 		protected class WrittenItemMetadata : IItemMetadata
@@ -823,7 +857,7 @@ namespace Rainbow.Storage
 		{
 			if (disposing)
 			{
-				if(_treeWatcher != null) _treeWatcher.Dispose();
+				if (_treeWatcher != null) _treeWatcher.Dispose();
 			}
 		}
 	}

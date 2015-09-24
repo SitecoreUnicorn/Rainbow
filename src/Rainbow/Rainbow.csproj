@@ -82,6 +82,9 @@
     <Compile Include="Storage\SerializationFileSystemDataStore.cs" />
     <Compile Include="Storage\ITreeRootFactory.cs" />
     <Compile Include="Storage\SerializationFileSystemTree.cs" />
+    <Compile Include="Storage\SfsDeleteException.cs" />
+    <Compile Include="Storage\SfsReadException.cs" />
+    <Compile Include="Storage\SfsWriteException.cs" />
     <Compile Include="Storage\TreeRoot.cs" />
     <Compile Include="Storage\TreeWatcher.cs" />
   </ItemGroup>

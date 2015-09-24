@@ -59,7 +59,7 @@ namespace Rainbow.Storage.Yaml
 			}
 			catch (Exception exception)
 			{
-				throw new FormatException("Error reading " + serializedItemId, exception);
+				throw new YamlFormatException("Error parsing YAML " + serializedItemId, exception);
 			}
 		}
 
@@ -79,7 +79,7 @@ namespace Rainbow.Storage.Yaml
 			}
 			catch (Exception exception)
 			{
-				throw new FormatException("Error reading " + serializedItemId, exception);
+				throw new YamlFormatException("Error parsing YAML " + serializedItemId, exception);
 			}
 		}
 
