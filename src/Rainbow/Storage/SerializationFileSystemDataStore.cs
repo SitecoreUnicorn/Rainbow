@@ -17,6 +17,7 @@ namespace Rainbow.Storage
 	public class SerializationFileSystemDataStore : IDataStore, IDocumentable, IDisposable
 	{
 		protected readonly string PhysicalRootPath;
+		private readonly bool _useDataCache;
 		private readonly ITreeRootFactory _rootFactory;
 		protected readonly List<SerializationFileSystemTree> Trees;
 		protected readonly List<Action<IItemMetadata, string>> ChangeWatchers = new List<Action<IItemMetadata, string>>();
@@ -28,6 +29,7 @@ namespace Rainbow.Storage
 			Assert.ArgumentNotNull(formatter, "formatter");
 			Assert.ArgumentNotNull(rootFactory, "rootFactory");
 
+			_useDataCache = useDataCache;
 			_rootFactory = rootFactory;
 			_formatter = formatter;
 			_formatter.ParentDataStore = this;
@@ -172,6 +174,11 @@ namespace Rainbow.Storage
 
 		public virtual void Clear()
 		{
+			// since we're tearing everything down we dispose all existing trees, watchers, etc and start over
+			foreach(var tree in Trees) tree.Dispose();
+			Trees.Clear();
+
+			// drop all existing files and directories
 			if (!Directory.Exists(PhysicalRootPath)) return;
 			var children = Directory.GetDirectories(PhysicalRootPath);
 
@@ -186,6 +193,9 @@ namespace Rainbow.Storage
 			{
 				File.Delete(file);
 			}
+
+			// bring the trees back up, which will reestablish watchers and such
+			Trees.AddRange(InitializeTrees(_formatter, _useDataCache));
 		}
 
 		protected virtual string InitializeRootPath(string rootPath)
