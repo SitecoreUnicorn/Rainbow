@@ -13,13 +13,14 @@ namespace Rainbow.Storage
 	public class TreeWatcher : IDisposable
 	{
 		private const int DebounceInMs = 1000;
-		private readonly Action<string, WatcherChangeTypes> _actionOnChange;
+		private readonly Action<string, TreeWatcherChangeType> _actionOnChange;
 		private readonly FileSystemWatcher _watcher;
 		private readonly Timer _eventFlusher;
-		private readonly ConcurrentQueue<Tuple<string, WatcherChangeTypes>> _actions = new ConcurrentQueue<Tuple<string, WatcherChangeTypes>>();
+		private readonly ConcurrentQueue<TreeChange> _actions = new ConcurrentQueue<TreeChange>();
+		private readonly ConcurrentDictionary<string, bool> _knownUpdates = new ConcurrentDictionary<string, bool>();
 		private bool _enableEvents = true;
 
-		public TreeWatcher(string rootPath, string extension, Action<string, WatcherChangeTypes> actionOnChange)
+		public TreeWatcher(string rootPath, string extension, Action<string, TreeWatcherChangeType> actionOnChange)
 		{
 			_actionOnChange = actionOnChange;
 			_watcher = new FileSystemWatcher(rootPath, "*" + extension);
@@ -33,14 +34,9 @@ namespace Rainbow.Storage
 			_eventFlusher = new Timer(FlushEvents);
 		}
 
-		public void Stop()
+		public void PushKnownUpdate(string path)
 		{
-			_enableEvents = false;
-		}
-
-		public void Restart()
-		{
-			_enableEvents = true;
+			_knownUpdates.TryAdd(path, true);
 		}
 
 		private void OnFileChanged(object source, FileSystemEventArgs args)
@@ -54,22 +50,32 @@ namespace Rainbow.Storage
 		{
 			if (!_enableEvents) return;
 
-			_actions.Enqueue(Tuple.Create(path, changeType));
+			_actions.Enqueue(new TreeChange { Path = path, Type = SimplifyType(changeType) });
 			_eventFlusher.Change(DebounceInMs, Timeout.Infinite);
 		}
 
 		private void FlushEvents(object ignored)
 		{
-			Tuple<string, WatcherChangeTypes> queueItem;
+			TreeChange queueItem;
 			HashSet<string> actionsTaken = new HashSet<string>();
 
 			while (_actions.TryDequeue(out queueItem))
 			{
-				var key = queueItem.Item1 + (queueItem.Item2 == WatcherChangeTypes.Deleted ? "d" : "c");
+				var key = queueItem.Path + queueItem.Type;
 				if (!actionsTaken.Contains(key))
 				{
-					_actionOnChange(queueItem.Item1, queueItem.Item2);
 					actionsTaken.Add(key);
+
+					// a known update is a file we knew about the change to, so we signal the watcher to ignore it
+					// because SFS did it, so all the caches are good
+					if (_knownUpdates.ContainsKey(queueItem.Path))
+					{
+						bool val;
+						_knownUpdates.TryRemove(queueItem.Path, out val);
+						continue;
+					}
+
+					_actionOnChange(queueItem.Path, queueItem.Type);
 				}
 			}
 		}
@@ -87,6 +93,25 @@ namespace Rainbow.Storage
 				if (_watcher != null) _watcher.Dispose();
 				if (_eventFlusher != null) _eventFlusher.Dispose();
 			}
+		}
+
+		protected TreeWatcherChangeType SimplifyType(WatcherChangeTypes watcherChange)
+		{
+			if (watcherChange == WatcherChangeTypes.Deleted) return TreeWatcherChangeType.Delete;
+
+			return TreeWatcherChangeType.ChangeOrAdd;
+		}
+
+		protected class TreeChange
+		{
+			public TreeWatcherChangeType Type { get; set; }
+			public string Path { get; set; }
+		}
+
+		public enum TreeWatcherChangeType
+		{
+			ChangeOrAdd,
+			Delete
 		}
 	}
 }

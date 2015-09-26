@@ -316,7 +316,7 @@ namespace Rainbow.Storage
 			{
 				try
 				{
-					_treeWatcher.Stop();
+					_treeWatcher.PushKnownUpdate(path);
 					var directory = Path.GetDirectoryName(path);
 					if (directory != null && !Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
@@ -329,10 +329,6 @@ namespace Rainbow.Storage
 				{
 					if (File.Exists(path)) File.Delete(path);
 					throw new SfsWriteException("Error while writing SFS item " + path, exception);
-				}
-				finally
-				{
-					_treeWatcher.Restart();
 				}
 			}
 
@@ -745,9 +741,9 @@ namespace Rainbow.Storage
 			}
 		}
 
-		protected virtual void HandleDataItemChanged(string path, WatcherChangeTypes changeType)
+		protected virtual void HandleDataItemChanged(string path, TreeWatcher.TreeWatcherChangeType changeType)
 		{
-			if (changeType == WatcherChangeTypes.Created || changeType == WatcherChangeTypes.Changed || changeType == WatcherChangeTypes.Renamed)
+			if (changeType == TreeWatcher.TreeWatcherChangeType.ChangeOrAdd)
 			{
 				Log.Info(string.Format("[Rainbow] SFS tree item {0} changed ({1}), caches updating.", path, changeType), this);
 
@@ -788,7 +784,7 @@ namespace Rainbow.Storage
 				}
 			}
 
-			if (changeType == WatcherChangeTypes.Deleted)
+			if (changeType == TreeWatcher.TreeWatcherChangeType.Delete)
 			{
 				Log.Info(string.Format("Serialized item {0} deleted, reloading caches.", path), this);
 
