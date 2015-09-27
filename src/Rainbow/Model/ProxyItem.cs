@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Sitecore.Diagnostics;
+
 // ReSharper disable DoNotCallOverridableMethodsInConstructor
 
 namespace Rainbow.Model
@@ -24,6 +26,22 @@ namespace Rainbow.Model
 			SerializedItemId = itemToProxy.SerializedItemId;
 			Id = itemToProxy.Id;
 			DatabaseName = itemToProxy.DatabaseName;
+		}
+
+		public ProxyItem(string name, Guid id, Guid parentId, Guid templateId, string path, string databaseName)
+		{
+			Assert.ArgumentNotNullOrEmpty(name, "name");
+			Assert.ArgumentNotNullOrEmpty(path, "path");
+			Assert.ArgumentNotNullOrEmpty(databaseName, "databaseName");
+
+			Name = name;
+			Id = id;
+			ParentId = parentId;
+			TemplateId = templateId;
+			Path = path;
+			DatabaseName = databaseName;
+			SharedFields = Enumerable.Empty<IItemFieldValue>();
+			Versions = Enumerable.Empty<IItemVersion>();
 		}
 
 		public virtual Guid Id { get; set; }

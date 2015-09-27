@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Sitecore;
+
 // ReSharper disable DoNotCallOverridableMethodsInConstructor
 
 namespace Rainbow.Model
@@ -16,6 +18,13 @@ namespace Rainbow.Model
 			VersionNumber = versionToProxy.VersionNumber;
 			Language = versionToProxy.Language;
 			Fields = versionToProxy.Fields.Select(field => new ProxyFieldValue(field)).ToArray();
+		}
+
+		public ProxyItemVersion(CultureInfo language, int versionNumber)
+		{
+			Language = language;
+			VersionNumber = versionNumber;
+			Fields = new IItemFieldValue[] { new ProxyFieldValue(FieldIDs.Created.Guid, DateUtil.IsoNowWithTicks) };
 		}
 
 		public virtual IEnumerable<IItemFieldValue> Fields { get; set; }

@@ -18,6 +18,12 @@ namespace Rainbow.Model
 			BlobId = fieldToProxy.BlobId;
 		}
 
+		public ProxyFieldValue(Guid fieldId, string value)
+		{
+			FieldId = fieldId;
+			Value = value;
+		}
+
 		public virtual Guid FieldId { get; set; }
 
 		public virtual string NameHint { get; set; }
@@ -25,6 +31,7 @@ namespace Rainbow.Model
 		public virtual string Value { get; set; }
 
 		public virtual string FieldType { get; set; }
+
 		public virtual Guid? BlobId { get; set; }
 	}
 }
