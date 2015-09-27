@@ -7,7 +7,7 @@ using Rainbow.Storage.Yaml;
 
 namespace Rainbow.Tests.Storage
 {
-	internal class TestSfsDataStore : SerializationFileSystemDataStore, IDisposable
+	internal class TestSfsDataStore : SerializationFileSystemDataStore
 	{
 		public TestSfsDataStore(params string[] rootPaths) : 
 			base(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()), false, new FakeRootFactory(rootPaths), new YamlSerializationFormatter(null, null))

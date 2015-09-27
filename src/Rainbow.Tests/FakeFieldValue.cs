@@ -7,12 +7,13 @@ namespace Rainbow.Tests
 	[ExcludeFromCodeCoverage]
 	public class FakeFieldValue : IItemFieldValue
 	{
-		public FakeFieldValue(string value, string fieldType = "Test", Guid fieldId = new Guid(), string nameHint = "Fake test field")
+		public FakeFieldValue(string value, string fieldType = "Test", Guid fieldId = new Guid(), string nameHint = "Fake test field", Guid? blobId = null)
 		{
 			Value = value;
 			FieldType = fieldType;
 			FieldId = fieldId;
 			NameHint = nameHint;
+			BlobId = blobId;
 		}
 
 		public Guid FieldId { get; private set; }

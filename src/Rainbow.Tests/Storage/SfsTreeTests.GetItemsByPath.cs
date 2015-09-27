@@ -160,7 +160,7 @@ namespace Rainbow.Tests.Storage
 
 				var overlengthItem = testTree.GetItemsByPath("/sitecore/hello hello").ToArray();
 
-				Assert.Equal(1, overlengthItem.Count());
+				Assert.Equal(1, overlengthItem.Length);
 
 				Assert.Equal("/sitecore/hello hello", overlengthItem.First().Path);
 			}
@@ -177,7 +177,7 @@ namespace Rainbow.Tests.Storage
 
 				var overlengthChild = testTree.GetItemsByPath("/sitecore/hello hello/goodbye").ToArray();
 
-				Assert.Equal(1, overlengthChild.Count());
+				Assert.Equal(1, overlengthChild.Length);
 
 				Assert.Equal("/sitecore/hello hello/goodbye", overlengthChild.First().Path);
 			}
@@ -196,7 +196,7 @@ namespace Rainbow.Tests.Storage
 
 				var overlengthItem = testTree.GetItemsByPath("/sitecore/hello hello").ToArray();
 
-				Assert.Equal(1, overlengthItem.Count());
+				Assert.Equal(1, overlengthItem.Length);
 				Assert.Equal("/sitecore/hello hello", overlengthItem.First().Path);
 			}
 		}

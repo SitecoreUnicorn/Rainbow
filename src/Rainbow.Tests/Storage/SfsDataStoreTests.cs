@@ -24,6 +24,7 @@ namespace Rainbow.Tests.Storage
 			{
 				var item = new FakeItem(path: "/ektron");
 
+				// ReSharper disable once AccessToDisposedClosure
 				Assert.Throws<InvalidOperationException>(() => dataStore.Save(item));
 			}
 		}
