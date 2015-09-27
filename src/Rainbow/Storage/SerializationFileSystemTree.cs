@@ -184,56 +184,60 @@ namespace Rainbow.Storage
 		{
 			Assert.ArgumentNotNull(item, "item");
 
-			IItemMetadata itemToRemove = GetItemForGlobalPath(item.Path, item.Id);
-
-			if (itemToRemove == null) return false;
-
-			var descendants = GetDescendants(item, true).Concat(new[] { itemToRemove }).OrderByDescending(desc => desc.Path).ToArray();
-
-			foreach (var descendant in descendants)
+			using (new SfsDuplicateIdCheckingDisabler())
 			{
-				lock (FileUtil.GetFileLock(descendant.SerializedItemId))
+				IItemMetadata itemToRemove = GetItemForGlobalPath(item.Path, item.Id);
+
+				if (itemToRemove == null) return false;
+
+				var descendants =
+					GetDescendants(item, true).Concat(new[] { itemToRemove }).OrderByDescending(desc => desc.Path).ToArray();
+
+				foreach (var descendant in descendants)
 				{
-					BeforeFilesystemDelete(descendant.SerializedItemId);
-					try
+					lock (FileUtil.GetFileLock(descendant.SerializedItemId))
 					{
-						File.Delete(descendant.SerializedItemId);
-					}
-					catch (Exception exception)
-					{
-						throw new SfsDeleteException("Error deleting SFS item " + descendant.SerializedItemId, exception);
-					}
-					AfterFilesystemDelete(descendant.SerializedItemId);
-
-					var childrenDirectory = Path.ChangeExtension(descendant.SerializedItemId, null);
-
-					if (Directory.Exists(childrenDirectory))
-					{
-						BeforeFilesystemDelete(childrenDirectory);
+						BeforeFilesystemDelete(descendant.SerializedItemId);
 						try
 						{
-							Directory.Delete(childrenDirectory, true);
+							File.Delete(descendant.SerializedItemId);
 						}
 						catch (Exception exception)
 						{
-							throw new SfsDeleteException("Error deleting SFS directory " + childrenDirectory, exception);
+							throw new SfsDeleteException("Error deleting SFS item " + descendant.SerializedItemId, exception);
 						}
-						AfterFilesystemDelete(childrenDirectory);
-					}
+						AfterFilesystemDelete(descendant.SerializedItemId);
 
-					var shortChildrenDirectory = Path.Combine(PhysicalRootPath, descendant.Id.ToString());
-					if (Directory.Exists(shortChildrenDirectory))
-					{
-						BeforeFilesystemDelete(shortChildrenDirectory);
-						try
+						var childrenDirectory = Path.ChangeExtension(descendant.SerializedItemId, null);
+
+						if (Directory.Exists(childrenDirectory))
 						{
-							Directory.Delete(shortChildrenDirectory);
+							BeforeFilesystemDelete(childrenDirectory);
+							try
+							{
+								Directory.Delete(childrenDirectory, true);
+							}
+							catch (Exception exception)
+							{
+								throw new SfsDeleteException("Error deleting SFS directory " + childrenDirectory, exception);
+							}
+							AfterFilesystemDelete(childrenDirectory);
 						}
-						catch (Exception exception)
+
+						var shortChildrenDirectory = Path.Combine(PhysicalRootPath, descendant.Id.ToString());
+						if (Directory.Exists(shortChildrenDirectory))
 						{
-							throw new SfsDeleteException("Error deleting SFS directory " + shortChildrenDirectory, exception);
+							BeforeFilesystemDelete(shortChildrenDirectory);
+							try
+							{
+								Directory.Delete(shortChildrenDirectory);
+							}
+							catch (Exception exception)
+							{
+								throw new SfsDeleteException("Error deleting SFS directory " + shortChildrenDirectory, exception);
+							}
+							AfterFilesystemDelete(shortChildrenDirectory);
 						}
-						AfterFilesystemDelete(shortChildrenDirectory);
 					}
 				}
 			}
@@ -332,7 +336,7 @@ namespace Rainbow.Storage
 				}
 			}
 
-			AddToMetadataCache(item);
+			AddToMetadataCache(item, path);
 			_dataCache.AddOrUpdate(path, proxiedItem);
 		}
 
@@ -553,10 +557,18 @@ namespace Rainbow.Storage
 
 			if (result == null) return null;
 
+			// in a specific circumstance we want to ignore dupe items with the same IDs: when we move or rename an item we delete the old items after we wrote the newly moved/renamed items
+			// this means that the tree temporarily has known dupes. We need to be able to ignore those when we're deleting the old items to make the tree sane again.
+			if (SfsDuplicateIdCheckingDisabler.CurrentValue)
+			{
+				return result;
+			}
+
 			IItemMetadata temp = GetFromMetadataCache(expectedItemId);
 			if (temp != null && temp.SerializedItemId != result.SerializedItemId)
 				throw new InvalidOperationException("The item with ID {0} has duplicate item files serialized ({1}, {2}). Please remove the incorrect one and try again.".FormatWith(result.Id, temp.SerializedItemId, result.SerializedItemId));
 
+			// note: we only actually add to cache if we checked for dupe IDs. This is to avoid cache poisoning.
 			AddToMetadataCache(result);
 
 			return result;
@@ -688,11 +700,11 @@ namespace Rainbow.Storage
 			_dataCache.Clear();
 		}
 
-		protected virtual void AddToMetadataCache(IItemMetadata metadata)
+		protected virtual void AddToMetadataCache(IItemMetadata metadata, string path = null)
 		{
-			var cachedValue = new WrittenItemMetadata(metadata.Id, metadata.ParentId, metadata.TemplateId, metadata.Path, metadata.SerializedItemId);
+			var cachedValue = new WrittenItemMetadata(metadata.Id, metadata.ParentId, metadata.TemplateId, metadata.Path, path ?? metadata.SerializedItemId);
 			_idCache[metadata.Id] = cachedValue;
-			_metadataCache.AddOrUpdate(metadata.SerializedItemId, cachedValue);
+			_metadataCache.AddOrUpdate(cachedValue.SerializedItemId, cachedValue);
 		}
 
 		protected virtual IItemMetadata GetFromMetadataCache(Guid itemId)

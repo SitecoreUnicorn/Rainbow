@@ -62,15 +62,6 @@ namespace Rainbow.Storage
 		*/
 		public virtual void MoveOrRenameItem(IItemData itemWithFinalPath, string oldPath)
 		{
-			var oldPathTree = GetTreeForPath(oldPath, itemWithFinalPath.DatabaseName);
-
-			// remove existing items if they exist
-			if (oldPathTree != null)
-			{
-				var oldItem = oldPathTree.GetItemsByPath(oldPath).FirstOrDefault(item => item.Id == itemWithFinalPath.Id);
-				if (oldItem != null) oldPathTree.Remove(oldItem);
-			}
-
 			var newPathTree = GetTreeForPath(itemWithFinalPath.Path, itemWithFinalPath.DatabaseName);
 
 			// add new tree, if it's included (if it's moving to a non included path we simply delete it and are done)
@@ -92,6 +83,19 @@ namespace Rainbow.Storage
 						saveQueue.Enqueue(child);
 					}
 				}
+			}
+
+			// in case an item was renamed by case or someone calls rename without renaming, we don't want to delete anything
+			// 'cause that'd just delete the item, not move it :)
+			if (oldPath.Equals(itemWithFinalPath.Path, StringComparison.OrdinalIgnoreCase)) return;
+
+			var oldPathTree = GetTreeForPath(oldPath, itemWithFinalPath.DatabaseName);
+
+			// remove existing items if they exist
+			if (oldPathTree != null)
+			{
+				var oldItem = oldPathTree.GetItemsByPath(oldPath).FirstOrDefault(item => item.Id == itemWithFinalPath.Id);
+				if (oldItem != null) oldPathTree.Remove(oldItem);
 			}
 		}
 

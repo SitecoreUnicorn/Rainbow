@@ -71,6 +71,7 @@
     <Compile Include="Model\ProxyItem.cs" />
     <Compile Include="Model\ProxyItemVersion.cs" />
     <Compile Include="Model\ItemDecorator.cs" />
+    <Compile Include="Storage\SfsDuplicateIdCheckingDisabler.cs" />
     <Compile Include="Storage\FastDirectoryEnumerator.cs" />
     <Compile Include="Storage\FsCache.cs" />
     <Compile Include="Storage\IDataStore.cs" />
