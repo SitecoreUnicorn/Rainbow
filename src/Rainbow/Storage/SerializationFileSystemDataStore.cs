@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Web.Hosting;
 using Rainbow.Formatting;
 using Rainbow.Model;
@@ -182,6 +183,25 @@ namespace Rainbow.Storage
 			foreach(var tree in Trees) tree.Dispose();
 			Trees.Clear();
 
+			try
+			{
+				ClearAllFiles();
+			}
+			catch
+			{
+				// occasionally we get directory not empty, etc caused by watchers closing up and such.
+				// we'll wait a tick and try again.
+				Thread.Sleep(1000);
+
+				ClearAllFiles();
+			}
+
+			// bring the trees back up, which will reestablish watchers and such
+			Trees.AddRange(InitializeTrees(_formatter, _useDataCache));
+		}
+
+		protected virtual void ClearAllFiles()
+		{
 			// drop all existing files and directories
 			if (!Directory.Exists(PhysicalRootPath)) return;
 			var children = Directory.GetDirectories(PhysicalRootPath);
@@ -197,9 +217,6 @@ namespace Rainbow.Storage
 			{
 				File.Delete(file);
 			}
-
-			// bring the trees back up, which will reestablish watchers and such
-			Trees.AddRange(InitializeTrees(_formatter, _useDataCache));
 		}
 
 		protected virtual string InitializeRootPath(string rootPath)
