@@ -65,11 +65,14 @@ namespace Rainbow.Storage
 		{
 			var newPathTree = GetTreeForPath(itemWithFinalPath.Path, itemWithFinalPath.DatabaseName);
 
+			// force consistency of parent IDs and paths among child items before we serialize them
+			var rebasedPathItem = new PathRebasingProxyItem(itemWithFinalPath);
+
 			// add new tree, if it's included (if it's moving to a non included path we simply delete it and are done)
 			if (newPathTree != null)
 			{
 				var saveQueue = new Queue<IItemData>();
-				saveQueue.Enqueue(itemWithFinalPath);
+				saveQueue.Enqueue(rebasedPathItem);
 
 				while (saveQueue.Count > 0)
 				{

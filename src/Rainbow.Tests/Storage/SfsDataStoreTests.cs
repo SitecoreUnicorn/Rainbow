@@ -34,22 +34,31 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
 			{
-				var item = new FakeItem(path: "/sitecore", name: "sitecore", id: Guid.NewGuid());
+				var greatgrandchild = new FakeItem(path: "/sitecore/test/hulk/smash", name: "smash", id: Guid.NewGuid());
+				var grandchild = new FakeItem(path: "/sitecore/test/hulk", name: "hulk", children: new[] { greatgrandchild }, id: Guid.NewGuid());
+				var child = new FakeItem(path: "/sitecore/test", name: "test", children: new[] { grandchild }, id: Guid.NewGuid());
+				var item = new FakeItem(path: "/sitecore", name: "sitecore", id: Guid.NewGuid(), children: new[] { child });
 
 				dataStore.Save(item);
-
-				var child = new FakeItem(path: "/sitecore/test", name: "test");
-
 				dataStore.Save(child);
+				dataStore.Save(grandchild);
+				dataStore.Save(greatgrandchild);
 
-				var renamed = new FakeItem(path: "/sitecore/hexed", name: "hexed");
+				// note adding children with old paths; method takes care of rewriting child paths
+				var renamed = new FakeItem(path: "/sitecore/hexed", name: "hexed", children: new[] { grandchild });
 
 				dataStore.MoveOrRenameItem(renamed, "/sitecore/test");
 
 				var retrieved = dataStore.GetByPath("/sitecore/hexed", "master").ToArray();
+				var retrievedGrandchild = dataStore.GetByPath("/sitecore/hexed/hulk", "master").ToArray();
+				var retrievedGreatGrandchild = dataStore.GetByPath("/sitecore/hexed/hulk/smash", "master").ToArray();
 
 				Assert.NotEmpty(retrieved);
 				Assert.Equal("/sitecore/hexed", retrieved.First().Path);
+
+				// verify children moved
+				Assert.NotEmpty(retrievedGrandchild);
+				Assert.NotEmpty(retrievedGreatGrandchild);
 			}
 		}
 
@@ -169,7 +178,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
 			{
-				var item = new FakeItem(path:"/sitecore");
+				var item = new FakeItem(path: "/sitecore");
 
 				dataStore.Save(item);
 
@@ -185,7 +194,7 @@ namespace Rainbow.Tests.Storage
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
 			{
 				var id = Guid.NewGuid();
-				var item = new FakeItem(path: "/sitecore", id:id);
+				var item = new FakeItem(path: "/sitecore", id: id);
 
 				dataStore.Save(item);
 

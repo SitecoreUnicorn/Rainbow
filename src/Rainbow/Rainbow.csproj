@@ -67,6 +67,7 @@
     <Compile Include="Formatting\FieldTypeBasedFormatter.cs" />
     <Compile Include="Formatting\ISerializationFormatter.cs" />
     <Compile Include="IDocumentable.cs" />
+    <Compile Include="Model\PathRebasingProxyItem.cs" />
     <Compile Include="Model\ProxyFieldValue.cs" />
     <Compile Include="Model\ProxyItem.cs" />
     <Compile Include="Model\ProxyItemVersion.cs" />
