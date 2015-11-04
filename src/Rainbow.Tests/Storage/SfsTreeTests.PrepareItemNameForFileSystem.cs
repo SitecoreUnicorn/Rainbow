@@ -33,5 +33,21 @@ namespace Rainbow.Tests.Storage
 				Assert.Equal(expectedOutput, testTree.PrepareItemNameForFileSystemTest(input));
 			}
 		}
+
+		[Theory]
+		[InlineData("hello", "hello", "$")] // equal
+		[InlineData("$name", "_name", "$")] // $
+		[InlineData("name$", "name_", "$")] // trailing $
+		[InlineData("yo$$$cashmoney", "yo___cashmoney", "$")] // mid
+		[InlineData("trolls like to troll", "____________________", "trolikes ")] // lulz
+		public void PrepareItemNameForFileSystem_FiltersIllegalCharacters_AddedFromConfiguration(string input, string expectedOutput, string invalidChars)
+		{
+			using (var testTree = new TestSfsTree())
+			{
+				testTree.SetExtraInvalidNameChars(invalidChars.ToCharArray());
+
+				Assert.Equal(expectedOutput, testTree.PrepareItemNameForFileSystemTest(input));
+			}
+		}
 	}
 }

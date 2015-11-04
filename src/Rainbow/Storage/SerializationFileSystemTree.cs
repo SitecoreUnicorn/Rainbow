@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Web.SessionState;
 using Rainbow.Formatting;
 using Rainbow.Model;
 using Sitecore.Configuration;
@@ -67,6 +68,7 @@ namespace Rainbow.Storage
 		private readonly FsCache<IItemData> _dataCache;
 		private readonly FsCache<IItemMetadata> _metadataCache = new FsCache<IItemMetadata>(true);
 		private readonly TreeWatcher _treeWatcher;
+		protected static char[] InvalidFileNameCharacters = Path.GetInvalidFileNameChars().Concat(Settings.GetSetting("Rainbow.SFS.ExtraInvalidFilenameCharacters", string.Empty).ToCharArray()).ToArray();
 
 		// ReSharper disable once RedundantDefaultMemberInitializer
 		private bool _configuredForFastReads = false;
@@ -530,7 +532,7 @@ namespace Rainbow.Storage
 		{
 			Assert.ArgumentNotNullOrEmpty(name, "name");
 
-			var validifiedName = string.Join("_", name.TrimStart(' ').Split(Path.GetInvalidFileNameChars()));
+			var validifiedName = string.Join("_", name.TrimStart(' ').Split(InvalidFileNameCharacters));
 
 			if (validifiedName.Length > MaxItemNameLengthBeforeTruncation)
 				validifiedName = validifiedName.Substring(0, MaxItemNameLengthBeforeTruncation);

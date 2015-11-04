@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using Rainbow.Storage;
 using Rainbow.Storage.Yaml;
 
@@ -43,6 +44,11 @@ namespace Rainbow.Tests.Storage
 
 		public int MaxPathLengthForTests { get; set; }
 		public int MaxFileNameLengthForTests { get; set; }
+
+		public void SetExtraInvalidNameChars(params char[] chars)
+		{
+			InvalidFileNameCharacters = Path.GetInvalidFileNameChars().Concat(chars).ToArray();
+		}
 
 		protected override int MaxRelativePathLength { get { return MaxPathLengthForTests; } }
 		protected override int MaxItemNameLengthBeforeTruncation { get { return MaxFileNameLengthForTests; } }
