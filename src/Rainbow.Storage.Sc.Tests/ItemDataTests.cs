@@ -105,7 +105,8 @@ namespace Rainbow.Storage.Sc.Tests
 			item.Fields.Add(new DbField(new ID(fieldId))
 			{
 				Type = "test type",
-				Shared = true
+				Shared = true,
+				Value = "foo"
 			});
 
 			var dbItem = db.CreateItem(item);
@@ -119,7 +120,8 @@ namespace Rainbow.Storage.Sc.Tests
 			item.Fields.Add(new DbField(new ID(fieldId))
 			{
 				Name = "Foo",
-				Shared = true
+				Shared = true,
+				Value = "foo"
 			});
 
 			var dbItem = db.CreateItem(item);
