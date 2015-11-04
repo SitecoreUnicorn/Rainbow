@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using FluentAssertions;
-using Rainbow.Model;
 using Sitecore.Data;
 using Sitecore.Data.Items;
 using Sitecore.FakeDb;
@@ -64,9 +63,7 @@ namespace Rainbow.Storage.Sc.Tests
 		{
 			item.Fields.Add(new DbField(new ID(fieldId)) { Shared = true, Value = "test field" });
 
-			db.Add(item);
-
-			var dbItem = db.GetItem(item.ID);
+			var dbItem = db.CreateItem(item);
 
 			new ItemData(dbItem).SharedFields.Any(f => f.FieldId == fieldId).Should().BeTrue();
 		}
@@ -80,9 +77,7 @@ namespace Rainbow.Storage.Sc.Tests
 					{"en", 2, "test v2"}
 				});
 
-			db.Add(item);
-
-			var dbItem = db.GetItem(item.ID);
+			var dbItem = db.CreateItem(item);
 			var itemData = new ItemData(dbItem);
 
 			dbItem.Versions.Count.Should().Be(itemData.Versions.Count());
@@ -99,9 +94,7 @@ namespace Rainbow.Storage.Sc.Tests
 				Value = "test"
 			});
 		
-			db.Add(item);
-
-			var dbItem = db.GetItem(item.ID);
+			var dbItem = db.CreateItem(item);
 
 			new ItemData(dbItem).SharedFields.First(f => f.FieldId == fieldId).FieldId.Should().Be(fieldId);
 		}
@@ -115,9 +108,7 @@ namespace Rainbow.Storage.Sc.Tests
 				Shared = true
 			});
 
-			db.Add(item);
-
-			var dbItem = db.GetItem(item.ID);
+			var dbItem = db.CreateItem(item);
 
 			new ItemData(dbItem).SharedFields.First(f => f.FieldId == fieldId).FieldType.Should().Be("test type");
 		}
@@ -131,9 +122,7 @@ namespace Rainbow.Storage.Sc.Tests
 				Shared = true
 			});
 
-			db.Add(item);
-
-			var dbItem = db.GetItem(item.ID);
+			var dbItem = db.CreateItem(item);
 
 			new ItemData(dbItem).SharedFields.First(f => f.FieldId == fieldId).NameHint.Should().Be("Foo");
 		}
@@ -146,9 +135,7 @@ namespace Rainbow.Storage.Sc.Tests
 				{"en", 1, "test"}
 			});
 
-			db.Add(item);
-
-			var dbItem = db.GetItem(item.ID);
+			var dbItem = db.CreateItem(item);
 
 			new ItemData(dbItem).Versions.First().Fields.First(f => f.FieldId == fieldId).Value.Should().Be("test");
 		}
