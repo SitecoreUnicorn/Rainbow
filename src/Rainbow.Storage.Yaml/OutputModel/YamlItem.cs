@@ -34,8 +34,6 @@ namespace Rainbow.Storage.Yaml.OutputModel
 
 			foreach (var field in itemData.SharedFields)
 			{
-				if(string.IsNullOrEmpty(field.Value)) continue;
-
 				var fieldObject = new YamlFieldValue();
 				fieldObject.LoadFrom(field, fieldFormatters);
 

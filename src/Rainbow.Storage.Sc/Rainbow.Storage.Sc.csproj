@@ -47,6 +47,7 @@
     <Compile Include="Deserialization\DeserializationException.cs" />
     <Compile Include="Deserialization\IDefaultDeserializerLogger.cs" />
     <Compile Include="Deserialization\IDeserializer.cs" />
+    <Compile Include="FieldReader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ItemData.cs" />
     <Compile Include="SitecoreDataStore.cs" />

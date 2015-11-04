@@ -116,6 +116,7 @@
     <Compile Include="Content.cs" />
     <Compile Include="Deserialization\DefaultDeserializerTests.cs" />
     <Compile Include="FakeDbExtensions.cs" />
+    <Compile Include="FieldReaderTests.cs" />
     <Compile Include="ItemDataTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SitecoreDataStoreTests.cs" />

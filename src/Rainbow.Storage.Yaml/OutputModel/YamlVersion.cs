@@ -27,8 +27,6 @@ namespace Rainbow.Storage.Yaml.OutputModel
 
 			foreach (var field in version.Fields)
 			{
-				if (string.IsNullOrWhiteSpace(field.Value)) continue;
-
 				var fieldObject = new YamlFieldValue();
 
 				fieldObject.LoadFrom(field, fieldFormatters);

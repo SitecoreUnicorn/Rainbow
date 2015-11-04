@@ -6,9 +6,6 @@ using System.Linq;
 using Rainbow.Model;
 using Sitecore.Data.Fields;
 using Sitecore.Data.Items;
-using Sitecore.Data.Managers;
-using Sitecore.Diagnostics;
-using Sitecore.StringExtensions;
 
 namespace Rainbow.Storage.Sc
 {
@@ -20,6 +17,7 @@ namespace Rainbow.Storage.Sc
 		private Item[] _itemVersions;
 		// ReSharper disable once RedundantDefaultMemberInitializer
 		private bool _fieldsLoaded = false;
+		protected static FieldReader FieldReader = new FieldReader();
 
 		public ItemData(Item item)
 		{
@@ -81,30 +79,7 @@ namespace Rainbow.Storage.Sc
 				{
 					EnsureFields();
 
-					var template = TemplateManager.GetTemplate(_item);
-
-					if (template == null)
-					{
-						Log.Warn("Unable to read shared fields for {0} because template {1} did not exist.".FormatWith(_item.ID, _item.TemplateID), this);
-						return Enumerable.Empty<IItemFieldValue>();
-					}
-
-					var fieldResults = new List<IItemFieldValue>();
-
-					for (int i = 0; i < _item.Fields.Count; i++)
-					{
-						var field = _item.Fields[i];
-
-						// no versioned fields or fields not on the template
-						if (!field.Shared || template.GetField(field.ID) == null) continue;
-
-						var value = field.GetValue(false, false);
-
-						if (value != null)
-							fieldResults.Add(CreateFieldValue(field, value));
-					}
-
-					_sharedFields = fieldResults;
+					_sharedFields = CreateFieldReader().ParseFields(_item, true);
 				}
 
 				return _sharedFields;
@@ -163,18 +138,18 @@ namespace Rainbow.Storage.Sc
 			return _itemVersions;
 		}
 
-		protected virtual IItemFieldValue CreateFieldValue(Field field, string value)
-		{
-			return new ItemFieldValue(field, value);
-		}
-
 		protected virtual IItemVersion CreateVersion(Item version)
 		{
 			return new ItemVersionValue(version);
 		}
 
+		protected virtual FieldReader CreateFieldReader()
+		{
+			return FieldReader;
+		}
+
 		[DebuggerDisplay("{NameHint} ({FieldType})")]
-		protected class ItemFieldValue : IItemFieldValue
+		protected internal class ItemFieldValue : IItemFieldValue
 		{
 			private readonly Field _field;
 			private readonly string _retrievedStringValue;
@@ -261,31 +236,8 @@ namespace Rainbow.Storage.Sc
 					if (_fields == null)
 					{
 						EnsureFields();
-
-						var template = TemplateManager.GetTemplate(_version);
-
-						if (template == null)
-						{
-							Log.Warn("Unable to read shared fields for {0} because template {1} did not exist.".FormatWith(_version.ID, _version.TemplateID), this);
-							return Enumerable.Empty<IItemFieldValue>();
-						}
-
-						var fieldResults = new List<IItemFieldValue>();
-
-						for (int i = 0; i < _version.Fields.Count; i++)
-						{
-							var field = _version.Fields[i];
-
-							// no shared fields or fields not on the template
-							if (field.Shared || template.GetField(field.ID) == null) continue;
-
-							var value = field.GetValue(false, false);
-
-							if (value != null)
-								fieldResults.Add(CreateFieldValue(field, value));
-						}
-
-						_fields = fieldResults;
+						
+						_fields = CreateFieldReader().ParseFields(_version, false);
 					}
 
 					return _fields;
@@ -310,6 +262,11 @@ namespace Rainbow.Storage.Sc
 			protected virtual IItemFieldValue CreateFieldValue(Field field, string value)
 			{
 				return new ItemFieldValue(field, value);
+			}
+
+			protected virtual FieldReader CreateFieldReader()
+			{
+				return FieldReader;
 			}
 		}
 	}
