@@ -52,6 +52,10 @@ Rainbow consists of several projects:
 * `Rainbow.Storage.Yaml` implements serializing and deserializing items using a YAML-based format. This format is ridiculously easier to read and merge than standard Sitecore serialization format, lacking any content length attributes, supporting any type of newline characters, and supporting pretty-printing field values (e.g. multilists, layout) for simpler merging when conflicts occur.
 * `Rainbow.Storage.Sc` implements a data store using the Sitecore database. This can be used to read and write items to Sitecore using the `IDataStore` interface.
 
+## Using Rainbow with TFS
+
+Rainbow by default allows all characters that Windows allows to be in item filenames (when using SFS). Team Foundation Server does not allow files to be added which contain the `$` character. To enable proper interaction with TFS, enable the `Rainbow.TFS.config.example` patch file that ships with the Rainbow NuGet package.
+
 ## Extending Rainbow
 Rainbow is designed to be loosely coupled. It's recommended that you employ a Dependency Injection framework (e.g. [SimpleInjector](https://simpleinjector.org)) to make your life constructing Rainbow objects easier. Of course you can also construct objects without DI.
 
