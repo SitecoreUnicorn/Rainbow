@@ -28,7 +28,7 @@ namespace Rainbow.Formatting.FieldFormatters
 
 		public override string Unformat(string value)
 		{
-			if (value == null) return null;
+			if (string.IsNullOrWhiteSpace(value)) return null;
 
 			var stringBuilder = new StringBuilder();
 
