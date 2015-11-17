@@ -14,6 +14,12 @@ namespace Rainbow.Model
 	/// </summary>
 	public class ProxyItem : IItemData
 	{
+		private IEnumerable<IItemData> _proxyChildren;
+		 
+		public ProxyItem() : this("Unnamed", Guid.NewGuid(), Guid.Empty, Guid.Empty, "[orphan]", "master")
+		{
+		}
+
 		public ProxyItem(IItemData itemToProxy)
 		{
 			ParentId = itemToProxy.ParentId;
@@ -54,9 +60,18 @@ namespace Rainbow.Model
 		public virtual IEnumerable<IItemFieldValue> SharedFields { get; set; }
 		public virtual IEnumerable<IItemVersion> Versions { get; set; }
 		public virtual string SerializedItemId { get; set; }
+
+		public virtual void SetProxyChildren(IEnumerable<IItemData> children)
+		{
+			_proxyChildren = children;
+		} 
+
 		public virtual IEnumerable<IItemData> GetChildren()
 		{
-			throw new NotImplementedException("Cannot get children of a proxied item");
+			if(_proxyChildren == null)
+				throw new NotImplementedException("Cannot get children of a proxied item that does not have them explicitly set with SetProxyChildren()");
+
+			return _proxyChildren;
 		}
 	}
 }
