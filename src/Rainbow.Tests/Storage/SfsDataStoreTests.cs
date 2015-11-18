@@ -275,5 +275,26 @@ namespace Rainbow.Tests.Storage
 				Assert.Null(dataStore.GetById(id, "core"));
 			}
 		}
+
+		[Fact]
+		public void GetItem_ThrowsError_WhenOverlappingPaths()
+		{
+			Assert.Throws<InvalidOperationException>(() =>
+			{
+				using (var dataStore = new TestSfsDataStore("/sitecore", "/sitecore/content"))
+				{
+					dataStore.GetByPath("/sitecore/content/home", "master");
+				}
+			});
+		}
+
+		[Fact]
+		public void GetItem_DoesNotThrowError_WhenSimilarNonOverlappingPaths()
+		{
+			using (var dataStore = new TestSfsDataStore("/sitecore/content", "/sitecore/content cemetary"))
+			{
+				dataStore.GetByPath("/sitecore/content cemetary/foo", "master");
+			}
+		}
 	}
 }

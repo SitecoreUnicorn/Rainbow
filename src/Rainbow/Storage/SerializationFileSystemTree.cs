@@ -116,8 +116,10 @@ namespace Rainbow.Storage
 
 		public virtual bool ContainsPath(string globalPath)
 		{
+			if (!globalPath.EndsWith("/")) globalPath += "/";
+
 			// test that the path is under the global root
-			return globalPath.StartsWith(_globalRootItemPath, StringComparison.OrdinalIgnoreCase);
+			return globalPath.StartsWith(_globalRootItemPath + "/", StringComparison.OrdinalIgnoreCase);
 		}
 
 		public virtual IItemData GetRootItem()
