@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Web.SessionState;
 using Rainbow.Formatting;
 using Rainbow.Model;
 using Sitecore.Configuration;
@@ -191,8 +190,9 @@ namespace Rainbow.Storage
 
 				if (itemToRemove == null) return false;
 
-				var descendants =
-					GetDescendants(item, true).Concat(new[] { itemToRemove }).OrderByDescending(desc => desc.Path).ToArray();
+				var descendants = GetDescendants(item, true)
+					.Concat(new[] { itemToRemove })
+					.OrderByDescending(desc => desc.Path).ToArray();
 
 				foreach (var descendant in descendants)
 				{
@@ -201,7 +201,12 @@ namespace Rainbow.Storage
 						BeforeFilesystemDelete(descendant.SerializedItemId);
 						try
 						{
-							File.Delete(descendant.SerializedItemId);
+							ActionRetryer.Perform(() =>
+								lock (FileUtil.GetFileLock(descendant.SerializedItemId))
+								{
+									_treeWatcher.PushKnownUpdate(descendant.SerializedItemId);
+									File.Delete(descendant.SerializedItemId);
+								}
 						}
 						catch (Exception exception)
 						{
@@ -216,7 +221,8 @@ namespace Rainbow.Storage
 							BeforeFilesystemDelete(childrenDirectory);
 							try
 							{
-								Directory.Delete(childrenDirectory, true);
+									_treeWatcher.PushKnownUpdate(childrenDirectory);
+									Directory.Delete(childrenDirectory, true);
 							}
 							catch (Exception exception)
 							{
@@ -231,7 +237,8 @@ namespace Rainbow.Storage
 							BeforeFilesystemDelete(shortChildrenDirectory);
 							try
 							{
-								Directory.Delete(shortChildrenDirectory);
+									_treeWatcher.PushKnownUpdate(shortChildrenDirectory);
+									Directory.Delete(shortChildrenDirectory);
 							}
 							catch (Exception exception)
 							{
