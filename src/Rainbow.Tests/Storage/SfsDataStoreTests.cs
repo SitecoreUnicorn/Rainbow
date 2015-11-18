@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using FluentAssertions;
 using Xunit;
 
 namespace Rainbow.Tests.Storage
@@ -34,31 +35,90 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
 			{
-				var greatgrandchild = new FakeItem(path: "/sitecore/test/hulk/smash", name: "smash", id: Guid.NewGuid());
-				var grandchild = new FakeItem(path: "/sitecore/test/hulk", name: "hulk", children: new[] { greatgrandchild }, id: Guid.NewGuid());
-				var child = new FakeItem(path: "/sitecore/test", name: "test", children: new[] { grandchild }, id: Guid.NewGuid());
-				var item = new FakeItem(path: "/sitecore", name: "sitecore", id: Guid.NewGuid(), children: new[] { child });
+				var renamingItemGrandchild = new FakeItem(path: "/sitecore/test/hulk/smash", name: "smash", id: Guid.NewGuid());
+				var renamingItemChild = new FakeItem(path: "/sitecore/test/hulk", name: "hulk", children: new[] { renamingItemGrandchild }, id: Guid.NewGuid());
+				var itemToRename = new FakeItem(path: "/sitecore/test", name: "test", children: new[] { renamingItemChild }, id: Guid.NewGuid());
+				var rootItem = new FakeItem(path: "/sitecore", name: "sitecore", id: Guid.NewGuid(), children: new[] { itemToRename });
 
-				dataStore.Save(item);
-				dataStore.Save(child);
-				dataStore.Save(grandchild);
-				dataStore.Save(greatgrandchild);
+				dataStore.Save(rootItem);
+				dataStore.Save(itemToRename);
+				dataStore.Save(renamingItemChild);
+				dataStore.Save(renamingItemGrandchild);
 
 				// note adding children with old paths; method takes care of rewriting child paths
-				var renamed = new FakeItem(path: "/sitecore/hexed", name: "hexed", children: new[] { grandchild });
+				var renamedItem = new FakeItem(id: itemToRename.Id, path: "/sitecore/hexed", name: "hexed", children: new[] { renamingItemChild });
 
-				dataStore.MoveOrRenameItem(renamed, "/sitecore/test");
+				dataStore.MoveOrRenameItem(renamedItem, "/sitecore/test");
 
-				var retrieved = dataStore.GetByPath("/sitecore/hexed", "master").ToArray();
-				var retrievedGrandchild = dataStore.GetByPath("/sitecore/hexed/hulk", "master").ToArray();
-				var retrievedGreatGrandchild = dataStore.GetByPath("/sitecore/hexed/hulk/smash", "master").ToArray();
+				var retrievedRenamedItem = dataStore.GetByPath("/sitecore/hexed", "master").ToArray();
+				var retrievedRenamedChild = dataStore.GetByPath("/sitecore/hexed/hulk", "master").ToArray();
+				var retrievedRenamedGrandchild = dataStore.GetByPath("/sitecore/hexed/hulk/smash", "master").ToArray();
 
-				Assert.NotEmpty(retrieved);
-				Assert.Equal("/sitecore/hexed", retrieved.First().Path);
+				Assert.NotEmpty(retrievedRenamedItem);
+				Assert.Equal("/sitecore/hexed", retrievedRenamedItem.First().Path);
 
 				// verify children moved
-				Assert.NotEmpty(retrievedGrandchild);
-				Assert.NotEmpty(retrievedGreatGrandchild);
+				Assert.NotEmpty(retrievedRenamedChild);
+				Assert.NotEmpty(retrievedRenamedGrandchild);
+			}
+		}
+
+		[Fact]
+		public void MoveOrRename_RenamesItem_WhenChildrenAreOnShortPaths()
+		{
+			// This test checks that moves and renames when children are on loopback paths succeed. See Unicorn#77 and Unicorn#81
+
+			// this is the total test path length that is required to go to a loopback path, which is essential for this test (see SfsTree.cs, MaxRelativePathLength property)
+			var testMaxRelativePath = 240;
+			testMaxRelativePath -= 80; // 'expected max physical path length'
+			testMaxRelativePath -= 2; // length of test tree name ('T0')
+			testMaxRelativePath -= "/sitecore/".Length + 2; // length of root item name and separators
+
+			// but the max path will be > 100 chars, so we have to split it up into two item segments so that we can hit the path max, starting with a 100-char base path
+			var testBaseSegmentLength = 100;
+			testMaxRelativePath -= testBaseSegmentLength;
+
+			using (var dataStore = new TestSfsDataStore("/sitecore"))
+			{
+				var testBaseSegmentName = new string('a', testBaseSegmentLength);
+				var testBaseSegmentPath = "/sitecore/" + testBaseSegmentName;
+
+				// this will give us a path that when two characters are added goes into a loopback path
+				var testRootName = new string('b', testMaxRelativePath - 2);
+				var testRootPath = testBaseSegmentPath + "/" + testRootName;
+
+				// this will give us an equivalent length path to rename into
+				var renamedTestRootName = testRootName.Replace('b', 'c');
+				var renamedTestRootPath = testBaseSegmentPath + "/" + renamedTestRootName;
+
+				var renamingItemGrandchild = new FakeItem(path: testRootPath + "/hulk/smash", name: "smash", id: Guid.NewGuid());
+				var renamingItemChild = new FakeItem(path: testRootPath + "/hulk", name: "hulk", children: new[] { renamingItemGrandchild }, id: Guid.NewGuid());
+				var itemToRename = new FakeItem(path: testRootPath, name: testRootName, children: new[] { renamingItemChild }, id: Guid.NewGuid());
+				var baseSegment = new FakeItem(path: testBaseSegmentPath, name: testBaseSegmentName, id: Guid.NewGuid(), children: new[] { itemToRename });
+				var rootItem = new FakeItem(path: "/sitecore", name: "sitecore", id: Guid.NewGuid(), children: new[] { baseSegment });
+
+				dataStore.Save(rootItem);
+				dataStore.Save(baseSegment);
+				dataStore.Save(itemToRename);
+				dataStore.Save(renamingItemChild);
+				dataStore.Save(renamingItemGrandchild);
+
+				// note adding children with old paths; method takes care of rewriting child paths
+				var renamedItem = new FakeItem(id: itemToRename.Id, path: renamedTestRootPath, name: renamedTestRootName, children: new[] { renamingItemChild });
+
+				dataStore.MoveOrRenameItem(renamedItem, testRootPath);
+
+				var retrievedRenamedItem = dataStore.GetByPath(renamedTestRootPath, "master").ToArray();
+				var retrievedRenamedChild = dataStore.GetByPath(renamedTestRootPath + "/hulk", "master").ToArray();
+				var retrievedRenamedGrandchild = dataStore.GetByPath(renamedTestRootPath + "/hulk/smash", "master").ToArray();
+
+				// Asserts
+				retrievedRenamedItem.Should().NotBeEmpty("the renamed item should be available");
+				retrievedRenamedItem.First().Path.Should().Be(renamedTestRootPath, "renamed item path should match expectation");
+
+				// verify children moved
+				Assert.NotEmpty(retrievedRenamedChild);
+				Assert.NotEmpty(retrievedRenamedGrandchild);
 			}
 		}
 

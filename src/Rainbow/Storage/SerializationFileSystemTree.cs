@@ -192,7 +192,9 @@ namespace Rainbow.Storage
 
 				var descendants = GetDescendants(item, true)
 					.Concat(new[] { itemToRemove })
-					.OrderByDescending(desc => desc.Path).ToArray();
+					.Where(desc => desc.Path.StartsWith(itemToRemove.Path)) // we filter out any invalid paths, as during a move descendants might actually match items in short paths that we're moving and do not want to delete. See Unicorn#77,#81
+					.OrderByDescending(desc => desc.Path)
+					.ToArray();
 
 				foreach (var descendant in descendants)
 				{
@@ -236,23 +238,23 @@ namespace Rainbow.Storage
 							AfterFilesystemDelete(childrenDirectory);
 						}
 
-						var shortChildrenDirectory = Path.Combine(PhysicalRootPath, descendant.Id.ToString());
-						if (Directory.Exists(shortChildrenDirectory))
+						var shortChildrenDirectory = new DirectoryInfo(Path.Combine(PhysicalRootPath, descendant.Id.ToString()));
+						if (shortChildrenDirectory.Exists && !shortChildrenDirectory.EnumerateFiles().Any())
 						{
-							BeforeFilesystemDelete(shortChildrenDirectory);
+							BeforeFilesystemDelete(shortChildrenDirectory.FullName);
 							try
 							{
 								ActionRetryer.Perform(() =>
 								{
-									_treeWatcher.PushKnownUpdate(shortChildrenDirectory);
-									Directory.Delete(shortChildrenDirectory);
+									_treeWatcher.PushKnownUpdate(shortChildrenDirectory.FullName);
+									Directory.Delete(shortChildrenDirectory.FullName);
 								});
 							}
 							catch (Exception exception)
 							{
 								throw new SfsDeleteException("Error deleting SFS directory " + shortChildrenDirectory, exception);
 							}
-							AfterFilesystemDelete(shortChildrenDirectory);
+							AfterFilesystemDelete(shortChildrenDirectory.FullName);
 						}
 					}
 				}
