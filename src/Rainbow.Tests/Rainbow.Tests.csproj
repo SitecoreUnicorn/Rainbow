@@ -63,6 +63,7 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="ActionRetryerTests.cs" />
     <Compile Include="Diff\Fields\DefaultComparisonTests.cs" />
     <Compile Include="Diff\Fields\FieldComparerTest.cs" />
     <Compile Include="Diff\Fields\MultilistComparisonTests.cs" />

@@ -45,6 +45,7 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="ActionRetryer.cs" />
     <Compile Include="DataConsistencyException.cs" />
     <Compile Include="Diff\Fields\DefaultComparison.cs" />
     <Compile Include="Diff\Fields\FieldComparisonResult.cs" />

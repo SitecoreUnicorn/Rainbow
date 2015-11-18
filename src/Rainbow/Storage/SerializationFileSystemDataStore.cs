@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Web.Hosting;
 using Rainbow.Formatting;
 using Rainbow.Model;
@@ -186,18 +185,7 @@ namespace Rainbow.Storage
 			foreach(var tree in Trees) tree.Dispose();
 			Trees.Clear();
 
-			try
-			{
-				ClearAllFiles();
-			}
-			catch
-			{
-				// occasionally we get directory not empty, etc caused by watchers closing up and such.
-				// we'll wait a tick and try again.
-				Thread.Sleep(1000);
-
-				ClearAllFiles();
-			}
+			ActionRetryer.Perform(ClearAllFiles);
 
 			// bring the trees back up, which will reestablish watchers and such
 			Trees.AddRange(InitializeTrees(_formatter, _useDataCache));
@@ -293,8 +281,6 @@ namespace Rainbow.Storage
 
 			return descendants;
 		}
-
-
 
 		public virtual string FriendlyName { get { return "Serialization File System Data Store"; } }
 		public virtual string Description { get { return "Stores serialized items on disk using the SFS tree format, where each root is a separate tree."; } }

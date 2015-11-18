@@ -202,11 +202,13 @@ namespace Rainbow.Storage
 						try
 						{
 							ActionRetryer.Perform(() =>
+							{
 								lock (FileUtil.GetFileLock(descendant.SerializedItemId))
 								{
 									_treeWatcher.PushKnownUpdate(descendant.SerializedItemId);
 									File.Delete(descendant.SerializedItemId);
 								}
+							});
 						}
 						catch (Exception exception)
 						{
@@ -221,8 +223,11 @@ namespace Rainbow.Storage
 							BeforeFilesystemDelete(childrenDirectory);
 							try
 							{
+								ActionRetryer.Perform(() =>
+								{
 									_treeWatcher.PushKnownUpdate(childrenDirectory);
 									Directory.Delete(childrenDirectory, true);
+								});
 							}
 							catch (Exception exception)
 							{
@@ -237,8 +242,11 @@ namespace Rainbow.Storage
 							BeforeFilesystemDelete(shortChildrenDirectory);
 							try
 							{
+								ActionRetryer.Perform(() =>
+								{
 									_treeWatcher.PushKnownUpdate(shortChildrenDirectory);
 									Directory.Delete(shortChildrenDirectory);
+								});
 							}
 							catch (Exception exception)
 							{
