@@ -62,6 +62,19 @@ namespace Rainbow.Storage
 		*/
 		public virtual void MoveOrRenameItem(IItemData itemWithFinalPath, string oldPath)
 		{
+			// GET EXISTING ITEM WE'RE MOVING + DESCENDANT PATHS
+			var oldPathTree = GetTreeForPath(oldPath, itemWithFinalPath.DatabaseName);
+			Dictionary<string, IItemMetadata> oldPathItemAndDescendants;
+
+			var oldPathItem = oldPathTree?.GetItemsByPath(oldPath).FirstOrDefault(item => item.Id == itemWithFinalPath.Id);
+			if (oldPathItem != null)
+			{
+				oldPathItemAndDescendants = oldPathTree.GetDescendants(oldPathItem, false).ToDictionary(item => item.SerializedItemId);
+				oldPathItemAndDescendants.Add(oldPathItem.SerializedItemId, oldPathItem);
+			}
+			else oldPathItemAndDescendants = new Dictionary<string, IItemMetadata>();
+
+			// WRITE THE NEW MOVED/RENAMED ITEMS TO THE TREE (note: delete goes last because with TpSync we need the old items to read from)
 			var newPathTree = GetTreeForPath(itemWithFinalPath.Path, itemWithFinalPath.DatabaseName);
 
 			// force consistency of parent IDs and paths among child items before we serialize them
@@ -77,7 +90,14 @@ namespace Rainbow.Storage
 				{
 					var parent = saveQueue.Dequeue();
 
-					Save(parent);
+					var tree = GetTreeForPath(parent.Path, parent.DatabaseName);
+
+					if (tree == null) throw new InvalidOperationException("No trees contained the global path " + parent.Path);
+
+					var savedPath = tree.Save(parent);
+
+					// if we saved an item that was a former child of the item we want to keep it when we're doing deletions
+					if (oldPathItemAndDescendants.ContainsKey(savedPath)) oldPathItemAndDescendants.Remove(savedPath);
 
 					var children = parent.GetChildren();
 
@@ -92,13 +112,16 @@ namespace Rainbow.Storage
 			// 'cause that'd just delete the item, not move it :)
 			if (oldPath.Equals(itemWithFinalPath.Path, StringComparison.OrdinalIgnoreCase)) return;
 
-			var oldPathTree = GetTreeForPath(oldPath, itemWithFinalPath.DatabaseName);
-
-			// remove existing items if they exist
+			// REMOVE EXISTING ITEMS (if any)
+			// (excluding any items that we wrote to during the save phase above, e.g. loopback path items may not change during a move)
 			if (oldPathTree != null)
 			{
-				var oldItem = oldPathTree.GetItemsByPath(oldPath).FirstOrDefault(item => item.Id == itemWithFinalPath.Id);
-				if (oldItem != null) oldPathTree.Remove(oldItem);
+				var oldItems = oldPathItemAndDescendants
+					.Select(key => key.Value)
+					.OrderByDescending(item => item.Path)
+					.ToArray();
+
+				foreach (var item in oldItems) oldPathTree.RemoveWithoutChildren(item);
 			}
 		}
 
