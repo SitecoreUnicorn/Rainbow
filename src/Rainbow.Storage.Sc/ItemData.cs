@@ -29,10 +29,7 @@ namespace Rainbow.Storage.Sc
 			_sourceDataStore = sourceDataStore;
 		}
 
-		public virtual Guid Id
-		{
-			get { return _item.ID.Guid; }
-		}
+		public virtual Guid Id => _item.ID.Guid;
 
 		public virtual string DatabaseName
 		{
@@ -40,10 +37,7 @@ namespace Rainbow.Storage.Sc
 			set { }
 		}
 
-		public virtual Guid ParentId
-		{
-			get { return _item.ParentID.Guid; }
-		}
+		public virtual Guid ParentId => _item.ParentID.Guid;
 
 		private string _path;
 		public virtual string Path
@@ -55,20 +49,11 @@ namespace Rainbow.Storage.Sc
 			}
 		}
 
-		public virtual string Name
-		{
-			get { return _item.Name; }
-		}
+		public virtual string Name => _item.Name;
 
-		public virtual Guid BranchId
-		{
-			get { return _item.BranchId.Guid; }
-		}
+		public virtual Guid BranchId => _item.BranchId.Guid;
 
-		public virtual Guid TemplateId
-		{
-			get { return _item.TemplateID.Guid; }
-		}
+		public virtual Guid TemplateId => _item.TemplateID.Guid;
 
 		private List<IItemFieldValue> _sharedFields;
 		public virtual IEnumerable<IItemFieldValue> SharedFields
@@ -108,10 +93,7 @@ namespace Rainbow.Storage.Sc
 			}
 		}
 
-		public virtual string SerializedItemId
-		{
-			get { return "(from Sitecore database)"; }
-		}
+		public virtual string SerializedItemId => "(from Sitecore database)";
 
 		public virtual IEnumerable<IItemData> GetChildren()
 		{
@@ -160,10 +142,7 @@ namespace Rainbow.Storage.Sc
 				_retrievedStringValue = retrievedStringValue;
 			}
 
-			public Guid FieldId
-			{
-				get { return _field.ID.Guid; }
-			}
+			public Guid FieldId => _field.ID.Guid;
 
 			public virtual string Value
 			{
@@ -186,10 +165,7 @@ namespace Rainbow.Storage.Sc
 				}
 			}
 
-			public string FieldType
-			{
-				get { return _field.Type; }
-			}
+			public string FieldType => _field.Type;
 
 			public virtual Guid? BlobId
 			{
@@ -209,10 +185,7 @@ namespace Rainbow.Storage.Sc
 				}
 			}
 
-			public string NameHint
-			{
-				get { return _field.Name; }
-			}
+			public string NameHint => _field.Name;
 		}
 
 		[DebuggerDisplay("{Language} #{VersionNumber}")]
@@ -244,12 +217,9 @@ namespace Rainbow.Storage.Sc
 				}
 			}
 
-			public CultureInfo Language { get { return _version.Language.CultureInfo; } }
+			public CultureInfo Language => _version.Language.CultureInfo;
 
-			public int VersionNumber
-			{
-				get { return _version.Version.Number; }
-			}
+			public int VersionNumber => _version.Version.Number;
 
 			protected virtual void EnsureFields()
 			{

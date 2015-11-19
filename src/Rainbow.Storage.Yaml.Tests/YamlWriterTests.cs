@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
+using FluentAssertions;
 using Xunit;
-using Xunit.Sdk;
 
 namespace Rainbow.Storage.Yaml.Tests
 {
@@ -174,7 +174,7 @@ namespace Rainbow.Storage.Yaml.Tests
 				{
 					string result = sr.ReadToEnd();
 
-					Assert.Equal(expectedOutput, result);
+					result.Should().Be(expectedOutput, errorMessage);
 				}
 			}
 		}

@@ -20,8 +20,8 @@ namespace Rainbow.Storage.Yaml.OutputModel
 		public string Path { get; set; }
 
 		public Guid BranchId { get; set; }
-		public SortedSet<YamlFieldValue> SharedFields { get; private set; }
-		public SortedSet<YamlLanguage> Languages { get; private set; }
+		public SortedSet<YamlFieldValue> SharedFields { get; }
+		public SortedSet<YamlLanguage> Languages { get; }
 
 		public virtual void LoadFrom(IItemData itemData, IFieldFormatter[] fieldFormatters)
 		{

@@ -13,7 +13,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 		}
 
 		public string Language { get; set; }
-		public SortedSet<YamlVersion> Versions { get; private set; }
+		public SortedSet<YamlVersion> Versions { get; }
 
 		public int CompareTo(YamlLanguage other)
 		{

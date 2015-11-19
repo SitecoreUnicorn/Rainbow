@@ -27,7 +27,7 @@ namespace Rainbow.Tests
 			Versions = versions ?? new List<IItemVersion>();
 			SerializedItemId = serializedItemId;
 
-			SetProxyChildren(children != null ? children.ToArray() : new IItemData[0]);
+			SetProxyChildren(children?.ToArray() ?? new IItemData[0]);
 		}
 	}
 }

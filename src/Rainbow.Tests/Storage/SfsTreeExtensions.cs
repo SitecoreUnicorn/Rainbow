@@ -25,7 +25,7 @@ namespace Rainbow.Tests.Storage
 
 				currentParentId = item.Id;
 
-				if (currentParent != null) currentParent.SetProxyChildren(new[] { item });
+				currentParent?.SetProxyChildren(new[] { item });
 				currentParent = item;
 
 				tree.Save(item);

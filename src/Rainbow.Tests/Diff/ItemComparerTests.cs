@@ -237,7 +237,7 @@ namespace Rainbow.Tests.Diff
 			{
 			}
 
-			public IFieldComparer[] Comparers {  get { return FieldComparers.ToArray(); } }
+			public IFieldComparer[] Comparers => FieldComparers.ToArray();
 		}
 	}
 }

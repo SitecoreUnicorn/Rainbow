@@ -48,8 +48,9 @@ namespace Rainbow.Tests
 
 		private class Documentable : IDocumentable
 		{
-			public string FriendlyName { get { return "Test"; } }
-			public string Description { get { return "Description"; } }
+			public string FriendlyName => "Test";
+			public string Description => "Description";
+
 			public KeyValuePair<string, string>[] GetConfigurationDetails()
 			{
 				return new[] { new KeyValuePair<string, string>("Test", "Value") };

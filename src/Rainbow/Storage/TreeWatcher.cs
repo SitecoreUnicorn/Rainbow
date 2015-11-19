@@ -90,8 +90,8 @@ namespace Rainbow.Storage
 		{
 			if (disposing)
 			{
-				if (_watcher != null) _watcher.Dispose();
-				if (_eventFlusher != null) _eventFlusher.Dispose();
+				_watcher?.Dispose();
+				_eventFlusher?.Dispose();
 			}
 		}
 

@@ -305,8 +305,9 @@ namespace Rainbow.Storage
 			return descendants;
 		}
 
-		public virtual string FriendlyName { get { return "Serialization File System Data Store"; } }
-		public virtual string Description { get { return "Stores serialized items on disk using the SFS tree format, where each root is a separate tree."; } }
+		public virtual string FriendlyName => "Serialization File System Data Store";
+		public virtual string Description => "Stores serialized items on disk using the SFS tree format, where each root is a separate tree.";
+
 		public virtual KeyValuePair<string, string>[] GetConfigurationDetails()
 		{
 			return new[]

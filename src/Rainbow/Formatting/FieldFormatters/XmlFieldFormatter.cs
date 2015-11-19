@@ -8,10 +8,7 @@ namespace Rainbow.Formatting.FieldFormatters
 {
 	public class XmlFieldFormatter : FieldTypeBasedFormatter
 	{
-		public override string[] SupportedFieldTypes
-		{
-			get { return new[] { "Layout", "Tracking", "Rules" }; }
-		}
+		public override string[] SupportedFieldTypes => new[] { "Layout", "Tracking", "Rules" };
 
 		public override string Format(IItemFieldValue field)
 		{

@@ -110,9 +110,9 @@ namespace Rainbow.Storage
 			_treeWatcher = new TreeWatcher(_physicalRootPath, _formatter.FileExtension, HandleDataItemChanged);
 		}
 
-		public virtual string DatabaseName { get; private set; }
-		public string GlobalRootItemPath { get { return _globalRootItemPath; } }
-		public string PhysicalRootPath { get { return _physicalRootPath; } }
+		public virtual string DatabaseName { get; }
+		public string GlobalRootItemPath => _globalRootItemPath;
+		public string PhysicalRootPath => _physicalRootPath;
 
 		[ExcludeFromCodeCoverage]
 		public virtual string Name { get; private set; }
@@ -669,8 +669,6 @@ namespace Rainbow.Storage
 				// find the expected parent's physical path
 				var parentItem = parentPhysicalPaths.Select(ReadItemMetadata).FirstOrDefault(parentCandiate => parentCandiate.Id == item.ParentId);
 
-				if (parentItem == null) return null;
-
 				return parentItem;
 			}
 
@@ -791,7 +789,7 @@ namespace Rainbow.Storage
 		{
 			if (changeType == TreeWatcher.TreeWatcherChangeType.ChangeOrAdd)
 			{
-				Log.Info(string.Format("[Rainbow] SFS tree item {0} changed ({1}), caches updating.", path, changeType), this);
+				Log.Info($"[Rainbow] SFS tree item {path} changed ({changeType}), caches updating.", this);
 
 				const int retries = 5;
 				for (int i = 0; i < retries; i++)
@@ -803,7 +801,7 @@ namespace Rainbow.Storage
 						var metadata = ReadItemMetadata(path);
 						if (metadata != null)
 						{
-							if (TreeItemChanged != null) TreeItemChanged(metadata);
+							TreeItemChanged?.Invoke(metadata);
 						}
 
 						_dataCache.Remove(path);
@@ -832,7 +830,7 @@ namespace Rainbow.Storage
 
 			if (changeType == TreeWatcher.TreeWatcherChangeType.Delete)
 			{
-				Log.Info(string.Format("Serialized item {0} deleted, reloading caches.", path), this);
+				Log.Info($"Serialized item {path} deleted, reloading caches.", this);
 
 				var existingCached = _metadataCache.GetValue(path, false);
 
@@ -846,12 +844,12 @@ namespace Rainbow.Storage
 
 					if (TreeItemChanged != null)
 					{
-						if (TreeItemChanged != null) TreeItemChanged(existingCached);
+						TreeItemChanged?.Invoke(existingCached);
 						return;
 					}
 				}
 
-				if (TreeItemChanged != null) TreeItemChanged(null);
+				TreeItemChanged?.Invoke(null);
 			}
 		}
 
@@ -883,11 +881,11 @@ namespace Rainbow.Storage
 				SerializedItemId = serializedItemId;
 			}
 
-			public Guid Id { get; private set; }
-			public Guid ParentId { get; private set; }
-			public Guid TemplateId { get; private set; }
-			public string Path { get; private set; }
-			public string SerializedItemId { get; private set; }
+			public Guid Id { get; }
+			public Guid ParentId { get; }
+			public Guid TemplateId { get; }
+			public string Path { get; }
+			public string SerializedItemId { get; }
 		}
 
 		public void Dispose()
@@ -900,7 +898,7 @@ namespace Rainbow.Storage
 		{
 			if (disposing)
 			{
-				if (_treeWatcher != null) _treeWatcher.Dispose();
+				_treeWatcher?.Dispose();
 			}
 		}
 	}

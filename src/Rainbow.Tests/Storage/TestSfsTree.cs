@@ -41,7 +41,7 @@ namespace Rainbow.Tests.Storage
 			InvalidFileNameCharacters = Path.GetInvalidFileNameChars().Concat(chars).ToArray();
 		}
 
-		protected override int MaxRelativePathLength { get { return MaxPathLengthForTests; } }
-		protected override int MaxItemNameLengthBeforeTruncation { get { return MaxFileNameLengthForTests; } }
+		protected override int MaxRelativePathLength => MaxPathLengthForTests;
+		protected override int MaxItemNameLengthBeforeTruncation => MaxFileNameLengthForTests;
 	}
 }

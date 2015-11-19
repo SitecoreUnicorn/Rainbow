@@ -34,10 +34,7 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 					templateId: _testTemplateId.Guid,
 					versions: new[]
 					{
-						new FakeItemVersion(1, "en", new[]
-						{
-							new FakeFieldValue("Hello", fieldId: _testVersionedFieldId.Guid)
-						})
+						new FakeItemVersion(1, "en", new FakeFieldValue("Hello", fieldId: _testVersionedFieldId.Guid))
 					});
 
 				var deserialized = deserializer.Deserialize(item);
@@ -230,7 +227,7 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 		{
 			ID id = ID.NewID;
 			var item = new DbItem("test item", id, _testTemplateId);
-			if (customize != null) customize(item);
+			customize?.Invoke(item);
 
 			db.Add(item);
 

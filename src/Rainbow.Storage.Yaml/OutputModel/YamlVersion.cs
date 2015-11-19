@@ -14,7 +14,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 		}
 
 		public int VersionNumber { get; set; }
-		public SortedSet<YamlFieldValue> Fields { get; private set; } 
+		public SortedSet<YamlFieldValue> Fields { get; } 
 		
 		public int CompareTo(YamlVersion other)
 		{

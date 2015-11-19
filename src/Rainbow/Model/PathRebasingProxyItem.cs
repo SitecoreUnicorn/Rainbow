@@ -12,7 +12,6 @@ namespace Rainbow.Model
 	public class PathRebasingProxyItem : ItemDecorator
 	{
 		private readonly string _newParentPath;
-		private readonly Guid _newParentId;
 		private readonly bool _parentPathIsLiteral = false;
 
 		/// <summary>
@@ -23,7 +22,7 @@ namespace Rainbow.Model
 		{
 			Assert.ArgumentNotNull(innerItem, "innerItem");
 
-			_newParentId = innerItem.ParentId;
+			ParentId = innerItem.ParentId;
 			_newParentPath = innerItem.Path;
 			_parentPathIsLiteral = true;
 		}
@@ -38,13 +37,10 @@ namespace Rainbow.Model
 			Assert.ArgumentNotNull(newParentPath, "newParentPath");
 
 			_newParentPath = newParentPath;
-			_newParentId = newParentId;
+			ParentId = newParentId;
 		}
 
-		public override Guid ParentId
-		{
-			get { return _newParentId; }
-		}
+		public override Guid ParentId { get; }
 
 		public override string Path
 		{

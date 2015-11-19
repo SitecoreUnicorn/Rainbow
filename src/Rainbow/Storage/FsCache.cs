@@ -120,10 +120,7 @@ namespace Rainbow.Storage
 		private long _accesses;
 
 		[Obsolete("This property only exists when compiled for debug, do not use in actual code.")]
-		public double HitRatio
-		{
-			get { return _hits/(double)_accesses; }
-		}
+		public double HitRatio => _hits/(double)_accesses;
 #endif
 	}
 }
