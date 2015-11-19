@@ -14,6 +14,13 @@ namespace Rainbow.Tests.Storage
 		{
 		}
 
+		public void CreateTestItemTree(string path, string database = "master")
+		{
+			var tree = GetTreeForPath(path, database);
+
+			tree.CreateTestTree(path, database);
+		}
+
 		protected override void Dispose(bool disposing)
 		{
 			base.Dispose(disposing);

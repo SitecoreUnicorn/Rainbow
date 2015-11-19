@@ -10,7 +10,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				CreateTestTree("/sitecore", testTree);
+				testTree.CreateTestTree("/sitecore");
 
 				var root = testTree.GetRootItem();
 
@@ -26,7 +26,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				CreateTestTree("/sitecore/content/foo", testTree);
+				testTree.CreateTestTree("/sitecore/content/foo");
 
 				var item = testTree.GetItemsByPath("/sitecore/content/foo").First();
 
@@ -42,7 +42,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				CreateTestTree("/sitecore", testTree);
+				testTree.CreateTestTree("/sitecore");
 
 				var root = testTree.GetRootItem();
 
@@ -60,7 +60,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				CreateTestTree("/sitecore/content/foo", testTree);
+				testTree.CreateTestTree("/sitecore/content/foo");
 
 				var item = testTree.GetItemsByPath("/sitecore/content/foo").First();
 

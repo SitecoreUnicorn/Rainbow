@@ -10,7 +10,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				CreateTestTree("/sitecore", testTree);
+				testTree.CreateTestTree("/sitecore");
 
 				var root = testTree.GetItemsByPath("/sitecore").ToArray();
 
@@ -25,7 +25,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree("/sitecore/templates"))
 			{
-				CreateTestTree("/sitecore/templates", testTree);
+				testTree.CreateTestTree("/sitecore/templates");
 
 				var root = testTree.GetItemsByPath("/sitecore/templates").ToArray();
 
@@ -40,7 +40,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				CreateTestTree("/sitecore/templates/User Defined", testTree);
+				testTree.CreateTestTree("/sitecore/templates/User Defined");
 
 				var root = testTree.GetItemsByPath("/sitecore/templates/User Defined").ToArray();
 
@@ -55,7 +55,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				CreateTestTree("/sitecore/templates/User Defined", testTree);
+				testTree.CreateTestTree("/sitecore/templates/User Defined");
 
 				testTree.ClearAllCaches();
 
@@ -72,7 +72,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree("/sitecore/templates"))
 			{
-				CreateTestTree("/sitecore/templates/User Defined", testTree);
+				testTree.CreateTestTree("/sitecore/templates/User Defined");
 
 				var root = testTree.GetItemsByPath("/sitecore/templates/User Defined").ToArray();
 
@@ -87,7 +87,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree("/?hello*"))
 			{
-				CreateTestTree("/?hello*/%there%", testTree);
+				testTree.CreateTestTree("/?hello*/%there%");
 
 				var root = testTree.GetItemsByPath("/?hello*/%there%").ToArray();
 
@@ -103,12 +103,12 @@ namespace Rainbow.Tests.Storage
 			using (var testTree = new TestSfsTree())
 			{
 				const string treePath = "/sitecore/templates/User Defined";
-				CreateTestTree(treePath, testTree);
+				testTree.CreateTestTree(treePath);
 
 				var testItem = testTree.GetItemsByPath(treePath);
 
 				// add a second User Defined item
-				testTree.Save(CreateTestItem(treePath, testItem.First().ParentId));
+				testTree.Save(treePath.AsTestItem(testItem.First().ParentId));
 
 				var results = testTree.GetItemsByPath(treePath).ToArray();
 
@@ -125,19 +125,19 @@ namespace Rainbow.Tests.Storage
 			{
 				const string treePath = "/sitecore/templates/User Defined";
 
-				CreateTestTree(treePath, testTree);
+				testTree.CreateTestTree(treePath);
 
 				var testItem = testTree.GetItemsByPath("/sitecore/templates");
 
 				var templates1 = testItem.First();
 
 				// add a second Templates item
-				var templates2 = CreateTestItem("/sitecore/templates", templates1.ParentId);
+				var templates2 = "/sitecore/templates".AsTestItem(templates1.ParentId);
 				testTree.Save(templates2);
 
 				// add a child under the second templates item, giving us '/sitecore/templates/User Defined' under templates1, and '/sitecore/templates/Evil' under templates2
 				// P.S. don't actually do this in real life. Please? But I'm testing it, because I'm an effing pedant :)
-				testTree.Save(CreateTestItem("/sitecore/templates/Evil", templates2.Id));
+				testTree.Save("/sitecore/templates/Evil".AsTestItem(templates2.Id));
 
 				var results = testTree.GetItemsByPath("/sitecore/templates").ToArray();
 
@@ -156,7 +156,7 @@ namespace Rainbow.Tests.Storage
 			{
 				// force the tree to shorten after 10 char names
 				testTree.MaxFileNameLengthForTests = 10;
-				CreateTestTree("/sitecore/hello hello", testTree);
+				testTree.CreateTestTree("/sitecore/hello hello");
 
 				var overlengthItem = testTree.GetItemsByPath("/sitecore/hello hello").ToArray();
 
@@ -173,7 +173,7 @@ namespace Rainbow.Tests.Storage
 			{
 				// force the tree to shorten after 10 char names
 				testTree.MaxFileNameLengthForTests = 10;
-				CreateTestTree("/sitecore/hello hello/goodbye", testTree);
+				testTree.CreateTestTree("/sitecore/hello hello/goodbye");
 
 				var overlengthChild = testTree.GetItemsByPath("/sitecore/hello hello/goodbye").ToArray();
 
@@ -190,9 +190,9 @@ namespace Rainbow.Tests.Storage
 			{
 				// force the tree to shorten after 10 char names
 				testTree.MaxFileNameLengthForTests = 10;
-				CreateTestTree("/sitecore/hello hello", testTree);
+				testTree.CreateTestTree("/sitecore/hello hello");
 
-				testTree.Save(CreateTestItem("/sitecore/hello hello hello", testTree.GetRootItem().Id));
+				testTree.Save("/sitecore/hello hello hello".AsTestItem(testTree.GetRootItem().Id));
 
 				var overlengthItem = testTree.GetItemsByPath("/sitecore/hello hello").ToArray();
 

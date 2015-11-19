@@ -10,7 +10,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				CreateTestTree("/sitecore/templates", testTree);
+				testTree.CreateTestTree("/sitecore/templates");
 
 				var root = testTree.GetRootItem();
 
@@ -27,7 +27,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree("/sitecore/templates"))
 			{
-				CreateTestTree("/sitecore/templates/User Defined", testTree);
+				testTree.CreateTestTree("/sitecore/templates/User Defined");
 
 				var root = testTree.GetItemsByPath("/sitecore/templates").First();
 
@@ -44,7 +44,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree("/sitecore/templates"))
 			{
-				CreateTestTree("/sitecore/templates/User Defined", testTree);
+				testTree.CreateTestTree("/sitecore/templates/User Defined");
 
 				var root = testTree.GetItemsByPath("/sitecore/templates").First();
 
@@ -64,12 +64,12 @@ namespace Rainbow.Tests.Storage
 			using (var testTree = new TestSfsTree())
 			{
 				const string treePath = "/sitecore/templates";
-				CreateTestTree(treePath, testTree);
+				testTree.CreateTestTree(treePath);
 
 				var testItem = testTree.GetItemsByPath(treePath);
 
 				// add a second child item
-				testTree.Save(CreateTestItem("/sitecore/system", testItem.First().ParentId));
+				testTree.Save("/sitecore/system".AsTestItem(testItem.First().ParentId));
 
 				// get the children of the root, which should include the two items
 				var results = testTree.GetChildren(testTree.GetRootItem()).ToArray();
@@ -88,12 +88,12 @@ namespace Rainbow.Tests.Storage
 			using (var testTree = new TestSfsTree())
 			{
 				const string treePath = "/sitecore/templates";
-				CreateTestTree(treePath, testTree);
+				testTree.CreateTestTree(treePath);
 
 				var testItem = testTree.GetItemsByPath(treePath);
 
 				// add a second templates item
-				testTree.Save(CreateTestItem(treePath, testItem.First().ParentId));
+				testTree.Save(treePath.AsTestItem(testItem.First().ParentId));
 
 				// get the children of the root, which should include the two same named items
 				var results = testTree.GetChildren(testTree.GetRootItem()).ToArray();
@@ -112,15 +112,15 @@ namespace Rainbow.Tests.Storage
 				testTree.MaxFileNameLengthForTests = 10;
 
 				const string treePath = "/sitecore/templates";
-				CreateTestTree(treePath, testTree);
+				testTree.CreateTestTree(treePath);
 
 				var testItem = testTree.GetItemsByPath(treePath).First();
 
-				var multilist = CreateTestItem("/sitecore/templates/Multilist", testItem.Id);
-				var multilistWithSearch = CreateTestItem("/sitecore/templates/Multilist with Search", testItem.Id);
+				var multilist = "/sitecore/templates/Multilist".AsTestItem(testItem.Id);
+				var multilistWithSearch = "/sitecore/templates/Multilist with Search".AsTestItem(testItem.Id);
 
-				var multilistChild = CreateTestItem("/sitecore/templates/Multilist/Menu", multilist.Id);
-				var multilistWithSearchChild = CreateTestItem("/sitecore/templates/Multilist with Search/Menu", multilistWithSearch.Id);
+				var multilistChild = "/sitecore/templates/Multilist/Menu".AsTestItem(multilist.Id);
+				var multilistWithSearchChild = "/sitecore/templates/Multilist with Search/Menu".AsTestItem(multilistWithSearch.Id);
 
 				testTree.Save(multilist);
 				testTree.Save(multilistWithSearch);
@@ -147,19 +147,19 @@ namespace Rainbow.Tests.Storage
 			{
 				const string treePath = "/sitecore/templates/User Defined";
 
-				CreateTestTree(treePath, testTree);
+				testTree.CreateTestTree(treePath);
 
 				var testItem = testTree.GetItemsByPath("/sitecore/templates");
 
 				var templates1 = testItem.First();
 
 				// add a second Templates item
-				var templates2 = CreateTestItem("/sitecore/templates", templates1.ParentId);
+				var templates2 = "/sitecore/templates".AsTestItem(templates1.ParentId);
 				testTree.Save(templates2);
 
 				// add a child under the second templates item, giving us '/sitecore/templates/User Defined' under templates1, and '/sitecore/templates/Evil' under templates2
 				// P.S. don't actually do this in real life. Please? But I'm testing it, because I'm an effing pedant :)
-				testTree.Save(CreateTestItem("/sitecore/templates/Evil", templates2.Id));
+				testTree.Save("/sitecore/templates/Evil".AsTestItem(templates2.Id));
 
 				// get the children of templates1, which should NOT include templates2's child
 				var results = testTree.GetChildren(templates1).ToArray();
@@ -174,7 +174,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				CreateTestTree("/sitecore", testTree);
+				testTree.CreateTestTree("/sitecore");
 
 				// get the children of the root, which be empty
 				var results = testTree.GetChildren(testTree.GetRootItem());
@@ -189,7 +189,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree("/<html>"))
 			{
-				CreateTestTree("/<html>/$head", testTree);
+				testTree.CreateTestTree("/<html>/$head");
 
 				var root = testTree.GetRootItem();
 

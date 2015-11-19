@@ -11,11 +11,11 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				CreateTestTree("/sitecore", testTree);
+				testTree.CreateTestTree("/sitecore");
 
 				testTree.Remove(testTree.GetRootItem());
 
-				Assert.Empty(Directory.GetFileSystemEntries(testTree.PhysicalRootPathTest));
+				Assert.Empty(Directory.GetFileSystemEntries(testTree.PhysicalRootPath));
 
 				var root = testTree.GetRootItem();
 
@@ -28,7 +28,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				CreateTestTree("/sitecore/content/foo", testTree);
+				testTree.CreateTestTree("/sitecore/content/foo");
 
 				var item = testTree.GetItemsByPath("/sitecore/content/foo").First();
 
@@ -44,7 +44,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				CreateTestTree("/sitecore/content/foo/bar/baz/boing", testTree);
+				testTree.CreateTestTree("/sitecore/content/foo/bar/baz/boing");
 
 				var item = testTree.GetItemsByPath("/sitecore/content").First();
 
@@ -60,7 +60,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				CreateTestTree("/sitecore/content/foo/bar/baz/boing", testTree);
+				testTree.CreateTestTree("/sitecore/content/foo/bar/baz/boing");
 
 				var item = testTree.GetItemsByPath("/sitecore/content").First();
 
@@ -79,10 +79,10 @@ namespace Rainbow.Tests.Storage
 			using (var testTree = new TestSfsTree())
 			{
 				// force the tree to loopback after only 50 chars after the root path
-				testTree.MaxPathLengthForTests = testTree.PhysicalRootPathTest.Length + 50;
+				testTree.MaxPathLengthForTests = testTree.PhysicalRootPath.Length + 50;
 
 				// this tree is long enough to loopback, but the 'hello' is short enough to be a child of the first loopback at 'e'
-				CreateTestTree("/sitecore/content lorem/ipsum dolor/sit amet/e/hello", testTree);
+				testTree.CreateTestTree("/sitecore/content lorem/ipsum dolor/sit amet/e/hello");
 
 				var loopParent = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet").First();
 				var helloItem = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet/e/hello").First();
@@ -90,7 +90,7 @@ namespace Rainbow.Tests.Storage
 				testTree.Remove(loopParent);
 
 				Assert.False(File.Exists(loopParent.SerializedItemId));
-				Assert.False(Directory.Exists(Path.Combine(testTree.PhysicalRootPathTest, loopParent.Id.ToString())));
+				Assert.False(Directory.Exists(Path.Combine(testTree.PhysicalRootPath, loopParent.Id.ToString())));
 				Assert.False(File.Exists(helloItem.SerializedItemId));
 			}
 		}
@@ -101,10 +101,10 @@ namespace Rainbow.Tests.Storage
 			using (var testTree = new TestSfsTree())
 			{
 				// force the tree to loopback after only 50 chars after the root path
-				testTree.MaxPathLengthForTests = testTree.PhysicalRootPathTest.Length + 50;
+				testTree.MaxPathLengthForTests = testTree.PhysicalRootPath.Length + 50;
 
 				// this tree is long enough that it will loopback at 'elitr foo bar baz', and that '{id}+/elitr foo bar baz' will make it loopback again on 'h', leaving the final 'hello' a child of the second loopback
-				CreateTestTree("/sitecore/content lorem/ipsum dolor/sit amet/elitr foo bar baz/h/hello", testTree);
+				testTree.CreateTestTree("/sitecore/content lorem/ipsum dolor/sit amet/elitr foo bar baz/h/hello");
 
 				var loopParent = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet/elitr foo bar baz").First();
 				var loop2Parent = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet/elitr foo bar baz/h").First();
@@ -113,7 +113,7 @@ namespace Rainbow.Tests.Storage
 				testTree.Remove(loopParent);
 
 				Assert.False(File.Exists(loop2Parent.SerializedItemId));
-				Assert.False(Directory.Exists(Path.Combine(testTree.PhysicalRootPathTest, loop2Parent.Id.ToString())));
+				Assert.False(Directory.Exists(Path.Combine(testTree.PhysicalRootPath, loop2Parent.Id.ToString())));
 				Assert.False(File.Exists(helloItem.SerializedItemId));
 			}
 		}

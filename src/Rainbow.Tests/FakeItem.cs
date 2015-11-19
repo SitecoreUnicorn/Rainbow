@@ -9,8 +9,6 @@ namespace Rainbow.Tests
 	[ExcludeFromCodeCoverage]
 	public class FakeItem : ProxyItem
 	{
-		private readonly IItemData[] _children;
-
 		public FakeItem(
 			Guid id = default(Guid), 
 			string databaseName = "master", 

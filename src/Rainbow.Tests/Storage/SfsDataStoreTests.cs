@@ -64,6 +64,38 @@ namespace Rainbow.Tests.Storage
 		}
 
 		[Fact]
+		public void MoveOrRename_MovesItem_WhenDestinationIsParentOfSource()
+		{
+			using (var dataStore = new TestSfsDataStore("/sitecore"))
+			{
+				var itemToMoveChild = new FakeItem(path: "/sitecore/test/hulk/smash", name: "smash", id: Guid.NewGuid());
+				var itemToMove = new FakeItem(path: "/sitecore/test/hulk", name: "hulk", children: new[] { itemToMoveChild }, id: Guid.NewGuid());
+				var parentItem = new FakeItem(path: "/sitecore/test", name: "test", children: new[] { itemToMove }, id: Guid.NewGuid());
+				var destinationItem = new FakeItem(path: "/sitecore", name: "sitecore", id: Guid.NewGuid(), children: new[] { parentItem });
+
+				dataStore.Save(destinationItem);
+				dataStore.Save(parentItem);
+				dataStore.Save(itemToMove);
+				dataStore.Save(itemToMoveChild);
+
+				// note adding children with old paths; method takes care of rewriting child paths
+				var renamedItem = new FakeItem(id: itemToMove.Id, path: "/sitecore/hexed", name: "hexed", children: new[] { itemToMoveChild });
+
+				dataStore.MoveOrRenameItem(renamedItem, "/sitecore/test/hulk");
+
+				var retrievedRenamedItem = dataStore.GetByPath("/sitecore/hexed", "master").ToArray();
+				var retrievedRenamedChild = dataStore.GetByPath("/sitecore/hexed/smash", "master").ToArray();
+
+				Assert.NotEmpty(retrievedRenamedItem);
+				Assert.Equal("/sitecore/hexed", retrievedRenamedItem.First().Path);
+
+				// verify children moved
+				Assert.NotEmpty(retrievedRenamedChild);
+				Assert.Equal("/sitecore/hexed/smash", retrievedRenamedChild.First().Path);
+			}
+		}
+
+		[Fact]
 		public void MoveOrRename_RenamesItem_WhenChildrenAreOnShortPaths()
 		{
 			// This test checks that moves and renames when children are on loopback paths succeed. See Unicorn#77 and Unicorn#81

@@ -82,6 +82,7 @@
     <Compile Include="Model\PathRebasingProxyItemTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Storage\SfsDataStoreTests.cs" />
+    <Compile Include="Storage\SfsTreeExtensions.cs" />
     <Compile Include="Storage\SfsTreeTests.ConvertGlobalVirtualPathToTreeVirtualPath.cs" />
     <Compile Include="Storage\SfsTreeTests.cs" />
     <Compile Include="Storage\SfsTreeTests.GetChildren.cs" />

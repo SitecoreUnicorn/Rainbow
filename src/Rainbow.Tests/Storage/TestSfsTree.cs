@@ -11,23 +11,14 @@ namespace Rainbow.Tests.Storage
 		public TestSfsTree(string globalRootItemPath = "/sitecore")
 			: base("Unit Testing", globalRootItemPath, "UnitTesting", Path.Combine(Path.GetTempPath(), Guid.NewGuid() + " rb"), new YamlSerializationFormatter(null, null), false)
 		{
-			GlobalRootItemPath = globalRootItemPath;
 			MaxPathLengthForTests = base.MaxRelativePathLength;
 			MaxFileNameLengthForTests = base.MaxItemNameLengthBeforeTruncation;
-		}
-
-		public string ConvertGlobalPathToTreePathTest(string globalPath)
-		{
-			return ConvertGlobalVirtualPathToTreeVirtualPath(globalPath);
 		}
 
 		public string PrepareItemNameForFileSystemTest(string name)
 		{
 			return PrepareItemNameForFileSystem(name);
 		}
-
-		public string GlobalRootItemPath { get; private set; }
-		public string PhysicalRootPathTest { get { return PhysicalRootPath; } }
 
 		protected override void Dispose(bool disposing)
 		{
