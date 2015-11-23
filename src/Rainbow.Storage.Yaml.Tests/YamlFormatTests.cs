@@ -65,6 +65,7 @@ namespace Rainbow.Storage.Yaml.Tests
 		{
 			var testItem = new YamlItem();
 			testItem.Id = new Guid("a4f985d9-98b3-4b52-aaaf-4344f6e747c6");
+		    testItem.DatabaseName = "master";
 			testItem.ParentId = new Guid("001dd393-96c5-490b-924a-b0f25cd9efd8");
 			testItem.TemplateId = new Guid("007a464d-5b09-4d0e-8481-cb6a604a5948");
 			testItem.Path = "/sitecore/content/test";
@@ -74,6 +75,7 @@ namespace Rainbow.Storage.Yaml.Tests
 		
 		const string BaseTestExpected = @"---
 ID: a4f985d9-98b3-4b52-aaaf-4344f6e747c6
+DatabaseName: master
 Parent: 001dd393-96c5-490b-924a-b0f25cd9efd8
 Template: 007a464d-5b09-4d0e-8481-cb6a604a5948
 Path: /sitecore/content/test
