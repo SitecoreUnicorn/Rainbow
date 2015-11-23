@@ -18,9 +18,6 @@ namespace Rainbow.Diff.Fields
 			return v1.Equals(v2);
 		}
 
-		public override string[] SupportedFieldTypes
-		{
-			get { return new[] { "Multi-Line Text", "Rich Text", "html", "memo" }; }
-		}
+		public override string[] SupportedFieldTypes => new[] { "Multi-Line Text", "Rich Text", "html", "memo" };
 	}
 }

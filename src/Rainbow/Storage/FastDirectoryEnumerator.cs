@@ -189,15 +189,15 @@ namespace Rainbow.Storage
 		{
 			if (path == null)
 			{
-				throw new ArgumentNullException("path");
+				throw new ArgumentNullException(nameof(path));
 			}
 			if (searchPattern == null)
 			{
-				throw new ArgumentNullException("searchPattern");
+				throw new ArgumentNullException(nameof(searchPattern));
 			}
 			if ((searchOption != SearchOption.TopDirectoryOnly) && (searchOption != SearchOption.AllDirectories))
 			{
-				throw new ArgumentOutOfRangeException("searchOption");
+				throw new ArgumentOutOfRangeException(nameof(searchOption));
 			}
 
 			var fullPath = Path.GetFullPath(path);
@@ -368,10 +368,7 @@ namespace Rainbow.Storage
 			/// <returns>
 			///     The element in the collection at the current position of the enumerator.
 			/// </returns>
-			public FileData Current
-			{
-				get { return new FileData(_mPath, _mWinFindData); }
-			}
+			public FileData Current => new FileData(_mPath, _mWinFindData);
 
 			#endregion
 
@@ -383,10 +380,7 @@ namespace Rainbow.Storage
 			/// </summary>
 			public void Dispose()
 			{
-				if (_mHndFindFile != null)
-				{
-					_mHndFindFile.Dispose();
-				}
+				_mHndFindFile?.Dispose();
 			}
 
 			#endregion
@@ -422,10 +416,7 @@ namespace Rainbow.Storage
 			/// <returns>
 			///     The element in the collection at the current position of the enumerator.
 			/// </returns>
-			object IEnumerator.Current
-			{
-				get { return new FileData(_mPath, _mWinFindData); }
-			}
+			object IEnumerator.Current => new FileData(_mPath, _mWinFindData);
 
 			/// <summary>
 			///     Advances the enumerator to the next element of the collection.

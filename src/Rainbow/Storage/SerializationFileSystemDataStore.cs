@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Web.Hosting;
 using Rainbow.Formatting;
 using Rainbow.Model;
@@ -63,6 +62,19 @@ namespace Rainbow.Storage
 		*/
 		public virtual void MoveOrRenameItem(IItemData itemWithFinalPath, string oldPath)
 		{
+			// GET EXISTING ITEM WE'RE MOVING + DESCENDANT PATHS
+			var oldPathTree = GetTreeForPath(oldPath, itemWithFinalPath.DatabaseName);
+			Dictionary<string, IItemMetadata> oldPathItemAndDescendants;
+
+			var oldPathItem = oldPathTree?.GetItemsByPath(oldPath).FirstOrDefault(item => item.Id == itemWithFinalPath.Id);
+			if (oldPathItem != null)
+			{
+				oldPathItemAndDescendants = oldPathTree.GetDescendants(oldPathItem, false).ToDictionary(item => item.SerializedItemId);
+				oldPathItemAndDescendants.Add(oldPathItem.SerializedItemId, oldPathItem);
+			}
+			else oldPathItemAndDescendants = new Dictionary<string, IItemMetadata>();
+
+			// WRITE THE NEW MOVED/RENAMED ITEMS TO THE TREE (note: delete goes last because with TpSync we need the old items to read from)
 			var newPathTree = GetTreeForPath(itemWithFinalPath.Path, itemWithFinalPath.DatabaseName);
 
 			// force consistency of parent IDs and paths among child items before we serialize them
@@ -78,7 +90,14 @@ namespace Rainbow.Storage
 				{
 					var parent = saveQueue.Dequeue();
 
-					Save(parent);
+					var tree = GetTreeForPath(parent.Path, parent.DatabaseName);
+
+					if (tree == null) throw new InvalidOperationException("No trees contained the global path " + parent.Path);
+
+					var savedPath = tree.Save(parent);
+
+					// if we saved an item that was a former child of the item we want to keep it when we're doing deletions
+					if (oldPathItemAndDescendants.ContainsKey(savedPath)) oldPathItemAndDescendants.Remove(savedPath);
 
 					var children = parent.GetChildren();
 
@@ -93,13 +112,16 @@ namespace Rainbow.Storage
 			// 'cause that'd just delete the item, not move it :)
 			if (oldPath.Equals(itemWithFinalPath.Path, StringComparison.OrdinalIgnoreCase)) return;
 
-			var oldPathTree = GetTreeForPath(oldPath, itemWithFinalPath.DatabaseName);
-
-			// remove existing items if they exist
+			// REMOVE EXISTING ITEMS (if any)
+			// (excluding any items that we wrote to during the save phase above, e.g. loopback path items may not change during a move)
 			if (oldPathTree != null)
 			{
-				var oldItem = oldPathTree.GetItemsByPath(oldPath).FirstOrDefault(item => item.Id == itemWithFinalPath.Id);
-				if (oldItem != null) oldPathTree.Remove(oldItem);
+				var oldItems = oldPathItemAndDescendants
+					.Select(key => key.Value)
+					.OrderByDescending(item => item.Path)
+					.ToArray();
+
+				foreach (var item in oldItems) oldPathTree.RemoveWithoutChildren(item);
 			}
 		}
 
@@ -186,18 +208,7 @@ namespace Rainbow.Storage
 			foreach(var tree in Trees) tree.Dispose();
 			Trees.Clear();
 
-			try
-			{
-				ClearAllFiles();
-			}
-			catch
-			{
-				// occasionally we get directory not empty, etc caused by watchers closing up and such.
-				// we'll wait a tick and try again.
-				Thread.Sleep(1000);
-
-				ClearAllFiles();
-			}
+			ActionRetryer.Perform(ClearAllFiles);
 
 			// bring the trees back up, which will reestablish watchers and such
 			Trees.AddRange(InitializeTrees(_formatter, _useDataCache));
@@ -226,7 +237,7 @@ namespace Rainbow.Storage
 		{
 			if (rootPath.StartsWith("~") || rootPath.StartsWith("/"))
 			{
-				rootPath = HostingEnvironment.MapPath("~/") + rootPath.Substring(1);
+				rootPath = HostingEnvironment.MapPath("~/") + rootPath.Substring(1).Replace("/", Path.DirectorySeparatorChar.ToString());
 			}
 
 			if (!Directory.Exists(rootPath)) Directory.CreateDirectory(rootPath);
@@ -294,10 +305,9 @@ namespace Rainbow.Storage
 			return descendants;
 		}
 
+		public virtual string FriendlyName => "Serialization File System Data Store";
+		public virtual string Description => "Stores serialized items on disk using the SFS tree format, where each root is a separate tree.";
 
-
-		public virtual string FriendlyName { get { return "Serialization File System Data Store"; } }
-		public virtual string Description { get { return "Stores serialized items on disk using the SFS tree format, where each root is a separate tree."; } }
 		public virtual KeyValuePair<string, string>[] GetConfigurationDetails()
 		{
 			return new[]

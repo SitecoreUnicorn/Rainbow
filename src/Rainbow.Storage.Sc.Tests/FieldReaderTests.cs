@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using FluentAssertions;
-using Lucene.Net.Documents;
 using Sitecore;
 using Sitecore.Data;
 using Sitecore.Data.Items;

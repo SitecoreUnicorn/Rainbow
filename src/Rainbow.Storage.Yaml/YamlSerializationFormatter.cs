@@ -34,14 +34,7 @@ namespace Rainbow.Storage.Yaml
 			}
 		}
 
-		private readonly List<IFieldFormatter> _fieldFormatters = new List<IFieldFormatter>();
-		public List<IFieldFormatter> FieldFormatters
-		{
-			get
-			{
-				return _fieldFormatters;
-			}
-		}
+		public List<IFieldFormatter> FieldFormatters { get; } = new List<IFieldFormatter>();
 
 		public virtual IItemData ReadSerializedItem(Stream dataStream, string serializedItemId)
 		{
@@ -100,7 +93,8 @@ namespace Rainbow.Storage.Yaml
 			}
 		}
 
-		public string FileExtension { get { return ".yml"; } }
+		public string FileExtension => ".yml";
+
 		[ExcludeFromCodeCoverage]
 		public IDataStore ParentDataStore { get; set; }
 
@@ -109,32 +103,31 @@ namespace Rainbow.Storage.Yaml
 		protected class YamlItemData : IItemData
 		{
 			private readonly YamlItem _item;
-			private readonly string _serializedItemId;
 			private readonly IFieldFormatter[] _formatters;
 			private readonly IDataStore _sourceDataStore;
 		    private string _databaseName;
 
-		    public YamlItemData(YamlItem item, string serializedItemId, IFieldFormatter[] formatters, IDataStore sourceDataStore)
+			public YamlItemData(YamlItem item, string serializedItemId, IFieldFormatter[] formatters, IDataStore sourceDataStore)
 			{
 				_item = item;
-				_serializedItemId = serializedItemId;
+				SerializedItemId = serializedItemId;
 				_formatters = formatters;
 				_sourceDataStore = sourceDataStore;
 			}
 
-			public Guid Id { get { return _item.Id; } }
+			public Guid Id => _item.Id;
 
-		    /// <remarks>The storage provider should set this automatically.</remarks>
-		    [ExcludeFromCodeCoverage]
+			/// <remarks>The storage provider should set this automatically.</remarks>
+			[ExcludeFromCodeCoverage]
 		    public string DatabaseName
 		    {
 		        get { return _databaseName ?? _item.DatabaseName; }
 		        set { _databaseName = value; }
 		    }
 
-		    public Guid ParentId { get { return _item.ParentId; } }
+			public Guid ParentId => _item.ParentId;
 
-			public string Path { get { return _item.Path; } }
+			public string Path => _item.Path;
 
 			public string Name
 			{
@@ -153,13 +146,10 @@ namespace Rainbow.Storage.Yaml
 			}
 
 			[ExcludeFromCodeCoverage]
-			public Guid BranchId
-			{
-				get { return _item.BranchId; }
-			}
+			public Guid BranchId => _item.BranchId;
 
 			[ExcludeFromCodeCoverage]
-			public Guid TemplateId { get { return _item.TemplateId; } }
+			public Guid TemplateId => _item.TemplateId;
 
 			public IEnumerable<IItemFieldValue> SharedFields
 			{
@@ -183,10 +173,7 @@ namespace Rainbow.Storage.Yaml
 				}
 			}
 
-			public string SerializedItemId
-			{
-				get { return _serializedItemId; }
-			}
+			public string SerializedItemId { get; }
 
 			[ExcludeFromCodeCoverage]
 			public IEnumerable<IItemData> GetChildren()
@@ -214,15 +201,9 @@ namespace Rainbow.Storage.Yaml
 				get { return _version.Fields.Select(x => new YamlItemFieldValue(x, _formatters)); }
 			}
 
-			public CultureInfo Language
-			{
-				get { return new CultureInfo(_language.Language); }
-			}
+			public CultureInfo Language => new CultureInfo(_language.Language);
 
-			public int VersionNumber
-			{
-				get { return _version.VersionNumber; }
-			}
+			public int VersionNumber => _version.VersionNumber;
 		}
 
 		protected class YamlItemFieldValue : IItemFieldValue
@@ -237,10 +218,7 @@ namespace Rainbow.Storage.Yaml
 			}
 
 			[ExcludeFromCodeCoverage]
-			public Guid FieldId
-			{
-				get { return _field.Id; }
-			}
+			public Guid FieldId => _field.Id;
 
 			private string _value;
 			public string Value
@@ -266,27 +244,20 @@ namespace Rainbow.Storage.Yaml
 			}
 
 			[ExcludeFromCodeCoverage]
-			public string FieldType
-			{
-				get { return _field.Type; }
-			}
+			public string FieldType => _field.Type;
 
-			public Guid? BlobId
-			{
-				get { return _field.BlobId; }
-			}
+			public Guid? BlobId => _field.BlobId;
 
 			[ExcludeFromCodeCoverage]
-			public string NameHint
-			{
-				get { return _field.NameHint; }
-			}
+			public string NameHint => _field.NameHint;
 		}
 
 		[ExcludeFromCodeCoverage]
-		public string FriendlyName { get { return "YAML Serialization Formatter"; } }
+		public string FriendlyName => "YAML Serialization Formatter";
+
 		[ExcludeFromCodeCoverage]
-		public string Description { get { return "Stores serialized items in an easy to read, easy to merge dialect of YAML."; } }
+		public string Description => "Stores serialized items in an easy to read, easy to merge dialect of YAML.";
+
 		[ExcludeFromCodeCoverage]
 		public KeyValuePair<string, string>[] GetConfigurationDetails()
 		{

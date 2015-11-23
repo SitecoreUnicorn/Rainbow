@@ -15,9 +15,6 @@ namespace Rainbow.Diff.Fields
 			return XNode.DeepEquals(x1, x2);
 		}
 
-		public override string[] SupportedFieldTypes
-		{
-			get { return new[] { "Layout", "Tracking", "Rules" }; }
-		}
+		public override string[] SupportedFieldTypes => new[] { "Layout", "Tracking", "Rules" };
 	}
 }

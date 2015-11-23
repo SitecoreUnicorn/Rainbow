@@ -33,6 +33,16 @@ namespace Rainbow.Tests.Formatting.FieldFormatters
 			Assert.Equal(result, SourceValueExpectation);
 		}
 
+		[Fact]
+		public void XmlFieldFormatter_HandlesEmptyValue_AsNull()
+		{
+			var formatter = new XmlFieldFormatter();
+
+			var result = formatter.Unformat(string.Empty);
+
+			Assert.Equal(result, null);
+		}
+
 		[Theory,
 			InlineData("Layout", true),
 			InlineData("Multilist", false)]

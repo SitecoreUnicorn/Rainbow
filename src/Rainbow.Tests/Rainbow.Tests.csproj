@@ -63,6 +63,7 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="ActionRetryerTests.cs" />
     <Compile Include="Diff\Fields\DefaultComparisonTests.cs" />
     <Compile Include="Diff\Fields\FieldComparerTest.cs" />
     <Compile Include="Diff\Fields\MultilistComparisonTests.cs" />
@@ -81,6 +82,7 @@
     <Compile Include="Model\PathRebasingProxyItemTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Storage\SfsDataStoreTests.cs" />
+    <Compile Include="Storage\SfsTreeExtensions.cs" />
     <Compile Include="Storage\SfsTreeTests.ConvertGlobalVirtualPathToTreeVirtualPath.cs" />
     <Compile Include="Storage\SfsTreeTests.cs" />
     <Compile Include="Storage\SfsTreeTests.GetChildren.cs" />

@@ -5,13 +5,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Web.SessionState;
 using Rainbow.Formatting;
 using Rainbow.Model;
 using Sitecore.Configuration;
 using Sitecore.Diagnostics;
 using Sitecore.IO;
 using Sitecore.StringExtensions;
+using System.Diagnostics;
 
 namespace Rainbow.Storage
 {
@@ -62,13 +62,13 @@ namespace Rainbow.Storage
 	public class SerializationFileSystemTree : IDisposable
 	{
 		private readonly string _globalRootItemPath;
-		protected readonly string PhysicalRootPath;
+		private readonly string _physicalRootPath;
 		private readonly ISerializationFormatter _formatter;
 		private readonly ConcurrentDictionary<Guid, IItemMetadata> _idCache = new ConcurrentDictionary<Guid, IItemMetadata>();
 		private readonly FsCache<IItemData> _dataCache;
 		private readonly FsCache<IItemMetadata> _metadataCache = new FsCache<IItemMetadata>(true);
 		private readonly TreeWatcher _treeWatcher;
-		protected static char[] InvalidFileNameCharacters = Path.GetInvalidFileNameChars().Concat(Settings.GetSetting("Rainbow.SFS.ExtraInvalidFilenameCharacters", string.Empty).ToCharArray()).ToArray();
+		protected char[] InvalidFileNameCharacters = Path.GetInvalidFileNameChars().Concat(Settings.GetSetting("Rainbow.SFS.ExtraInvalidFilenameCharacters", string.Empty).ToCharArray()).ToArray();
 
 		// ReSharper disable once RedundantDefaultMemberInitializer
 		private bool _configuredForFastReads = false;
@@ -99,36 +99,40 @@ namespace Rainbow.Storage
 			Assert.IsTrue(globalRootItemPath.Length > 1, "The global root item path cannot be '/' - there is no root item. You probably mean '/sitecore'.");
 
 			_globalRootItemPath = globalRootItemPath.TrimEnd('/');
-			PhysicalRootPath = physicalRootPath;
+			_physicalRootPath = physicalRootPath;
 			_formatter = formatter;
 			_dataCache = new FsCache<IItemData>(useDataCache);
 			Name = name;
 			DatabaseName = databaseName;
 
-			if (!Directory.Exists(PhysicalRootPath)) Directory.CreateDirectory(PhysicalRootPath);
+			if (!Directory.Exists(_physicalRootPath)) Directory.CreateDirectory(_physicalRootPath);
 
-			_treeWatcher = new TreeWatcher(PhysicalRootPath, _formatter.FileExtension, HandleDataItemChanged);
+			_treeWatcher = new TreeWatcher(_physicalRootPath, _formatter.FileExtension, HandleDataItemChanged);
 		}
 
-		public virtual string DatabaseName { get; private set; }
+		public virtual string DatabaseName { get; }
+		public string GlobalRootItemPath => _globalRootItemPath;
+		public string PhysicalRootPath => _physicalRootPath;
 
 		[ExcludeFromCodeCoverage]
 		public virtual string Name { get; private set; }
 
 		public virtual bool ContainsPath(string globalPath)
 		{
+			if (!globalPath.EndsWith("/")) globalPath += "/";
+
 			// test that the path is under the global root
-			return globalPath.StartsWith(_globalRootItemPath, StringComparison.OrdinalIgnoreCase);
+			return globalPath.StartsWith(_globalRootItemPath + "/", StringComparison.OrdinalIgnoreCase);
 		}
 
 		public virtual IItemData GetRootItem()
 		{
-			var rootItem = Directory.GetFiles(PhysicalRootPath, "*" + _formatter.FileExtension);
+			var rootItem = Directory.GetFiles(_physicalRootPath, "*" + _formatter.FileExtension);
 
 			if (rootItem.Length == 0) return null;
 
 			if (rootItem.Length > 1)
-				throw new InvalidOperationException("Found multiple root items in " + PhysicalRootPath + "! This is not valid: a tree may only have one root inode.");
+				throw new InvalidOperationException("Found multiple root items in " + _physicalRootPath + "! This is not valid: a tree may only have one root inode.");
 
 			return ReadItem(rootItem[0]);
 		}
@@ -181,7 +185,7 @@ namespace Rainbow.Storage
 			3. Starting at the deepest paths, begin deleting item files and - if present - children subfolders, until all are gone
 		*/
 
-		public virtual bool Remove(IItemData item)
+		public virtual bool Remove(IItemMetadata item)
 		{
 			Assert.ArgumentNotNull(item, "item");
 
@@ -191,59 +195,86 @@ namespace Rainbow.Storage
 
 				if (itemToRemove == null) return false;
 
-				var descendants =
-					GetDescendants(item, true).Concat(new[] { itemToRemove }).OrderByDescending(desc => desc.Path).ToArray();
+				var descendants = GetDescendants(item, true)
+					.Concat(new[] { itemToRemove })
+					.OrderByDescending(desc => desc.Path)
+					.ToArray();
 
 				foreach (var descendant in descendants)
 				{
-					lock (FileUtil.GetFileLock(descendant.SerializedItemId))
-					{
-						BeforeFilesystemDelete(descendant.SerializedItemId);
-						try
-						{
-							File.Delete(descendant.SerializedItemId);
-						}
-						catch (Exception exception)
-						{
-							throw new SfsDeleteException("Error deleting SFS item " + descendant.SerializedItemId, exception);
-						}
-						AfterFilesystemDelete(descendant.SerializedItemId);
-
-						var childrenDirectory = Path.ChangeExtension(descendant.SerializedItemId, null);
-
-						if (Directory.Exists(childrenDirectory))
-						{
-							BeforeFilesystemDelete(childrenDirectory);
-							try
-							{
-								Directory.Delete(childrenDirectory, true);
-							}
-							catch (Exception exception)
-							{
-								throw new SfsDeleteException("Error deleting SFS directory " + childrenDirectory, exception);
-							}
-							AfterFilesystemDelete(childrenDirectory);
-						}
-
-						var shortChildrenDirectory = Path.Combine(PhysicalRootPath, descendant.Id.ToString());
-						if (Directory.Exists(shortChildrenDirectory))
-						{
-							BeforeFilesystemDelete(shortChildrenDirectory);
-							try
-							{
-								Directory.Delete(shortChildrenDirectory);
-							}
-							catch (Exception exception)
-							{
-								throw new SfsDeleteException("Error deleting SFS directory " + shortChildrenDirectory, exception);
-							}
-							AfterFilesystemDelete(shortChildrenDirectory);
-						}
-					}
+					RemoveWithoutChildren(descendant);
 				}
 			}
 
 			return true;
+		}
+
+		/// <summary>
+		/// Removes an item but does not process any descendant items. You probably almost never want to use this, in favor of Remove() instead.
+		/// This method is here for when a specific item needs to be removed, without messing with children. This occurs for example when
+		/// you move an item which has loopback pathed children, who may preserve the same source and destination location.
+		/// </summary>
+		public virtual void RemoveWithoutChildren(IItemMetadata descendant)
+		{
+			lock (FileUtil.GetFileLock(descendant.SerializedItemId))
+			{
+				BeforeFilesystemDelete(descendant.SerializedItemId);
+				try
+				{
+					ActionRetryer.Perform(() =>
+					{
+						lock (FileUtil.GetFileLock(descendant.SerializedItemId))
+						{
+							_treeWatcher.PushKnownUpdate(descendant.SerializedItemId);
+							File.Delete(descendant.SerializedItemId);
+						}
+					});
+				}
+				catch (Exception exception)
+				{
+					throw new SfsDeleteException("Error deleting SFS item " + descendant.SerializedItemId, exception);
+				}
+				AfterFilesystemDelete(descendant.SerializedItemId);
+
+				var childrenDirectory = Path.ChangeExtension(descendant.SerializedItemId, null);
+
+				if (Directory.Exists(childrenDirectory))
+				{
+					BeforeFilesystemDelete(childrenDirectory);
+					try
+					{
+						ActionRetryer.Perform(() =>
+						{
+							_treeWatcher.PushKnownUpdate(childrenDirectory);
+							Directory.Delete(childrenDirectory, true);
+						});
+					}
+					catch (Exception exception)
+					{
+						throw new SfsDeleteException("Error deleting SFS directory " + childrenDirectory, exception);
+					}
+					AfterFilesystemDelete(childrenDirectory);
+				}
+
+				var shortChildrenDirectory = new DirectoryInfo(Path.Combine(_physicalRootPath, descendant.Id.ToString()));
+				if (shortChildrenDirectory.Exists && !shortChildrenDirectory.EnumerateFiles().Any())
+				{
+					BeforeFilesystemDelete(shortChildrenDirectory.FullName);
+					try
+					{
+						ActionRetryer.Perform(() =>
+						{
+							_treeWatcher.PushKnownUpdate(shortChildrenDirectory.FullName);
+							Directory.Delete(shortChildrenDirectory.FullName);
+						});
+					}
+					catch (Exception exception)
+					{
+						throw new SfsDeleteException("Error deleting SFS directory " + shortChildrenDirectory, exception);
+					}
+					AfterFilesystemDelete(shortChildrenDirectory.FullName);
+				}
+			}
 		}
 
 		/*
@@ -252,13 +283,15 @@ namespace Rainbow.Storage
 		- Save the child item into the tree (replace existing if same ID, or add new if no matching name OR no matching ID)
 		*/
 
-		public virtual void Save(IItemData item)
+		public virtual string Save(IItemData item)
 		{
 			Assert.ArgumentNotNull(item, "item");
 
 			string storagePath = GetTargetPhysicalPath(item);
 
 			WriteItem(item, storagePath);
+
+			return storagePath;
 		}
 
 		protected virtual IItemData ReadItem(string path)
@@ -341,7 +374,7 @@ namespace Rainbow.Storage
 			_dataCache.AddOrUpdate(path, proxiedItem);
 		}
 
-		protected virtual string ConvertGlobalVirtualPathToTreeVirtualPath(string globalPath)
+		public virtual string ConvertGlobalVirtualPathToTreeVirtualPath(string globalPath)
 		{
 			Assert.ArgumentNotNullOrEmpty(globalPath, "globalPath");
 
@@ -381,7 +414,7 @@ namespace Rainbow.Storage
 			// if the item is the root item in our tree, we return the root physical path
 			var localPath = ConvertGlobalVirtualPathToTreeVirtualPath(item.Path);
 			if (localPath.LastIndexOf('/') == 0)
-				return Path.Combine(PhysicalRootPath, strippedItemName + _formatter.FileExtension);
+				return Path.Combine(_physicalRootPath, strippedItemName + _formatter.FileExtension);
 			// if it's the root item, well yeah it won't have a parent. And we know the right path too :)
 
 			var parentItem = GetParentSerializedItem(item);
@@ -436,7 +469,7 @@ namespace Rainbow.Storage
 				basePath = string.Concat(Path.ChangeExtension(parentItem.SerializedItemId, null), Path.DirectorySeparatorChar, strippedItemName, _formatter.FileExtension);
 
 			// Determine if the relative base-string is over - length(which would be 240 - $(Serialization.SerializationFolderPathMaxLength))
-			string relativeBasePath = basePath.Substring(PhysicalRootPath.Length);
+			string relativeBasePath = basePath.Substring(_physicalRootPath.Length);
 			int maxPathLength = MaxRelativePathLength;
 
 			// path not over length = return it and we're done here
@@ -445,7 +478,7 @@ namespace Rainbow.Storage
 			// ok we have a path that will be too long for Windows once we combine the parent's physical path with the item's name (and/or name deduping ID)
 			// since we know it won't fit in the parent, we create a folder in the root named the parent's ID, and drop that as the item's base path
 			// e.g. c:\foo\long\path\foo.yml > c:\foo\[id-of-path]\foo.yml
-			return Path.Combine(PhysicalRootPath, parentItem.Id.ToString(), basePath.Substring(basePath.LastIndexOf(Path.DirectorySeparatorChar) + 1));
+			return Path.Combine(_physicalRootPath, parentItem.Id.ToString(), basePath.Substring(basePath.LastIndexOf(Path.DirectorySeparatorChar) + 1));
 		}
 
 		/*
@@ -466,7 +499,7 @@ namespace Rainbow.Storage
 			var pathComponents = virtualPath.Trim('/').Split('/').Select(PrepareItemNameForFileSystem).ToArray();
 
 			var parentPaths = new List<string>();
-			parentPaths.Add(Path.Combine(PhysicalRootPath, pathComponents[0] + _formatter.FileExtension));
+			parentPaths.Add(Path.Combine(_physicalRootPath, pathComponents[0] + _formatter.FileExtension));
 
 			foreach (var pathComponent in pathComponents.Skip(1))
 			{
@@ -520,7 +553,7 @@ namespace Rainbow.Storage
 				children = FastDirectoryEnumerator.GetFiles(childrenPath, "*" + _formatter.FileExtension, SearchOption.TopDirectoryOnly);
 			}
 
-			var shortPath = Path.Combine(PhysicalRootPath, item.Id.ToString());
+			var shortPath = Path.Combine(_physicalRootPath, item.Id.ToString());
 
 			if (Directory.Exists(shortPath))
 				children = children.Concat(FastDirectoryEnumerator.GetFiles(shortPath, "*" + _formatter.FileExtension, SearchOption.TopDirectoryOnly));
@@ -575,7 +608,7 @@ namespace Rainbow.Storage
 			return result;
 		}
 
-		protected virtual IList<IItemMetadata> GetDescendants(IItemData root, bool ignoreReadErrors)
+		public virtual IList<IItemMetadata> GetDescendants(IItemMetadata root, bool ignoreReadErrors)
 		{
 			Assert.ArgumentNotNull(root, "root");
 
@@ -636,8 +669,6 @@ namespace Rainbow.Storage
 				// find the expected parent's physical path
 				var parentItem = parentPhysicalPaths.Select(ReadItemMetadata).FirstOrDefault(parentCandiate => parentCandiate.Id == item.ParentId);
 
-				if (parentItem == null) return null;
-
 				return parentItem;
 			}
 
@@ -659,9 +690,9 @@ namespace Rainbow.Storage
 					const int windowsMaxPathLength = 240; // 260 - sundry directory chars, separators, file extension allowance, etc
 					int expectedPhysicalPathMaxConstant = Settings.GetIntSetting("Rainbow.SFS.SerializationFolderPathMaxLength", 80);
 
-					if (PhysicalRootPath.Length > expectedPhysicalPathMaxConstant)
+					if (_physicalRootPath.Length > expectedPhysicalPathMaxConstant)
 						throw new InvalidOperationException("The physical root path of this SFS tree, {0}, is longer than the configured max base path length {1}. If the tree contains any loopback paths, unexpected behavior may occur. You should increase the Rainbow.SFS.SerializationFolderPathMaxLength setting in Rainbow.config to greater than {2} and perform a reserialization from a master content database."
-								.FormatWith(PhysicalRootPath, expectedPhysicalPathMaxConstant, PhysicalRootPath.Length));
+								.FormatWith(_physicalRootPath, expectedPhysicalPathMaxConstant, _physicalRootPath.Length));
 
 					_maxRelativePathLength = windowsMaxPathLength - expectedPhysicalPathMaxConstant;
 				}
@@ -758,7 +789,7 @@ namespace Rainbow.Storage
 		{
 			if (changeType == TreeWatcher.TreeWatcherChangeType.ChangeOrAdd)
 			{
-				Log.Info(string.Format("[Rainbow] SFS tree item {0} changed ({1}), caches updating.", path, changeType), this);
+				Log.Info($"[Rainbow] SFS tree item {path} changed ({changeType}), caches updating.", this);
 
 				const int retries = 5;
 				for (int i = 0; i < retries; i++)
@@ -770,7 +801,7 @@ namespace Rainbow.Storage
 						var metadata = ReadItemMetadata(path);
 						if (metadata != null)
 						{
-							if (TreeItemChanged != null) TreeItemChanged(metadata);
+							TreeItemChanged?.Invoke(metadata);
 						}
 
 						_dataCache.Remove(path);
@@ -799,7 +830,7 @@ namespace Rainbow.Storage
 
 			if (changeType == TreeWatcher.TreeWatcherChangeType.Delete)
 			{
-				Log.Info(string.Format("Serialized item {0} deleted, reloading caches.", path), this);
+				Log.Info($"Serialized item {path} deleted, reloading caches.", this);
 
 				var existingCached = _metadataCache.GetValue(path, false);
 
@@ -813,12 +844,12 @@ namespace Rainbow.Storage
 
 					if (TreeItemChanged != null)
 					{
-						if (TreeItemChanged != null) TreeItemChanged(existingCached);
+						TreeItemChanged?.Invoke(existingCached);
 						return;
 					}
 				}
 
-				if (TreeItemChanged != null) TreeItemChanged(null);
+				TreeItemChanged?.Invoke(null);
 			}
 		}
 
@@ -838,6 +869,7 @@ namespace Rainbow.Storage
 
 		}
 
+		[DebuggerDisplay("{Id} {Path} [Metadata - {SerializedItemId}]")]
 		protected class WrittenItemMetadata : IItemMetadata
 		{
 			public WrittenItemMetadata(Guid id, Guid parentId, Guid templateId, string path, string serializedItemId)
@@ -849,11 +881,11 @@ namespace Rainbow.Storage
 				SerializedItemId = serializedItemId;
 			}
 
-			public Guid Id { get; private set; }
-			public Guid ParentId { get; private set; }
-			public Guid TemplateId { get; private set; }
-			public string Path { get; private set; }
-			public string SerializedItemId { get; private set; }
+			public Guid Id { get; }
+			public Guid ParentId { get; }
+			public Guid TemplateId { get; }
+			public string Path { get; }
+			public string SerializedItemId { get; }
 		}
 
 		public void Dispose()
@@ -866,7 +898,7 @@ namespace Rainbow.Storage
 		{
 			if (disposing)
 			{
-				if (_treeWatcher != null) _treeWatcher.Dispose();
+				_treeWatcher?.Dispose();
 			}
 		}
 	}

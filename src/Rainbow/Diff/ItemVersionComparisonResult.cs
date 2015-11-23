@@ -34,8 +34,8 @@ namespace Rainbow.Diff
 			}
 		}
 
-		public IItemVersion SourceVersion { get; private set; }
-		public IItemVersion TargetVersion { get; private set; }
+		public IItemVersion SourceVersion { get; }
+		public IItemVersion TargetVersion { get; }
 		public FieldComparisonResult[] ChangedFields { get; private set; }
 	}
 }

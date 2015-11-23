@@ -504,7 +504,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 				return true;
 			}
 
-			if (!field.Value.Equals(itemField.Value))
+			if (field.Value != null && !field.Value.Equals(itemField.Value))
 			{
 				var oldValue = itemField.Value;
 				itemField.SetValue(field.Value, true);

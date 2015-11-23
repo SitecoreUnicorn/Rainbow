@@ -17,12 +17,6 @@ namespace Rainbow.Diff.Fields
 			return field1Value.Trim('|').Equals(field2Value.Trim('|'));
 		}
 
-		public override string[] SupportedFieldTypes
-		{
-			get
-			{
-				return new[] { "Checklist", "Multilist", "Multilist with Search", "Treelist", "Treelist with Search", "TreelistEx", "tree list" };
-			}
-		}
+		public override string[] SupportedFieldTypes => new[] { "Checklist", "Multilist", "Multilist with Search", "Treelist", "Treelist with Search", "TreelistEx", "tree list" };
 	}
 }

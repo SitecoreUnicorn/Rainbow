@@ -9,7 +9,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				Assert.Equal("/sitecore/hello", testTree.ConvertGlobalPathToTreePathTest("/sitecore/hello"));
+				Assert.Equal("/sitecore/hello", testTree.ConvertGlobalVirtualPathToTreeVirtualPath("/sitecore/hello"));
 			}
 		}
 
@@ -18,7 +18,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree("/sitecore/content/templates"))
 			{
-				Assert.Equal("/templates/User Defined", testTree.ConvertGlobalPathToTreePathTest("/sitecore/content/templates/User Defined"));
+				Assert.Equal("/templates/User Defined", testTree.ConvertGlobalVirtualPathToTreeVirtualPath("/sitecore/content/templates/User Defined"));
 			}
 		}
 	}

@@ -5,24 +5,13 @@ using Rainbow.Model;
 namespace Rainbow.Tests
 {
 	[ExcludeFromCodeCoverage]
-	public class FakeFieldValue : IItemFieldValue
+	public class FakeFieldValue : ProxyFieldValue
 	{
-		public FakeFieldValue(string value, string fieldType = "Test", Guid fieldId = new Guid(), string nameHint = "Fake test field", Guid? blobId = null)
+		public FakeFieldValue(string value, string fieldType = "Test", Guid fieldId = new Guid(), string nameHint = "Fake test field", Guid? blobId = null) : base(fieldId, value)
 		{
-			Value = value;
 			FieldType = fieldType;
-			FieldId = fieldId;
 			NameHint = nameHint;
 			BlobId = blobId;
 		}
-
-		public Guid FieldId { get; private set; }
-
-		public string NameHint { get; private set; }
-
-		public string Value { get; private set; }
-
-		public string FieldType { get; private set; }
-		public Guid? BlobId { get; private set; }
 	}
 }

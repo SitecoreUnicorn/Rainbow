@@ -152,8 +152,9 @@ namespace Rainbow.Storage.Sc
 			return Factory.GetDatabase(databaseName);
 		}
 
-		public string FriendlyName { get { return "Sitecore Data Store"; } }
-		public string Description { get { return "Reads and writes data from a Sitecore database."; } }
+		public string FriendlyName => "Sitecore Data Store";
+		public string Description => "Reads and writes data from a Sitecore database.";
+
 		public KeyValuePair<string, string>[] GetConfigurationDetails()
 		{
 			return new [] { new KeyValuePair<string, string>("Deserializer", DocumentationUtility.GetFriendlyName(_deserializer)) };

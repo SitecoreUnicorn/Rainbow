@@ -21,8 +21,8 @@ namespace Rainbow.Diff
 			ChangedVersions = changedVersions ?? new ItemVersionComparisonResult[0];
 		}
 
-		public IItemData SourceItemData { get; private set; }
-		public IItemData TargetItemData { get; private set; }
+		public IItemData SourceItemData { get; }
+		public IItemData TargetItemData { get; }
 		public virtual bool AreEqual
 		{
 			get
@@ -38,10 +38,10 @@ namespace Rainbow.Diff
 			}
 		}
 
-		public bool IsRenamed { get; private set; }
-		public bool IsMoved { get; private set; }
-		public bool IsTemplateChanged { get; private set; }
-		public FieldComparisonResult[] ChangedSharedFields { get; private set; }
-		public ItemVersionComparisonResult[] ChangedVersions { get; private set; }
+		public bool IsRenamed { get; }
+		public bool IsMoved { get; }
+		public bool IsTemplateChanged { get; }
+		public FieldComparisonResult[] ChangedSharedFields { get; }
+		public ItemVersionComparisonResult[] ChangedVersions { get; }
 	}
 }

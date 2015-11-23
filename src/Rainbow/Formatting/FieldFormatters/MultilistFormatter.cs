@@ -7,13 +7,7 @@ namespace Rainbow.Formatting.FieldFormatters
 {
 	public class MultilistFormatter : FieldTypeBasedFormatter
 	{
-		public override string[] SupportedFieldTypes
-		{
-			get
-			{
-				return new[] { "Checklist", "Multilist", "Multilist with Search", "Treelist", "Treelist with Search", "TreelistEx", "tree list" };
-			}
-		}
+		public override string[] SupportedFieldTypes => new[] { "Checklist", "Multilist", "Multilist with Search", "Treelist", "Treelist with Search", "TreelistEx", "tree list" };
 
 		public override string Format(IItemFieldValue field)
 		{
@@ -27,8 +21,7 @@ namespace Rainbow.Formatting.FieldFormatters
 
 		public override string Unformat(string value)
 		{
-			if (value == null) return null;
-			return value.Trim().Replace(Environment.NewLine, "|");
+			return value?.Trim().Replace(Environment.NewLine, "|");
 		}
 	}
 }

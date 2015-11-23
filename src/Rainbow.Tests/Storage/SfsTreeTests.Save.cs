@@ -11,9 +11,9 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				CreateTestTree("/sitecore", testTree);
+				testTree.CreateTestTree("/sitecore");
 
-				Assert.True(File.Exists(Path.Combine(testTree.PhysicalRootPathTest, "sitecore.yml")));
+				Assert.True(File.Exists(Path.Combine(testTree.PhysicalRootPath, "sitecore.yml")));
 			}
 		}
 
@@ -22,9 +22,9 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				CreateTestTree("/sitecore/hello", testTree);
+				testTree.CreateTestTree("/sitecore/hello");
 
-				Assert.True(File.Exists(Path.Combine(testTree.PhysicalRootPathTest, "sitecore", "hello.yml")));
+				Assert.True(File.Exists(Path.Combine(testTree.PhysicalRootPath, "sitecore", "hello.yml")));
 			}
 		}
 
@@ -33,9 +33,9 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree("/sitecore/templates"))
 			{
-				CreateTestTree("/sitecore/templates", testTree);
+				testTree.CreateTestTree("/sitecore/templates");
 
-				Assert.True(File.Exists(Path.Combine(testTree.PhysicalRootPathTest, "templates.yml")));
+				Assert.True(File.Exists(Path.Combine(testTree.PhysicalRootPath, "templates.yml")));
 			}
 		}
 
@@ -44,9 +44,9 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree("/sitecore/templates"))
 			{
-				CreateTestTree("/sitecore/templates/hello", testTree);
+				testTree.CreateTestTree("/sitecore/templates/hello");
 
-				Assert.True(File.Exists(Path.Combine(testTree.PhysicalRootPathTest, "templates", "hello.yml")));
+				Assert.True(File.Exists(Path.Combine(testTree.PhysicalRootPath, "templates", "hello.yml")));
 			}
 		}
 
@@ -57,7 +57,7 @@ namespace Rainbow.Tests.Storage
 			{
 				// force the tree to loopback after only 10 chars after the root path
 				testTree.MaxPathLengthForTests = 10;
-				CreateTestTree("/sitecore/content", testTree);
+				testTree.CreateTestTree("/sitecore/content");
 
 				var rootItem = testTree.GetRootItem();
 				
@@ -78,7 +78,7 @@ namespace Rainbow.Tests.Storage
 				testTree.MaxPathLengthForTests = 50;
 
 				// this tree is long enough to loopback, but the 'hello' is short enough to be a child of the first loopback at 'e'
-				CreateTestTree("/sitecore/content lorem/ipsum dolor/sit amet/e/hello", testTree);
+				testTree.CreateTestTree("/sitecore/content lorem/ipsum dolor/sit amet/e/hello");
 
 				var loopParent = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet").First();
                 var helloItem = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet/e/hello").First();
@@ -98,7 +98,7 @@ namespace Rainbow.Tests.Storage
 				// this also means that double loopback occurs each time because the loopback ID is 35 chars
 				testTree.MaxPathLengthForTests = 10;
 
-				CreateTestTree("/sitecore/content/hello", testTree);
+				testTree.CreateTestTree("/sitecore/content/hello");
 
 				var rootItem = testTree.GetRootItem();
 
@@ -125,7 +125,7 @@ namespace Rainbow.Tests.Storage
 				testTree.MaxPathLengthForTests = 50;
 
 				// this tree is long enough that it will loopback at 'elitr foo bar baz', and that '{id}+/elitr foo bar baz' will make it loopback again on 'h', leaving the final 'hello' a child of the second loopback
-				CreateTestTree("/sitecore/content lorem/ipsum dolor/sit amet/elitr foo bar baz/h/hello", testTree);
+				testTree.CreateTestTree("/sitecore/content lorem/ipsum dolor/sit amet/elitr foo bar baz/h/hello");
 
 				var loopParent = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet/elitr foo bar baz").First();
 				var helloItem = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet/elitr foo bar baz/h/hello").First();
@@ -141,7 +141,7 @@ namespace Rainbow.Tests.Storage
 		{
 			using (var testTree = new TestSfsTree())
 			{
-				CreateTestTree("/sitecore/%<html>?*", testTree);
+				testTree.CreateTestTree("/sitecore/%<html>?*");
 
 				var rootItem = testTree.GetRootItem();
 
@@ -158,7 +158,7 @@ namespace Rainbow.Tests.Storage
 			{
 				// force the tree to shorten after 10 char names
 				testTree.MaxFileNameLengthForTests = 10;
-				CreateTestTree("/sitecore/hello hello", testTree);
+				testTree.CreateTestTree("/sitecore/hello hello");
 
 				var rootItem = testTree.GetRootItem();
 
@@ -177,9 +177,9 @@ namespace Rainbow.Tests.Storage
 			{
 				// force the tree to shorten after 10 char names
 				testTree.MaxFileNameLengthForTests = 10;
-				CreateTestTree("/sitecore/hello hello", testTree);
+				testTree.CreateTestTree("/sitecore/hello hello");
 
-				testTree.Save(CreateTestItem("/sitecore/hello hello hello", testTree.GetRootItem().Id));
+				testTree.Save("/sitecore/hello hello hello".AsTestItem(testTree.GetRootItem().Id));
 
 				var overlengthItems = testTree.GetChildren(testTree.GetRootItem()).OrderBy(i => i.SerializedItemId).ToArray();
 
@@ -197,10 +197,10 @@ namespace Rainbow.Tests.Storage
 			using (var testTree = new TestSfsTree())
 			{
 				// longer name first
-				CreateTestTree("/sitecore/Html Editor Drop Down Button", testTree);
+				testTree.CreateTestTree("/sitecore/Html Editor Drop Down Button");
 
 				// shorter name second - name is unique, but has same prefix as longer
-				testTree.Save(CreateTestItem("/sitecore/Html Editor Drop Down", testTree.GetRootItem().Id));
+				testTree.Save("/sitecore/Html Editor Drop Down".AsTestItem(testTree.GetRootItem().Id));
 
 				var children = testTree.GetChildren(testTree.GetRootItem()).OrderBy(i => i.SerializedItemId).ToArray();
 

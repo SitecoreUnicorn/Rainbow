@@ -12,7 +12,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 	[ExcludeFromCodeCoverage]
 	public class TemplateMissingFieldException : Exception
 	{
-		public string TemplateName { get; private set; }
+		public string TemplateName { get; }
 		public string ItemIdentifier { get; private set; }
 		public IItemFieldValue[] Fields { get; private set; }
 

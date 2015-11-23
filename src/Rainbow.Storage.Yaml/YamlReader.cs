@@ -214,7 +214,7 @@ namespace Rainbow.Storage.Yaml
 				return line;
 			}
 
-			public int CurrentLine { get { return _currentLine; } }
+			public int CurrentLine => _currentLine;
 
 			public string ReadLine()
 			{
