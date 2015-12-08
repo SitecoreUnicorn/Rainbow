@@ -93,10 +93,10 @@ Languages:
 
             var yml = @"---
 ID: a4f985d9-98b3-4b52-aaaf-4344f6e747c6
-DatabaseName: master
 Parent: 001dd393-96c5-490b-924a-b0f25cd9efd8
 Template: 007a464d-5b09-4d0e-8481-cb6a604a5948
 Path: /sitecore/content/test
+DatabaseName: master
 SharedFields:
 - ID: 549fa670-79ab-4810-9450-aba0c06a2b87
   # Text Shared
@@ -163,10 +163,10 @@ Languages:
 
 			var expectedYml = @"---
 ID: a4f985d9-98b3-4b52-aaaf-4344f6e747c6
-DatabaseName: master
 Parent: 001dd393-96c5-490b-924a-b0f25cd9efd8
 Template: 007a464d-5b09-4d0e-8481-cb6a604a5948
 Path: /sitecore/content/test
+DatabaseName: master
 BranchID: 25bed78c-4957-4165-998a-ca1b52f67497
 SharedFields:
 - ID: 549fa670-79ab-4810-9450-aba0c06a2b87
@@ -223,10 +223,10 @@ Languages:
 
 			var expectedYml = @"---
 ID: a4f985d9-98b3-4b52-aaaf-4344f6e747c6
-DatabaseName: master
 Parent: 001dd393-96c5-490b-924a-b0f25cd9efd8
 Template: 007a464d-5b09-4d0e-8481-cb6a604a5948
 Path: /sitecore/content/test
+DatabaseName: master
 SharedFields:
 - ID: 549fa670-79ab-4810-9450-aba0c06a2b87
   # Multilist Field
