@@ -27,7 +27,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 		public virtual void LoadFrom(IItemData itemData, IFieldFormatter[] fieldFormatters)
 		{
 			Id = itemData.Id;
-		    DatabaseName = itemData.DatabaseName;
+			DatabaseName = itemData.DatabaseName;
 			ParentId = itemData.ParentId;
 			TemplateId = itemData.TemplateId;
 			Path = itemData.Path;
@@ -60,9 +60,9 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			writer.WriteMap("Parent", ParentId.ToString("D"));
 			writer.WriteMap("Template", TemplateId.ToString("D"));
 			writer.WriteMap("Path", Path);
-            writer.WriteMap("DatabaseName", DatabaseName);
+			writer.WriteMap("DatabaseName", DatabaseName);
 
-            if (BranchId != default(Guid)) writer.WriteMap("BranchID", BranchId.ToString());
+			if (BranchId != default(Guid)) writer.WriteMap("BranchID", BranchId.ToString());
 
 			if (SharedFields.Any())
 			{
@@ -94,18 +94,18 @@ namespace Rainbow.Storage.Yaml.OutputModel
 		public virtual void ReadYaml(YamlReader reader)
 		{
 			Id = reader.ReadExpectedGuidMap("ID");
-            ParentId = reader.ReadExpectedGuidMap("Parent");
+			ParentId = reader.ReadExpectedGuidMap("Parent");
 			TemplateId = reader.ReadExpectedGuidMap("Template");
 			Path = reader.ReadExpectedMap("Path");
 
-            var dbName = reader.PeekMap();
-            if (dbName.HasValue && dbName.Value.Key.Equals("DatabaseName"))//could be missing if serialized with previous version
-            {
-                reader.ReadMap();
-                DatabaseName = dbName.Value.Value;
-            }
+			var dbName = reader.PeekMap();
+			if (dbName.HasValue && dbName.Value.Key.Equals("DatabaseName"))//could be missing if serialized with previous version
+			{
+				reader.ReadMap();
+				DatabaseName = dbName.Value.Value;
+			}
 
-            var branch = reader.PeekMap();
+			var branch = reader.PeekMap();
 			if (branch.HasValue && branch.Value.Key.Equals("BranchID"))
 			{
 				reader.ReadMap();

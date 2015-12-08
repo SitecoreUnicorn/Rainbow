@@ -66,8 +66,8 @@ namespace Rainbow.Storage.Yaml.Tests
 			var testItem = new YamlItem
 			{
 				Id = new Guid("a4f985d9-98b3-4b52-aaaf-4344f6e747c6"),
-                DatabaseName = "master",
-                ParentId = new Guid("001dd393-96c5-490b-924a-b0f25cd9efd8"),
+				DatabaseName = "master",
+				ParentId = new Guid("001dd393-96c5-490b-924a-b0f25cd9efd8"),
 				TemplateId = new Guid("007a464d-5b09-4d0e-8481-cb6a604a5948"),
 				Path = "/sitecore/content/test"
 			};
@@ -110,9 +110,9 @@ DatabaseName: master
 - ID: badd9cf9-53e0-4d0c-bcc0-2d784c282f6a
   # Test Field
   Value: |
-    Lorem thine ipsum
-    <p>forsooth thy sit amet</p>
-    <div class=""simian"">Chimpanzee.</div>
+	Lorem thine ipsum
+	<p>forsooth thy sit amet</p>
+	<div class=""simian"">Chimpanzee.</div>
 ";
 
 		private void DecorateVersionsTestData(YamlItem item)
@@ -158,31 +158,31 @@ DatabaseName: master
 - Language: da-DK
   Versions:
   - Version: 1
-    Fields:
-    - ID: 9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf
-      Value: ""Hello \""silly\"" world.""
-    - ID: badd9cf9-53e0-4d0c-bcc0-2d784c282f6a
-      # Test Field
-      Value: |
-        Lorem thine ipsum
-        <p>forsooth thy sit amet</p>
-        <div class=""simian"">Chimpanzee.</div>
+	Fields:
+	- ID: 9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf
+	  Value: ""Hello \""silly\"" world.""
+	- ID: badd9cf9-53e0-4d0c-bcc0-2d784c282f6a
+	  # Test Field
+	  Value: |
+		Lorem thine ipsum
+		<p>forsooth thy sit amet</p>
+		<div class=""simian"">Chimpanzee.</div>
   - Version: 2
-    Fields:
-    - ID: 9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf
-      Value: ""Hello \""silly\"" world.""
+	Fields:
+	- ID: 9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf
+	  Value: ""Hello \""silly\"" world.""
 - Language: en-US
   Versions:
   - Version: 1
-    Fields:
-    - ID: 9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf
-      Value: ""Hello \""silly\"" world.""
-    - ID: badd9cf9-53e0-4d0c-bcc0-2d784c282f6a
-      # Test Field
-      Value: |
-        Lorem thine ipsum
-        <p>forsooth thy sit amet</p>
-        <div class=""simian"">Chimpanzee.</div>
+	Fields:
+	- ID: 9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf
+	  Value: ""Hello \""silly\"" world.""
+	- ID: badd9cf9-53e0-4d0c-bcc0-2d784c282f6a
+	  # Test Field
+	  Value: |
+		Lorem thine ipsum
+		<p>forsooth thy sit amet</p>
+		<div class=""simian"">Chimpanzee.</div>
 ";
 	}
 }
