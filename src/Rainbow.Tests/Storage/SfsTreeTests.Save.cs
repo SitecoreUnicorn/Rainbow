@@ -60,7 +60,7 @@ namespace Rainbow.Tests.Storage
 				testTree.CreateTestTree("/sitecore/content");
 
 				var rootItem = testTree.GetRootItem();
-				
+
 				var loopedItem = testTree.GetChildren(rootItem).First();
 
 				Assert.Equal("/sitecore/content", loopedItem.Path);
@@ -81,7 +81,7 @@ namespace Rainbow.Tests.Storage
 				testTree.CreateTestTree("/sitecore/content lorem/ipsum dolor/sit amet/e/hello");
 
 				var loopParent = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet").First();
-                var helloItem = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet/e/hello").First();
+				var helloItem = testTree.GetItemsByPath("/sitecore/content lorem/ipsum dolor/sit amet/e/hello").First();
 
 				Assert.Equal("/sitecore/content lorem/ipsum dolor/sit amet/e/hello", helloItem.Path);
 				// hello item will have looped id in it
