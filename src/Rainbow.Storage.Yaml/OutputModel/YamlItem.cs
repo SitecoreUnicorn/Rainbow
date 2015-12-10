@@ -60,7 +60,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			writer.WriteMap("Parent", ParentId.ToString("D"));
 			writer.WriteMap("Template", TemplateId.ToString("D"));
 			writer.WriteMap("Path", Path);
-			writer.WriteMap("DatabaseName", DatabaseName);
+			writer.WriteMap("DB", DatabaseName);
 
 			if (BranchId != default(Guid)) writer.WriteMap("BranchID", BranchId.ToString());
 
@@ -99,7 +99,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			Path = reader.ReadExpectedMap("Path");
 
 			var dbName = reader.PeekMap();
-			if (dbName.HasValue && dbName.Value.Key.Equals("DatabaseName"))//could be missing if serialized with previous version
+			if (dbName.HasValue && dbName.Value.Key.Equals("DB"))//could be missing if serialized with previous version
 			{
 				reader.ReadMap();
 				DatabaseName = dbName.Value.Value;
