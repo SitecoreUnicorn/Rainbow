@@ -3,6 +3,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using Rainbow.Model;
+using Sitecore.Diagnostics;
 
 namespace Rainbow.Formatting.FieldFormatters
 {
@@ -17,8 +18,9 @@ namespace Rainbow.Formatting.FieldFormatters
 				XDocument doc = XDocument.Parse(field.Value);
 				return doc.ToString();
 			}
-			catch (Exception)
+			catch (Exception ex)
 			{
+				Log.Error($"Error while formatting XML field {field.FieldId} ({field.NameHint}). The raw value will be used instead.", ex, this);
 				return field.Value;
 			}
 		}
@@ -27,23 +29,31 @@ namespace Rainbow.Formatting.FieldFormatters
 		{
 			if (string.IsNullOrWhiteSpace(value)) return null;
 
-			var stringBuilder = new StringBuilder();
-
-			var element = XElement.Parse(value);
-
-			var settings = new XmlWriterSettings
+			try
 			{
-				OmitXmlDeclaration = true,
-				Indent = false,
-				NewLineOnAttributes = false
-			};
+				var stringBuilder = new StringBuilder();
 
-			using (var xmlWriter = XmlWriter.Create(stringBuilder, settings))
-			{
-				element.Save(xmlWriter);
+				var element = XElement.Parse(value);
+
+				var settings = new XmlWriterSettings
+				{
+					OmitXmlDeclaration = true,
+					Indent = false,
+					NewLineOnAttributes = false
+				};
+
+				using (var xmlWriter = XmlWriter.Create(stringBuilder, settings))
+				{
+					element.Save(xmlWriter);
+				}
+
+				return stringBuilder.ToString();
 			}
-
-			return stringBuilder.ToString();
+			catch (Exception ex)
+			{
+				Log.Error($"Error while unformatting expected XML field {value}. The raw value will be used instead.", ex, this);
+				return value;
+			}
 		}
 	}
 }
