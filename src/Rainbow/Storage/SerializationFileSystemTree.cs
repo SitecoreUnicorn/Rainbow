@@ -69,6 +69,7 @@ namespace Rainbow.Storage
 		private readonly FsCache<IItemMetadata> _metadataCache = new FsCache<IItemMetadata>(true);
 		private readonly TreeWatcher _treeWatcher;
 		protected char[] InvalidFileNameCharacters = Path.GetInvalidFileNameChars().Concat(Settings.GetSetting("Rainbow.SFS.ExtraInvalidFilenameCharacters", string.Empty).ToCharArray()).ToArray();
+		protected static HashSet<string> InvalidFileNames = new HashSet<string>(Settings.GetSetting("Rainbow.SFS.InvalidFilenames", "CON,PRN,AUX,NUL,COM1,COM2,COM3,COM4,COM5,COM6,COM7,COM8,COM9,LPT1,LPT2,LPT3,LPT4,LPT5,LPT6,LPT7,LPT8,LPT9").Split(','), StringComparer.OrdinalIgnoreCase);
 
 		// ReSharper disable once RedundantDefaultMemberInitializer
 		private bool _configuredForFastReads = false;
@@ -572,6 +573,8 @@ namespace Rainbow.Storage
 
 			// if the name ends with a space that can cause ambiguous results (e.g. "Multilist" and "Multilist "); Win32 considers directories with trailing spaces as the same as without, so we end it with underscore instead
 			if (validifiedName[validifiedName.Length - 1] == ' ') validifiedName = validifiedName.Substring(0, validifiedName.Length - 1) + "_";
+
+			if (InvalidFileNames.Contains(validifiedName)) return "_" + validifiedName;
 
 			return validifiedName;
 		}

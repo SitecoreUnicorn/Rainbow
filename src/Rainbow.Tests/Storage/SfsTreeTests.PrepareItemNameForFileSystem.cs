@@ -14,6 +14,9 @@ namespace Rainbow.Tests.Storage
 		[InlineData("woo*", "woo_")] // wildcards
 		[InlineData("yes \"sir\"", "yes _sir_")] // quotes
 		[InlineData(" leading and trailing spaces ", "leading and trailing spaces_")] // should trim leading spaces, but transform trailing to underscore (ambuiguity issue, see comment in method)
+		[InlineData("CON", "_CON")] // invalid FS names see https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
+		[InlineData("AUX", "_AUX")]
+		[InlineData("COM1", "_COM1")]
 		public void PrepareItemNameForFileSystem_FiltersIllegalCharacters(string input, string expectedOutput)
 		{
 			using (var testTree = new TestSfsTree())
