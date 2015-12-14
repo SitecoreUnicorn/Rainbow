@@ -49,7 +49,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 				var languageObject = new YamlLanguage();
 				languageObject.LoadFrom(language, fieldFormatters);
 
-				if(languageObject.Versions.Count > 0)
+				if (languageObject.Versions.Count > 0)
 					Languages.Add(languageObject);
 			}
 		}
@@ -99,7 +99,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			Path = reader.ReadExpectedMap("Path");
 
 			var dbName = reader.PeekMap();
-			if (dbName.HasValue && dbName.Value.Key.Equals("DB"))//could be missing if serialized with previous version
+			if (dbName.HasValue && dbName.Value.Key.Equals("DB")) //could be missing if serialized with 1.0.x
 			{
 				reader.ReadMap();
 				DatabaseName = dbName.Value.Value;

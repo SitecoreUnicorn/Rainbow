@@ -81,7 +81,7 @@ namespace Rainbow.Storage.Yaml
 			Assert.ArgumentNotNull(itemData, "item");
 			Assert.ArgumentNotNull(outputStream, "outputStream");
 
-			if(_fieldFilter != null)
+			if (_fieldFilter != null)
 				itemData = new FilteredItem(itemData, _fieldFilter);
 
 			var itemToSerialize = new YamlItem();
