@@ -62,6 +62,61 @@ Languages:
 				var item = formatter.ReadSerializedItem(ms, "unittest.yml");
 				Assert.Equal("unittest.yml", item.SerializedItemId);
 				Assert.Equal(new Guid("a4f985d9-98b3-4b52-aaaf-4344f6e747c6"), item.Id);
+				Assert.Equal(null, item.DatabaseName);
+				Assert.Equal(new Guid("001dd393-96c5-490b-924a-b0f25cd9efd8"), item.ParentId);
+				Assert.Equal("/sitecore/content/test", item.Path);
+
+				var shared = item.SharedFields.ToArray();
+
+				Assert.Equal(1, shared.Length);
+				Assert.Equal(new Guid("549fa670-79ab-4810-9450-aba0c06a2b87"), shared[0].FieldId);
+				Assert.Equal("SHARED", shared[0].Value);
+
+				var versions = item.Versions.ToArray();
+
+				Assert.Equal(1, versions.Length);
+				Assert.Equal(1, versions[0].VersionNumber);
+				Assert.Equal(new CultureInfo("en"), versions[0].Language);
+
+				var versionedFields = versions[0].Fields.ToArray();
+
+				Assert.Equal(1, versionedFields.Length);
+				Assert.Equal(new Guid("25bed78c-4957-4165-998a-ca1b52f67497"), versionedFields[0].FieldId);
+				Assert.Equal("20140918T062658:635466184182719253", versionedFields[0].Value);
+			}
+		}
+
+		[Fact]
+		public void YamlFormatter_ReadsItemWithDatabaseName_AsExpected()
+		{
+			var formatter = new YamlSerializationFormatter(null, null);
+
+			var yml = @"---
+ID: a4f985d9-98b3-4b52-aaaf-4344f6e747c6
+Parent: 001dd393-96c5-490b-924a-b0f25cd9efd8
+Template: 007a464d-5b09-4d0e-8481-cb6a604a5948
+Path: /sitecore/content/test
+DB: master
+SharedFields:
+- ID: 549fa670-79ab-4810-9450-aba0c06a2b87
+  # Text Shared
+  Value: SHARED
+Languages:
+- Language: en
+ Versions:
+  - Version: 1
+    Fields:
+    - ID: 25bed78c-4957-4165-998a-ca1b52f67497
+      # __Created
+      Value: 20140918T062658:635466184182719253
+";
+
+			using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(yml)))
+			{
+				var item = formatter.ReadSerializedItem(ms, "unittest.yml");
+				Assert.Equal("unittest.yml", item.SerializedItemId);
+				Assert.Equal(new Guid("a4f985d9-98b3-4b52-aaaf-4344f6e747c6"), item.Id);
+				Assert.Equal("master", item.DatabaseName);
 				Assert.Equal(new Guid("001dd393-96c5-490b-924a-b0f25cd9efd8"), item.ParentId);
 				Assert.Equal("/sitecore/content/test", item.Path);
 
@@ -111,6 +166,7 @@ ID: a4f985d9-98b3-4b52-aaaf-4344f6e747c6
 Parent: 001dd393-96c5-490b-924a-b0f25cd9efd8
 Template: 007a464d-5b09-4d0e-8481-cb6a604a5948
 Path: /sitecore/content/test
+DB: master
 BranchID: 25bed78c-4957-4165-998a-ca1b52f67497
 SharedFields:
 - ID: 549fa670-79ab-4810-9450-aba0c06a2b87
@@ -170,6 +226,7 @@ ID: a4f985d9-98b3-4b52-aaaf-4344f6e747c6
 Parent: 001dd393-96c5-490b-924a-b0f25cd9efd8
 Template: 007a464d-5b09-4d0e-8481-cb6a604a5948
 Path: /sitecore/content/test
+DB: master
 SharedFields:
 - ID: 549fa670-79ab-4810-9450-aba0c06a2b87
   # Multilist Field

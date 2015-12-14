@@ -105,6 +105,7 @@ namespace Rainbow.Storage.Yaml
 			private readonly YamlItem _item;
 			private readonly IFieldFormatter[] _formatters;
 			private readonly IDataStore _sourceDataStore;
+			private string _databaseName;
 
 			public YamlItemData(YamlItem item, string serializedItemId, IFieldFormatter[] formatters, IDataStore sourceDataStore)
 			{
@@ -118,7 +119,11 @@ namespace Rainbow.Storage.Yaml
 
 			/// <remarks>The storage provider should set this automatically.</remarks>
 			[ExcludeFromCodeCoverage]
-			public string DatabaseName { get; set; }
+			public string DatabaseName
+			{
+				get { return _databaseName ?? _item.DatabaseName; }
+				set { _databaseName = value; }
+			}
 
 			public Guid ParentId => _item.ParentId;
 
