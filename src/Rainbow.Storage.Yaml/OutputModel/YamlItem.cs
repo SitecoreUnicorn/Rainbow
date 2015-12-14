@@ -18,6 +18,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 		public Guid ParentId { get; set; }
 		public Guid TemplateId { get; set; }
 		public string Path { get; set; }
+		public string DatabaseName { get; set; }
 
 		public Guid BranchId { get; set; }
 		public SortedSet<YamlFieldValue> SharedFields { get; }
@@ -26,6 +27,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 		public virtual void LoadFrom(IItemData itemData, IFieldFormatter[] fieldFormatters)
 		{
 			Id = itemData.Id;
+			DatabaseName = itemData.DatabaseName;
 			ParentId = itemData.ParentId;
 			TemplateId = itemData.TemplateId;
 			Path = itemData.Path;
@@ -47,7 +49,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 				var languageObject = new YamlLanguage();
 				languageObject.LoadFrom(language, fieldFormatters);
 
-				if(languageObject.Versions.Count > 0)
+				if (languageObject.Versions.Count > 0)
 					Languages.Add(languageObject);
 			}
 		}
@@ -58,8 +60,9 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			writer.WriteMap("Parent", ParentId.ToString("D"));
 			writer.WriteMap("Template", TemplateId.ToString("D"));
 			writer.WriteMap("Path", Path);
+			writer.WriteMap("DB", DatabaseName);
 
-			if(BranchId != default(Guid)) writer.WriteMap("BranchID", BranchId.ToString());
+			if (BranchId != default(Guid)) writer.WriteMap("BranchID", BranchId.ToString());
 
 			if (SharedFields.Any())
 			{
@@ -94,6 +97,13 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			ParentId = reader.ReadExpectedGuidMap("Parent");
 			TemplateId = reader.ReadExpectedGuidMap("Template");
 			Path = reader.ReadExpectedMap("Path");
+
+			var dbName = reader.PeekMap();
+			if (dbName.HasValue && dbName.Value.Key.Equals("DB")) //could be missing if serialized with 1.0.x
+			{
+				reader.ReadMap();
+				DatabaseName = dbName.Value.Value;
+			}
 
 			var branch = reader.PeekMap();
 			if (branch.HasValue && branch.Value.Key.Equals("BranchID"))

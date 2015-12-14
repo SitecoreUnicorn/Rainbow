@@ -22,10 +22,10 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			Id = field.FieldId;
 			NameHint = field.NameHint;
 			BlobId = field.BlobId;
-			
+
 			string value = field.Value;
 
-			foreach(var formatter in formatters)
+			foreach (var formatter in formatters)
 			{
 				if (formatter.CanFormat(field))
 				{
@@ -48,12 +48,12 @@ namespace Rainbow.Storage.Yaml.OutputModel
 				writer.WriteMap("Hint", NameHint);
 			}
 
-			if(BlobId.HasValue)
+			if (BlobId.HasValue)
 				writer.WriteMap("BlobID", BlobId.Value.ToString("D"));
-			
-			if(Type != null)
+
+			if (Type != null)
 				writer.WriteMap("Type", Type);
-			
+
 			writer.WriteMap("Value", Value);
 		}
 
