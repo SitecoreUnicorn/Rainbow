@@ -114,7 +114,7 @@ Path: /sitecore/content/test
 BranchID: 25bed78c-4957-4165-998a-ca1b52f67497
 SharedFields:
 - ID: 549fa670-79ab-4810-9450-aba0c06a2b87
-  # Text Shared
+  Hint: Text Shared
   Value: SHARED
 Languages:
 - Language: en
@@ -122,7 +122,7 @@ Languages:
   - Version: 1
     Fields:
     - ID: 25bed78c-4957-4165-998a-ca1b52f67497
-      # __Created
+      Hint: __Created
       Value: 20140918T062658:635466184182719253
 ";
 
@@ -172,7 +172,7 @@ Template: 007a464d-5b09-4d0e-8481-cb6a604a5948
 Path: /sitecore/content/test
 SharedFields:
 - ID: 549fa670-79ab-4810-9450-aba0c06a2b87
-  # Multilist Field
+  Hint: Multilist Field
   Type: Multilist
   Value: |
     {35633C96-8494-4C05-A62A-954E2B401A4D}
