@@ -45,7 +45,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 
 			if (!string.IsNullOrWhiteSpace(NameHint))
 			{
-				writer.WriteComment(NameHint);
+				writer.WriteMap("Hint", NameHint);
 			}
 
 			if(BlobId.HasValue)
@@ -74,6 +74,12 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			}
 
 			Id = reader.ReadExpectedGuidMap("ID");
+
+			var hint = reader.PeekMap();
+			if (hint.HasValue && hint.Value.Key.Equals("Hint"))
+			{
+				NameHint = reader.ReadExpectedMap("Hint");
+			}
 
 			var blob = reader.PeekMap();
 			if (blob.HasValue && blob.Value.Key.Equals("BlobID"))
