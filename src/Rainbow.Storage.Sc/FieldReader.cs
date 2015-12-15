@@ -17,14 +17,14 @@ namespace Rainbow.Storage.Sc
 		/// Defines how to read fields (shared and versioned) from a Sitecore item.
 		/// </summary>
 		/// <param name="item">The item whose fields you wish to parse</param>
-		/// <param name="shared">True for shared fields, false for versioned fields</param>
-		public virtual List<IItemFieldValue> ParseFields(Item item, bool shared)
+		/// <param name="fieldType">The class of field to parse</param>
+		public virtual List<IItemFieldValue> ParseFields(Item item, FieldReadType fieldType)
 		{
 			var template = TemplateManager.GetTemplate(item);
 
 			if (template == null)
 			{
-				Log.Warn("Unable to read {2} fields for {0} because template {1} did not exist.".FormatWith(item.ID, item.TemplateID, shared ? "shared" : "versioned"), this);
+				Log.Warn("Unable to read {2} fields for {0} because template {1} did not exist.".FormatWith(item.ID, item.TemplateID, fieldType.ToString()), this);
 				return new List<IItemFieldValue>();
 			}
 
@@ -37,7 +37,10 @@ namespace Rainbow.Storage.Sc
 				var field = item.Fields[i];
 
 				// fields that don't match the sharing setting, or fields not on the template
-				if (field.Shared == !shared || template.GetField(field.ID) == null) continue;
+				if (fieldType == FieldReadType.Shared && !field.Shared) continue;
+				if (fieldType == FieldReadType.Unversioned && (!field.Unversioned || field.Shared)) continue; // extra check is for 'shared + unversioned' fields, which evaluate to shared
+				if (fieldType == FieldReadType.Versioned && (field.Shared || field.Unversioned)) continue;
+				if (template.GetField(field.ID) == null) continue;
 
 				var value = field.GetValue(allowDefaultValue: false, allowStandardValue: false);
 
@@ -53,7 +56,7 @@ namespace Rainbow.Storage.Sc
 				// we set the field value to an empty string explicitly
 				var standardValue = field.GetValue(true, false);
 
-				if(standardValue == null) continue;
+				if (standardValue == null) continue;
 
 				// given: the field value without standard values is null or empty (if above)
 				// we verify: if the field is NOT a standard value (in which case we know the value is blank), AND the standard value is not empty
@@ -73,5 +76,7 @@ namespace Rainbow.Storage.Sc
 		{
 			return new ItemData.ItemFieldValue(field, value);
 		}
+
+		public enum FieldReadType { Versioned, Unversioned, Shared }
 	}
 }

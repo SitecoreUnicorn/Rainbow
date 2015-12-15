@@ -57,6 +57,7 @@
     <Compile Include="Diff\IItemComparer.cs" />
     <Compile Include="Diff\ItemComparer.cs" />
     <Compile Include="Diff\ItemComparisonResult.cs" />
+    <Compile Include="Diff\ItemLanguageComparisonResult.cs" />
     <Compile Include="Diff\ItemVersionComparisonResult.cs" />
     <Compile Include="DocumentationUtility.cs" />
     <Compile Include="Filtering\ConfigurationFieldFilter.cs" />
@@ -68,9 +69,11 @@
     <Compile Include="Formatting\FieldTypeBasedFormatter.cs" />
     <Compile Include="Formatting\ISerializationFormatter.cs" />
     <Compile Include="IDocumentable.cs" />
+    <Compile Include="Model\IItemLanguage.cs" />
     <Compile Include="Model\PathRebasingProxyItem.cs" />
     <Compile Include="Model\ProxyFieldValue.cs" />
     <Compile Include="Model\ProxyItem.cs" />
+    <Compile Include="Model\ProxyItemLanguage.cs" />
     <Compile Include="Model\ProxyItemVersion.cs" />
     <Compile Include="Model\ItemDecorator.cs" />
     <Compile Include="Storage\SfsDuplicateIdCheckingDisabler.cs" />

@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Xml;
+using FluentAssertions;
 using Xunit;
 using Rainbow.Diff;
 using Rainbow.Diff.Fields;
+using Rainbow.Model;
 
 namespace Rainbow.Tests.Diff
 {
@@ -53,7 +56,7 @@ namespace Rainbow.Tests.Diff
 
 			var comparison = comparer.FastCompare(sourceItem, targetItem);
 
-			Assert.False(comparison.AreEqual);
+			comparison.AreEqual.Should().BeFalse();
 		}
 
 		[Fact]
@@ -66,10 +69,10 @@ namespace Rainbow.Tests.Diff
 
 			var comparison = comparer.Compare(sourceItem, targetItem);
 
-			Assert.False(comparison.AreEqual);
-			Assert.Equal(1, comparison.ChangedSharedFields.Length);
-			Assert.Equal("Hello", comparison.ChangedSharedFields[0].SourceField.Value);
-			Assert.Null(comparison.ChangedSharedFields[0].TargetField);
+			comparison.AreEqual.Should().BeFalse();
+			comparison.ChangedSharedFields.Length.Should().Be(1);
+			comparison.ChangedSharedFields[0].SourceField.Value.Should().Be("Hello");
+			comparison.ChangedSharedFields[0].TargetField.Should().BeNull();
 		}
 
 		[Fact]
@@ -82,8 +85,8 @@ namespace Rainbow.Tests.Diff
 
 			var comparison = comparer.Compare(sourceItem, targetItem);
 
-			Assert.True(comparison.AreEqual);
-			Assert.Equal(0, comparison.ChangedSharedFields.Length);
+			comparison.AreEqual.Should().BeTrue();
+			comparison.ChangedSharedFields.Length.Should().Be(0);
 		}
 
 		[Fact]
@@ -96,10 +99,10 @@ namespace Rainbow.Tests.Diff
 
 			var comparison = comparer.Compare(sourceItem, targetItem);
 
-			Assert.False(comparison.AreEqual);
-			Assert.Equal(1, comparison.ChangedSharedFields.Length);
-			Assert.Equal("Hello", comparison.ChangedSharedFields[0].TargetField.Value);
-			Assert.Null(comparison.ChangedSharedFields[0].SourceField);
+			comparison.AreEqual.Should().BeFalse();
+			comparison.ChangedSharedFields.Length.Should().Be(1);
+			comparison.ChangedSharedFields[0].TargetField.Value.Should().Be("Hello");
+			comparison.ChangedSharedFields[0].SourceField.Should().BeNull();
 		}
 
 		[Fact]
@@ -114,6 +117,72 @@ namespace Rainbow.Tests.Diff
 
 			Assert.True(comparison.AreEqual);
 			Assert.Equal(0, comparison.ChangedSharedFields.Length);
+		}
+
+		[Fact]
+		public void ItemComparer_IsNotEqual_WhenUnversionedFieldsAreUnequal()
+		{
+			var comparer = new TestItemComparer();
+
+			var sourceItem = new FakeItem(unversionedFields: new[] { new ProxyItemLanguage(new CultureInfo("en")) { Fields = new[] { new FakeFieldValue("Hello") } } });
+			var targetItem = new FakeItem(unversionedFields: new[] { new ProxyItemLanguage(new CultureInfo("en")) { Fields = new[] { new FakeFieldValue("Goodbye") } } });
+
+			var comparison = comparer.Compare(sourceItem, targetItem);
+
+			comparison.AreEqual.Should().BeFalse();
+			comparison.ChangedUnversionedFields.Length.Should().Be(1);
+			comparison.ChangedUnversionedFields[0].Language.Language.Should().Be(new CultureInfo("en"));
+			comparison.ChangedUnversionedFields[0].ChangedFields.Count.Should().Be(1);
+			comparison.ChangedUnversionedFields[0].ChangedFields[0].SourceField.Value.Should().Be("Hello");
+			comparison.ChangedUnversionedFields[0].ChangedFields[0].TargetField.Value.Should().Be("Goodbye");
+		}
+
+		[Fact]
+		public void ItemComparer_IsNotEqual_WhenUnversionedFieldIsInSourceOnly()
+		{
+			var comparer = new TestItemComparer();
+
+			var sourceItem = new FakeItem(unversionedFields: new[] { new ProxyItemLanguage(new CultureInfo("en")) { Fields = new[] { new FakeFieldValue("Hello") } } });
+			var targetItem = new FakeItem();
+
+			var comparison = comparer.Compare(sourceItem, targetItem);
+
+			comparison.AreEqual.Should().BeFalse();
+			comparison.ChangedUnversionedFields.Length.Should().Be(1);
+			comparison.ChangedUnversionedFields[0].ChangedFields.Count.Should().Be(1);
+			comparison.ChangedUnversionedFields[0].ChangedFields[0].SourceField.Value.Should().Be("Hello");
+			comparison.ChangedUnversionedFields[0].ChangedFields[0].TargetField.Should().BeNull();
+		}
+
+		[Fact]
+		public void ItemComparer_IsEqual_WhenUnversionedFieldIsInSourceOnly_AndValueIsEmpty()
+		{
+			var comparer = new TestItemComparer();
+
+			var sourceItem = new FakeItem(unversionedFields: new[] { new ProxyItemLanguage(new CultureInfo("en")) { Fields = new[] { new FakeFieldValue(string.Empty) } } });
+			var targetItem = new FakeItem();
+
+			var comparison = comparer.Compare(sourceItem, targetItem);
+
+			comparison.AreEqual.Should().BeTrue();
+			comparison.ChangedUnversionedFields.Length.Should().Be(0);
+		}
+
+		[Fact]
+		public void ItemComparer_IsNotEqual_WhenUnversionedFieldIsInTargetOnly()
+		{
+			var comparer = new TestItemComparer();
+
+			var sourceItem = new FakeItem();
+			var targetItem = new FakeItem(unversionedFields: new[] { new ProxyItemLanguage(new CultureInfo("en")) { Fields = new[] { new FakeFieldValue("Hello") } } });
+
+			var comparison = comparer.Compare(sourceItem, targetItem);
+
+			comparison.AreEqual.Should().BeFalse();
+			comparison.ChangedUnversionedFields.Length.Should().Be(1);
+			comparison.ChangedUnversionedFields[0].ChangedFields.Count.Should().Be(1);
+			comparison.ChangedUnversionedFields[0].ChangedFields[0].TargetField.Value.Should().Be("Hello");
+			comparison.ChangedUnversionedFields[0].ChangedFields[0].SourceField.Should().BeNull();
 		}
 
 		[Fact]
@@ -151,7 +220,7 @@ namespace Rainbow.Tests.Diff
 		{
 			var comparer = new TestItemComparer();
 
-			var sourceItem = new FakeItem(parentId:Guid.NewGuid());
+			var sourceItem = new FakeItem(parentId: Guid.NewGuid());
 			var targetItem = new FakeItem(parentId: Guid.NewGuid());
 
 			var comparison = comparer.Compare(sourceItem, targetItem);
@@ -179,7 +248,7 @@ namespace Rainbow.Tests.Diff
 		{
 			var comparer = new TestItemComparer();
 
-			var sourceItem = new FakeItem(templateId:Guid.NewGuid());
+			var sourceItem = new FakeItem(templateId: Guid.NewGuid());
 			var targetItem = new FakeItem(templateId: Guid.NewGuid());
 
 			var comparison = comparer.Compare(sourceItem, targetItem);
@@ -194,8 +263,8 @@ namespace Rainbow.Tests.Diff
 			var comparer = new TestItemComparer();
 
 			var sourceItem = new FakeItem(
-				versions: new[] { new FakeItemVersion(fields: new FakeFieldValue("Hello")) }, 
-				sharedFields: new[] {new FakeFieldValue("Goodbye") });
+				versions: new[] { new FakeItemVersion(fields: new FakeFieldValue("Hello")) },
+				sharedFields: new[] { new FakeFieldValue("Goodbye") });
 			var targetItem = new FakeItem(
 				versions: new[] { new FakeItemVersion(fields: new FakeFieldValue("Hello")) },
 				sharedFields: new[] { new FakeFieldValue("Goodbye") });
@@ -231,7 +300,7 @@ namespace Rainbow.Tests.Diff
 			}
 		}
 
-		private class TestComparisonItemComparer: ItemComparer
+		private class TestComparisonItemComparer : ItemComparer
 		{
 			public TestComparisonItemComparer(XmlNode configNode) : base(configNode)
 			{

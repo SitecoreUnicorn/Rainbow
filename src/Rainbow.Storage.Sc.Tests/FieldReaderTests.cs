@@ -54,7 +54,7 @@ namespace Rainbow.Storage.Sc.Tests
 
 				testItem.Fields.ReadAll();
 
-				var result = sut.ParseFields(testItem, false).FirstOrDefault(f => f.FieldId == testFieldId.Guid);
+				var result = sut.ParseFields(testItem, FieldReader.FieldReadType.Versioned).FirstOrDefault(f => f.FieldId == testFieldId.Guid);
 
 				
 				if (expected == null) result.Should().BeNull();

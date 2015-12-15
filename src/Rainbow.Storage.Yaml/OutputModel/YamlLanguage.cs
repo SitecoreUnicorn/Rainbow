@@ -10,10 +10,14 @@ namespace Rainbow.Storage.Yaml.OutputModel
 		public YamlLanguage()
 		{
 			Versions = new SortedSet<YamlVersion>();
+			UnversionedFields = new SortedSet<YamlFieldValue>();
 		}
 
 		public string Language { get; set; }
+
 		public SortedSet<YamlVersion> Versions { get; }
+
+		public SortedSet<YamlFieldValue> UnversionedFields { get; }
 
 		public int CompareTo(YamlLanguage other)
 		{
@@ -41,6 +45,20 @@ namespace Rainbow.Storage.Yaml.OutputModel
 		public void WriteYaml(YamlWriter writer)
 		{
 			writer.WriteBeginListItem("Language", Language);
+
+			if (UnversionedFields.Count > 0)
+			{
+				writer.WriteMap("Fields");
+				writer.IncreaseIndent();
+
+				foreach (var unversionedField in UnversionedFields)
+				{
+					unversionedField.WriteYaml(writer);
+				}
+
+				writer.DecreaseIndent();
+			}
+
 			writer.WriteMap("Versions");
 
 			writer.IncreaseIndent();
@@ -59,6 +77,19 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			if (!language.HasValue || !language.Value.Key.Equals("Language", StringComparison.Ordinal)) return false;
 
 			Language = reader.ReadExpectedMap("Language");
+
+			var fields = reader.PeekMap();
+			if (fields.HasValue && fields.Value.Key.Equals("Fields", StringComparison.OrdinalIgnoreCase))
+			{
+				reader.ReadExpectedMap("Fields");
+				while (true)
+				{
+					var field = new YamlFieldValue();
+					if (field.ReadYaml(reader)) UnversionedFields.Add(field);
+					else break;
+				}
+			}
+
 			reader.ReadExpectedMap("Versions");
 
 			while (true)

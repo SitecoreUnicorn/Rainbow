@@ -28,6 +28,7 @@ namespace Rainbow.Model
 			BranchId = itemToProxy.BranchId;
 			TemplateId = itemToProxy.TemplateId;
 			SharedFields = itemToProxy.SharedFields.Select(field => new ProxyFieldValue(field)).ToArray();
+			UnversionedFields = itemToProxy.UnversionedFields.Select(language => new ProxyItemLanguage(language)).ToArray();
 			Versions = itemToProxy.Versions.Select(version => new ProxyItemVersion(version)).ToArray();
 			SerializedItemId = itemToProxy.SerializedItemId;
 			Id = itemToProxy.Id;
@@ -58,6 +59,7 @@ namespace Rainbow.Model
 		public virtual Guid BranchId { get; set; }
 		public virtual Guid TemplateId { get; set; }
 		public virtual IEnumerable<IItemFieldValue> SharedFields { get; set; }
+		public IEnumerable<IItemLanguage> UnversionedFields { get; set; }
 		public virtual IEnumerable<IItemVersion> Versions { get; set; }
 		public virtual string SerializedItemId { get; set; }
 

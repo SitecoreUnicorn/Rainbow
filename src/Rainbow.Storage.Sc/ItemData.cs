@@ -64,10 +64,33 @@ namespace Rainbow.Storage.Sc
 				{
 					EnsureFields();
 
-					_sharedFields = CreateFieldReader().ParseFields(_item, true);
+					_sharedFields = CreateFieldReader().ParseFields(_item, FieldReader.FieldReadType.Shared);
 				}
 
 				return _sharedFields;
+			}
+		}
+
+		private IItemLanguage[] _unversionedFields;
+		public IEnumerable<IItemLanguage> UnversionedFields
+		{
+			get
+			{
+				if (_unversionedFields == null)
+				{
+					EnsureFields();
+
+					var fieldReader = CreateFieldReader();
+
+					// Get all item versions, dedupe down to one per language only, then parse out the unversioned fields for each and project into a ProxyItemLanguage.
+					_unversionedFields = GetVersions()
+						.GroupBy(version => version.Language.Name)
+						.Select(group => group.First())
+						.Select(language => (IItemLanguage)new ProxyItemLanguage(language.Language.CultureInfo) { Fields = fieldReader.ParseFields(language, FieldReader.FieldReadType.Unversioned) })
+						.ToArray();
+				}
+
+				return _unversionedFields;
 			}
 		}
 
@@ -178,7 +201,7 @@ namespace Rainbow.Storage.Sc
 							parsedIdValue = parsedIdValue.Substring(0, 38);
 
 						Guid blobId;
-						if(Guid.TryParse(parsedIdValue, out blobId)) return blobId;
+						if (Guid.TryParse(parsedIdValue, out blobId)) return blobId;
 					}
 
 					return null;
@@ -209,8 +232,8 @@ namespace Rainbow.Storage.Sc
 					if (_fields == null)
 					{
 						EnsureFields();
-						
-						_fields = CreateFieldReader().ParseFields(_version, false);
+
+						_fields = CreateFieldReader().ParseFields(_version, FieldReader.FieldReadType.Versioned);
 					}
 
 					return _fields;

@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
+using FluentAssertions;
+using Rainbow.Model;
 using Rainbow.Tests;
 using Xunit;
 
@@ -99,15 +101,19 @@ Path: /sitecore/content/test
 DB: master
 SharedFields:
 - ID: 549fa670-79ab-4810-9450-aba0c06a2b87
-  # Text Shared
+  Hint: Text Shared
   Value: SHARED
 Languages:
 - Language: en
- Versions:
+  Fields:
+  - ID: ffffd78c-4957-4165-998a-ca1b52f67497
+    Hint: Unversioned
+    Value: unversioned
+  Versions:
   - Version: 1
     Fields:
     - ID: 25bed78c-4957-4165-998a-ca1b52f67497
-      # __Created
+      Hint: __Created
       Value: 20140918T062658:635466184182719253
 ";
 
@@ -122,21 +128,40 @@ Languages:
 
 				var shared = item.SharedFields.ToArray();
 
-				Assert.Equal(1, shared.Length);
-				Assert.Equal(new Guid("549fa670-79ab-4810-9450-aba0c06a2b87"), shared[0].FieldId);
-				Assert.Equal("SHARED", shared[0].Value);
+				// verify shared values
+				shared.Length.Should().Be(1);
+				shared[0].FieldId.Should().Be(new Guid("549fa670-79ab-4810-9450-aba0c06a2b87"));
+				shared[0].Value.Should().Be("SHARED");
+				shared[0].NameHint.Should().Be("Text Shared");
+
+				var unversioned = item.UnversionedFields.ToArray();
+
+				// verify unversioned values
+				unversioned.Length.Should().Be(1);
+				unversioned[0].Language.Should().Be(new CultureInfo("en"));
+
+				var unversionedFields = unversioned.First().Fields.ToArray();
+
+				// verify unversioned field values
+				unversionedFields.Length.Should().Be(1);
+				unversionedFields[0].NameHint.Should().Be("Unversioned");
+				unversionedFields[0].FieldId.Should().Be(new Guid("ffffd78c-4957-4165-998a-ca1b52f67497"));
+				unversionedFields[0].Value.Should().Be("unversioned");
 
 				var versions = item.Versions.ToArray();
 
-				Assert.Equal(1, versions.Length);
-				Assert.Equal(1, versions[0].VersionNumber);
-				Assert.Equal(new CultureInfo("en"), versions[0].Language);
+				// verify version values
+				versions.Length.Should().Be(1);
+				versions[0].VersionNumber.Should().Be(1);
+				versions[0].Language.Should().Be(new CultureInfo("en"));
 
 				var versionedFields = versions[0].Fields.ToArray();
 
-				Assert.Equal(1, versionedFields.Length);
-				Assert.Equal(new Guid("25bed78c-4957-4165-998a-ca1b52f67497"), versionedFields[0].FieldId);
-				Assert.Equal("20140918T062658:635466184182719253", versionedFields[0].Value);
+				// verify versioned fields values
+				versionedFields.Length.Should().Be(1);
+				versionedFields[0].FieldId.Should().Be(new Guid("25bed78c-4957-4165-998a-ca1b52f67497"));
+				versionedFields[0].NameHint.Should().Be("__Created");
+				versionedFields[0].Value.Should().Be("20140918T062658:635466184182719253");
 			}
 		}
 
@@ -159,6 +184,10 @@ Languages:
 				versions: new[]
 				{
 					new FakeItemVersion(1, "en", new FakeFieldValue("20140918T062658:635466184182719253", string.Empty, new Guid("25bed78c-4957-4165-998a-ca1b52f67497"), "__Created")),
+				},
+				unversionedFields: new[]
+				{
+					new ProxyItemLanguage(new CultureInfo("en")) { Fields = new[] { new FakeFieldValue("unversioned", string.Empty, new Guid("ffffd78c-4957-4165-998a-ca1b52f67497"), "Unversioned") } }
 				});
 
 			var expectedYml = @"---
@@ -174,6 +203,10 @@ SharedFields:
   Value: SHARED
 Languages:
 - Language: en
+  Fields:
+  - ID: ffffd78c-4957-4165-998a-ca1b52f67497
+    Hint: Unversioned
+    Value: unversioned
   Versions:
   - Version: 1
     Fields:

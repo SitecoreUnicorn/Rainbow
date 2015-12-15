@@ -9,6 +9,9 @@ namespace Rainbow.Model
 		string Name { get; }
 		Guid BranchId { get; }
 		IEnumerable<IItemFieldValue> SharedFields { get; }
+
+		IEnumerable<IItemLanguage> UnversionedFields { get; }
+
 		IEnumerable<IItemVersion> Versions { get; }
 
 		IEnumerable<IItemData> GetChildren();

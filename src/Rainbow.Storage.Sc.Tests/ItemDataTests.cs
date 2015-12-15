@@ -69,6 +69,16 @@ namespace Rainbow.Storage.Sc.Tests
 		}
 
 		[Theory, AutoDbData]
+		public void SharedFields_DoesNotReturnVersionedValues(Db db, DbItem item, Guid fieldId)
+		{
+			item.Fields.Add(new DbField(new ID(fieldId)) { Value = "test field" });
+
+			var dbItem = db.CreateItem(item);
+
+			new ItemData(dbItem).SharedFields.Any(f => f.FieldId == fieldId).Should().BeFalse();
+		}
+
+		[Theory, AutoDbData]
 		public void Versions_ReturnsExpectedVersions(Db db, DbItem item, Guid fieldId)
 		{
 			item.Fields.Add(new DbField(new ID(fieldId))
@@ -140,6 +150,16 @@ namespace Rainbow.Storage.Sc.Tests
 			var dbItem = db.CreateItem(item);
 
 			new ItemData(dbItem).Versions.First().Fields.First(f => f.FieldId == fieldId).Value.Should().Be("test");
+		}
+
+		[Theory, AutoDbData]
+		public void Version_Fields_DoesNotReturnSharedValues(Db db, DbItem item, Guid fieldId)
+		{
+			item.Fields.Add(new DbField(new ID(fieldId)) {Shared = true, Value = "test"});
+
+			var dbItem = db.CreateItem(item);
+
+			new ItemData(dbItem).Versions.First().Fields.FirstOrDefault(f => f.FieldId == fieldId).Should().BeNull();
 		}
 	}
 }

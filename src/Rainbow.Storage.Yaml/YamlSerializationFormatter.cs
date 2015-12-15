@@ -159,6 +159,17 @@ namespace Rainbow.Storage.Yaml
 				}
 			}
 
+			public IEnumerable<IItemLanguage> UnversionedFields
+			{
+				get
+				{
+					foreach (var language in _item.Languages)
+					{
+						yield return new YamlItemLanguage(language, _formatters);
+					}
+				}
+			}
+
 			public IEnumerable<IItemVersion> Versions
 			{
 				get
@@ -167,7 +178,7 @@ namespace Rainbow.Storage.Yaml
 					{
 						foreach (var version in language.Versions)
 						{
-							yield return new YamlSerializableVersion(version, language, _formatters);
+							yield return new YamlItemVersion(version, language, _formatters);
 						}
 					}
 				}
@@ -183,13 +194,13 @@ namespace Rainbow.Storage.Yaml
 		}
 
 		[ExcludeFromCodeCoverage]
-		protected class YamlSerializableVersion : IItemVersion
+		protected class YamlItemVersion : IItemVersion
 		{
 			private readonly YamlVersion _version;
 			private readonly YamlLanguage _language;
 			private readonly IFieldFormatter[] _formatters;
 
-			public YamlSerializableVersion(YamlVersion version, YamlLanguage language, IFieldFormatter[] formatters)
+			public YamlItemVersion(YamlVersion version, YamlLanguage language, IFieldFormatter[] formatters)
 			{
 				_version = version;
 				_language = language;
@@ -204,6 +215,26 @@ namespace Rainbow.Storage.Yaml
 			public CultureInfo Language => new CultureInfo(_language.Language);
 
 			public int VersionNumber => _version.VersionNumber;
+		}
+
+		[ExcludeFromCodeCoverage]
+		protected class YamlItemLanguage : IItemLanguage
+		{
+			private readonly YamlLanguage _language;
+			private readonly IFieldFormatter[] _formatters;
+
+			public YamlItemLanguage(YamlLanguage language, IFieldFormatter[] formatters)
+			{
+				_language = language;
+				_formatters = formatters;
+			}
+
+			public IEnumerable<IItemFieldValue> Fields
+			{
+				get { return _language.UnversionedFields.Select(x => new YamlItemFieldValue(x, _formatters)); }
+			}
+
+			public CultureInfo Language => new CultureInfo(_language.Language);
 		}
 
 		protected class YamlItemFieldValue : IItemFieldValue

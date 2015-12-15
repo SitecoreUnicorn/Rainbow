@@ -7,7 +7,7 @@ namespace Rainbow.Diff
 {
 	public class ItemComparisonResult
 	{
-		public ItemComparisonResult(IItemData sourceItemData, IItemData targetItemData, bool isRenamed = false, bool isMoved = false, bool isTemplateChanged = false, FieldComparisonResult[] changedSharedFields = null, ItemVersionComparisonResult[] changedVersions = null)
+		public ItemComparisonResult(IItemData sourceItemData, IItemData targetItemData, bool isRenamed = false, bool isMoved = false, bool isTemplateChanged = false, FieldComparisonResult[] changedSharedFields = null, ItemVersionComparisonResult[] changedVersions = null, ItemLanguageComparisonResult[] changedUnversionedFields = null)
 		{
 			Assert.ArgumentNotNull(sourceItemData, "sourceItem");
 			Assert.ArgumentNotNull(targetItemData, "targetItem");
@@ -19,10 +19,12 @@ namespace Rainbow.Diff
 			IsTemplateChanged = isTemplateChanged;
 			ChangedSharedFields = changedSharedFields ?? new FieldComparisonResult[0];
 			ChangedVersions = changedVersions ?? new ItemVersionComparisonResult[0];
+			ChangedUnversionedFields = changedUnversionedFields ?? new ItemLanguageComparisonResult[0];
 		}
 
 		public IItemData SourceItemData { get; }
 		public IItemData TargetItemData { get; }
+
 		public virtual bool AreEqual
 		{
 			get
@@ -31,6 +33,7 @@ namespace Rainbow.Diff
 						!IsTemplateChanged &&
 						!IsMoved &&
 						ChangedSharedFields.Length == 0 &&
+						ChangedUnversionedFields.Length == 0 &&
 						ChangedVersions.Length == 0 &&
 						SourceItemData != null &&
 						TargetItemData != null &&
@@ -42,6 +45,7 @@ namespace Rainbow.Diff
 		public bool IsMoved { get; }
 		public bool IsTemplateChanged { get; }
 		public FieldComparisonResult[] ChangedSharedFields { get; }
+		public ItemLanguageComparisonResult[] ChangedUnversionedFields { get; }
 		public ItemVersionComparisonResult[] ChangedVersions { get; }
 	}
 }

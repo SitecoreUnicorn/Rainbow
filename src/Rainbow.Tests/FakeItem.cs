@@ -20,12 +20,14 @@ namespace Rainbow.Tests
 			IEnumerable<IItemFieldValue> sharedFields = null, 
 			IEnumerable<IItemVersion> versions = null, 
 			string serializedItemId = "0xDEADBEEF", 
-			IEnumerable<IItemData> children = null) : base(name, id, parentId, templateId, path, databaseName)
+			IEnumerable<IItemData> children = null,
+			IEnumerable<IItemLanguage> unversionedFields = null) : base(name, id, parentId, templateId, path, databaseName)
 		{
 			BranchId = branchId;
 			SharedFields = sharedFields ?? new List<IItemFieldValue>();
 			Versions = versions ?? new List<IItemVersion>();
 			SerializedItemId = serializedItemId;
+			UnversionedFields = unversionedFields ?? new List<IItemLanguage>();
 
 			SetProxyChildren(children?.ToArray() ?? new IItemData[0]);
 		}

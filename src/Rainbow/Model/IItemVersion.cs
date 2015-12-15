@@ -1,12 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Globalization;
-
-namespace Rainbow.Model
+﻿namespace Rainbow.Model
 {
-	public interface IItemVersion
+	/// <summary>
+	/// A version of an item in a specific language
+	/// </summary>
+	public interface IItemVersion : IItemLanguage
 	{
-		IEnumerable<IItemFieldValue> Fields { get; }
-		CultureInfo Language { get; }
 		int VersionNumber { get; }
 	}
 }

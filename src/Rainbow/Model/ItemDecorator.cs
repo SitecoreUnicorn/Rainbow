@@ -28,6 +28,7 @@ namespace Rainbow.Model
 		public virtual Guid BranchId => InnerItem.BranchId;
 		public virtual Guid TemplateId => InnerItem.TemplateId;
 		public virtual IEnumerable<IItemFieldValue> SharedFields => InnerItem.SharedFields;
+		public virtual IEnumerable<IItemLanguage> UnversionedFields => InnerItem.UnversionedFields;
 		public virtual IEnumerable<IItemVersion> Versions => InnerItem.Versions;
 		public virtual string SerializedItemId => InnerItem.SerializedItemId;
 

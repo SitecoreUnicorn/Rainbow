@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using FluentAssertions;
 using NSubstitute;
 using Rainbow.Filtering;
 using Rainbow.Model;
@@ -63,6 +65,21 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 				assert: dbItem =>
 				{
 					Assert.Equal("Shared Value", dbItem[_testSharedFieldId]);
+				}
+			);
+		}
+
+		[Fact]
+		public void Deserialize_DeserializesExistingItem_WithUnversionedFieldChanges()
+		{
+			RunItemChangeTest(
+				setup: itemData =>
+				{
+					itemData.UnversionedFields = new[] { new ProxyItemLanguage(new CultureInfo("en")) { Fields = new[] { new ProxyFieldValue(_testSharedFieldId.Guid, "Unversioned Value") } } };
+				},
+				assert: dbItem =>
+				{
+					dbItem[_testSharedFieldId].Should().Be("Unversioned Value");
 				}
 			);
 		}
@@ -189,7 +206,7 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 				var itemData = new ProxyItem(new ItemData(db.GetItem(itemId)));
 
 				var fields = new List<IItemFieldValue>();
-				fields.Add(new FakeFieldValue("Changed Ignored Value", fieldId:ignoredFieldId.Guid));
+				fields.Add(new FakeFieldValue("Changed Ignored Value", fieldId: ignoredFieldId.Guid));
 				((ProxyItemVersion)itemData.Versions.First()).Fields = fields;
 
 				deserializer.Deserialize(itemData);

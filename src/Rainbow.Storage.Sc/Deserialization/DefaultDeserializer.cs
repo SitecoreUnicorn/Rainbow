@@ -64,6 +64,8 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 				PasteSharedFields(serializedItemData, targetItem, newItemWasCreated, softErrors);
 
+				PasteUnversionedFields(serializedItemData, targetItem, newItemWasCreated, softErrors);
+
 				ClearCaches(targetItem.Database, new ID(serializedItemData.Id));
 
 				targetItem.Reload();
@@ -310,6 +312,57 @@ namespace Rainbow.Storage.Sc.Deserialization
 			}
 		}
 
+		protected virtual void PasteUnversionedFields(IItemData serializedItemData, Item targetItem, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors)
+		{
+			bool commitEditContext = false;
+
+			try
+			{
+				targetItem.Editing.BeginEdit();
+
+				targetItem.RuntimeSettings.ReadOnlyStatistics = true;
+				targetItem.RuntimeSettings.SaveAll = true;
+
+				var allTargetUnversionedFields = serializedItemData.UnversionedFields.SelectMany(lang => lang.Fields).ToLookup(field => field.FieldId);
+
+				foreach (Field field in targetItem.Fields)
+				{
+					// field was not serialized. Which means the field is either blank or has its standard value, so let's reset it
+					if (field.Unversioned && !allTargetUnversionedFields.Contains(field.ID.Guid))
+					{
+						_logger.ResetFieldThatDidNotExistInSerialized(field);
+						field.Reset();
+						commitEditContext = true;
+					}
+				}
+
+				foreach (var language in serializedItemData.UnversionedFields)
+				{
+					foreach (var field in language.Fields)
+					{
+						try
+						{
+							if (PasteField(targetItem, field, newItemWasCreated))
+								commitEditContext = true;
+						}
+						catch (TemplateMissingFieldException tex)
+						{
+							softErrors.Add(tex);
+						}
+					}
+				}
+
+				// we commit the edit context - and write to the DB - only if we changed something
+				if (commitEditContext)
+					targetItem.Editing.EndEdit();
+			}
+			finally
+			{
+				if (targetItem.Editing.IsEditing)
+					targetItem.Editing.CancelEdit();
+			}
+		}
+
 		protected virtual void PasteVersions(IItemData serializedItemData, Item targetItem, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors)
 		{
 			Hashtable versionTable = CommonUtils.CreateCIHashtable();
@@ -362,7 +415,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			try
 			{
 				languageVersionItem.Editing.BeginEdit();
-				
+
 				languageVersionItem.RuntimeSettings.ReadOnlyStatistics = true;
 
 				if (languageVersionItem.Versions.Count == 0)
@@ -372,16 +425,17 @@ namespace Rainbow.Storage.Sc.Deserialization
 				// (we do all these checks so we can back out of the edit context and avoid a DB write if we don't need one)
 				foreach (Field field in languageVersionItem.Fields)
 				{
-					// shared fields = ignore, those are handled in Paste
-					if (field.Shared) continue;
+					// shared/unversioned fields = ignore, those are handled in their own paste methods
+					if (field.Shared || field.Unversioned) continue;
+
 					// if we have a value in the serialized item, we don't need to reset the field
-					if(serializedVersion.Fields.Any(x => x.FieldId == field.ID.Guid)) continue;
+					if (serializedVersion.Fields.Any(x => x.FieldId == field.ID.Guid)) continue;
 					// if the field is one of revision, updated, or updated by we can specially ignore it, because these will get set below if actual field changes occur
 					// so there's no need to reset them as well
 					if (field.ID == FieldIDs.Revision || field.ID == FieldIDs.UpdatedBy || field.ID == FieldIDs.Updated) continue;
 					// if the field value is already blank - ignoring standard values - we can assume there's no need to reset it
-					if(field.GetValue(false, false) == string.Empty) continue;
-					
+					if (field.GetValue(false, false) == string.Empty) continue;
+
 					_logger.ResetFieldThatDidNotExistInSerialized(field);
 					field.Reset();
 					commitEditContext = true;
@@ -481,7 +535,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			Field itemField = item.Fields[new ID(field.FieldId)];
 			if (itemField.IsBlobField)
 			{
-				if(!field.BlobId.HasValue) throw new InvalidOperationException("Field " + field.FieldId + " is a blob field, but it had no blob ID.");
+				if (!field.BlobId.HasValue) throw new InvalidOperationException("Field " + field.FieldId + " is a blob field, but it had no blob ID.");
 
 				// check if existing blob is here with the same ID; abort if so
 				Guid existingBlobId;

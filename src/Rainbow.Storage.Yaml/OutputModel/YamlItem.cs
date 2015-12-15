@@ -52,6 +52,25 @@ namespace Rainbow.Storage.Yaml.OutputModel
 				if (languageObject.Versions.Count > 0)
 					Languages.Add(languageObject);
 			}
+
+			foreach (var unversionedFieldLanguage in itemData.UnversionedFields)
+			{
+				var existing = Languages.FirstOrDefault(language => language.Language == unversionedFieldLanguage.Language.Name);
+
+				if (existing == null)
+				{
+					existing = new YamlLanguage { Language = unversionedFieldLanguage.Language.Name };
+					Languages.Add(existing);
+				}
+
+				foreach (var unversionedField in unversionedFieldLanguage.Fields)
+				{
+					var field = new YamlFieldValue();
+					field.LoadFrom(unversionedField, fieldFormatters);
+
+					existing.UnversionedFields.Add(field);
+				}
+			}
 		}
 
 		public virtual void WriteYaml(YamlWriter writer)

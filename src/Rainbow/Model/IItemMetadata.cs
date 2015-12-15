@@ -13,6 +13,5 @@ namespace Rainbow.Model
 		/// Provider-specific identifier for a serialized item (e.g. path on disk, row identifier, etc)
 		/// </summary>
 		string SerializedItemId { get; }
-
 	}
 }

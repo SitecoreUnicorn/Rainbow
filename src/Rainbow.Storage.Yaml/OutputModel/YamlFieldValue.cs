@@ -68,7 +68,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			var key = id.Value.Key;
 			if (!key.Equals("ID", StringComparison.Ordinal))
 			{
-				if (key.Equals("Languages", StringComparison.Ordinal) || key.Equals("Language", StringComparison.Ordinal) || key.Equals("Version")) return false;
+				if (key.Equals("Languages", StringComparison.Ordinal) || key.Equals("Language", StringComparison.Ordinal) || key.Equals("Version", StringComparison.Ordinal) || key.Equals("Versions", StringComparison.Ordinal)) return false;
 
 				throw new FormatException(reader.CreateErrorMessage("Cannot read field value. Expected 'ID' map, found '" + id.Value.Key + "' instead."));
 			}

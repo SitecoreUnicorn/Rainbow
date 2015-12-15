@@ -93,6 +93,52 @@ namespace Rainbow.Diff
 
 			if(changedSharedFields.Length > 0 && abortOnChangeFound) return new ItemComparisonResult(sourceItem, targetItem, changedSharedFields:changedSharedFields);
 
+
+			var sourceUnversioned = sourceItem.UnversionedFields.ToDictionary(value => value.Language.Name);
+			var targetUnversioned = targetItem.UnversionedFields.ToDictionary(value => value.Language.Name);
+			var changedUnversionedFields = new List<ItemLanguageComparisonResult>();
+
+			// check for unversioned fields only in source or target
+			foreach (var source in sourceUnversioned)
+			{
+				// NOTE: empty values in the source are considered to be 'allowed to not exist in the target' (hence the .Any below to check for non empty values)
+				// e.g. a field may exist in Sitecore that may not be serialized.
+				if (!targetUnversioned.ContainsKey(source.Key) && source.Value.Fields.Any(field => !string.IsNullOrEmpty(field.Value)))
+				{
+					changedUnversionedFields.Add(new ItemLanguageComparisonResult(source.Value, source.Value.Fields.Select(field => new FieldComparisonResult(field, null)).ToArray()));
+
+					if (abortOnChangeFound) return new ItemComparisonResult(sourceItem, targetItem, changedUnversionedFields: changedUnversionedFields.ToArray());
+				}
+			}
+
+			foreach (var target in targetUnversioned)
+			{
+				if (!sourceUnversioned.ContainsKey(target.Key))
+				{
+					changedUnversionedFields.Add(new ItemLanguageComparisonResult(target.Value, target.Value.Fields.Select(field => new FieldComparisonResult(null, field)).ToArray()));
+
+					if (abortOnChangeFound) return new ItemComparisonResult(sourceItem, targetItem, changedUnversionedFields: changedUnversionedFields.ToArray());
+				}
+			}
+
+			// see if serialized unversioned values have any differences in the source data
+			foreach (var source in sourceUnversioned)
+			{
+				if (!targetUnversioned.ContainsKey(source.Key)) continue;
+
+				var target = targetUnversioned[source.Key];
+
+				var changedFields = GetFieldDifferences(source.Value.Fields, target.Fields, sourceItem, targetItem, abortOnChangeFound);
+
+				if (changedFields.Length > 0)
+				{
+					// field changes found
+					changedUnversionedFields.Add(new ItemLanguageComparisonResult(source.Value, changedFields));
+
+					if (abortOnChangeFound) break;
+				}
+			}
+
 			// see if the serialized versions have any mismatching values in the source data
 			var changedTargetVersions = new List<ItemVersionComparisonResult>();
 			foreach (var targetVersion in targetItem.Versions)
@@ -119,7 +165,7 @@ namespace Rainbow.Diff
 
 			changedVersions.AddRange(changedTargetVersions);
 
-			return new ItemComparisonResult(sourceItem, targetItem, renamed, moved, templateChanged, changedSharedFields, changedVersions.ToArray());
+			return new ItemComparisonResult(sourceItem, targetItem, renamed, moved, templateChanged, changedSharedFields, changedVersions.ToArray(), changedUnversionedFields.ToArray());
 		}
 
 		protected virtual bool IsRenamed(IItemData existingItemData, IItemData serializedItemData)
@@ -154,6 +200,7 @@ namespace Rainbow.Diff
 						if (abortOnChangeFound) return changedFields.ToArray();
 					}
 					// NOTE: empty values in the source are considered to be 'allowed to not exist in the target'
+					// e.g. a field may exist in Sitecore that may not be serialized.
 					else if (!string.IsNullOrEmpty(sourceField.Value))
 					{
 						changedFields.Add(new FieldComparisonResult(sourceField, null));
