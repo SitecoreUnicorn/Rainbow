@@ -35,13 +35,23 @@ namespace Rainbow.Tests.Formatting.FieldFormatters
 		}
 
 		[Fact]
-		public void XmlFieldFormatter_HandlesEmptyValue_AsNull()
+		public void XmlFieldFormatter_HandlesNullValue_AsNull()
+		{
+			var formatter = new XmlFieldFormatter();
+
+			var result = formatter.Unformat(null);
+
+			Assert.Equal(result, null);
+		}
+
+		[Fact]
+		public void XmlFieldFormatter_HandlesEmptyValue_AsRawValue()
 		{
 			var formatter = new XmlFieldFormatter();
 
 			var result = formatter.Unformat(string.Empty);
 
-			Assert.Equal(result, null);
+			Assert.Equal(result, string.Empty);
 		}
 
 		[Fact]
