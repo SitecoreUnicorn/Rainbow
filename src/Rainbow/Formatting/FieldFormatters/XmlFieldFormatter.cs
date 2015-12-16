@@ -51,7 +51,7 @@ namespace Rainbow.Formatting.FieldFormatters
 			}
 			catch (Exception ex)
 			{
-				Log.Error($"Error while unformatting expected XML field {value}. The raw value will be used instead.", ex, this);
+				Log.Error($"Error while unformatting XML field value '{value}'. The raw value will be used instead.", ex, this);
 				return value;
 			}
 		}

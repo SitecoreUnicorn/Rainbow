@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using FluentAssertions;
+using Xunit;
 using Rainbow.Formatting.FieldFormatters;
 
 namespace Rainbow.Tests.Formatting.FieldFormatters
@@ -41,6 +42,16 @@ namespace Rainbow.Tests.Formatting.FieldFormatters
 			var result = formatter.Unformat(string.Empty);
 
 			Assert.Equal(result, null);
+		}
+
+		[Fact]
+		public void XmlFieldFormatter_HandlesInvalidValue_AsRawValue()
+		{
+			var formatter = new XmlFieldFormatter();
+
+			var result = formatter.Unformat("lol not valid XML m8");
+
+			result.Should().Be("lol not valid XML m8");
 		}
 
 		[Theory,
