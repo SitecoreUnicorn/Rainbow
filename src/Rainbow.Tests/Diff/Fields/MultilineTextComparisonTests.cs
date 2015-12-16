@@ -9,7 +9,7 @@ namespace Rainbow.Tests.Diff.Fields
 			InlineData("hello", "hello"),
 			InlineData("hello\r\nthere", "hello\r\nthere"),
 			InlineData("hello\nthere", "hello\r\nthere")]
-		public void MultilineComparison_ReturnsTrue_WhenEqualStrings(string val1, string val2)
+		public void ReturnsTrue_WhenEqualStrings(string val1, string val2)
 		{
 			var comparison = new MultiLineTextComparison();
 
@@ -21,7 +21,7 @@ namespace Rainbow.Tests.Diff.Fields
 			InlineData("hello", "goodbye"),
 			InlineData("hello\r\ngoodbye", "hello\nthere"),
 			InlineData("hello\r\nthere\nsir", "hello\r\nthar\nyarr")]
-		public void MultilineComparison_ReturnsFalse_WhenUnequalStrings(string val1, string val2)
+		public void ReturnsFalse_WhenUnequalStrings(string val1, string val2)
 		{
 			var comparison = new MultiLineTextComparison();
 
@@ -33,7 +33,7 @@ namespace Rainbow.Tests.Diff.Fields
 			InlineData("Single-Line Text", false),
 			InlineData("Rich text", true),
 			InlineData("Multi-Line Text", true)]
-		public void MultilineComparison_CanCompare_MultilineFieldTypes(string fieldType, bool expected)
+		public void CanCompare_MultilineFieldTypes(string fieldType, bool expected)
 		{
 			var comparison = new MultiLineTextComparison();
 

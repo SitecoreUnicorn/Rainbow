@@ -9,7 +9,7 @@ namespace Rainbow.Tests.Diff.Fields
 			InlineData("Hello", "Hello"),
 			InlineData("hello", "hello"),
 			InlineData("123", "123")]
-		public void DefaultComparison_ReturnsTrue_WhenEqualStrings(string val1, string val2)
+		public void ReturnsTrue_WhenEqualStrings(string val1, string val2)
 		{
 			var comparison = new DefaultComparison();
 
@@ -20,7 +20,7 @@ namespace Rainbow.Tests.Diff.Fields
 			InlineData("Hello", "hello"), 
 			InlineData("hello", "goodbye"), 
 			InlineData("123", "1234")]
-		public void DefaultComparison_ReturnsFalse_WhenUnequalStrings(string val1, string val2)
+		public void ReturnsFalse_WhenUnequalStrings(string val1, string val2)
 		{
 			var comparison = new DefaultComparison();
 
