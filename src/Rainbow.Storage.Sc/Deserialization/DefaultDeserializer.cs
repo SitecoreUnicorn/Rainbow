@@ -278,12 +278,16 @@ namespace Rainbow.Storage.Sc.Deserialization
 				targetItem.RuntimeSettings.ReadOnlyStatistics = true;
 				targetItem.RuntimeSettings.SaveAll = true;
 
+				var allTargetSharedFields = serializedItemData.SharedFields.ToLookup(field => field.FieldId);
+
 				foreach (Field field in targetItem.Fields)
 				{
-					if (field.Shared && serializedItemData.SharedFields.All(x => x.FieldId != field.ID.Guid))
+					if (field.Shared && !allTargetSharedFields.Contains(field.ID.Guid))
 					{
 						_logger.ResetFieldThatDidNotExistInSerialized(field);
+
 						field.Reset();
+
 						commitEditContext = true;
 					}
 				}
@@ -331,7 +335,9 @@ namespace Rainbow.Storage.Sc.Deserialization
 					if (field.Unversioned && !allTargetUnversionedFields.Contains(field.ID.Guid))
 					{
 						_logger.ResetFieldThatDidNotExistInSerialized(field);
+
 						field.Reset();
+
 						commitEditContext = true;
 					}
 				}
@@ -395,6 +401,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			var targetVersion = Version.Parse(serializedVersion.VersionNumber);
 			Item languageItem = item.Database.GetItem(item.ID, language);
 			Item languageVersionItem = languageItem.Versions[targetVersion];
+			IDictionary<Guid, IItemFieldValue> serializedVersionFieldsLookup = serializedVersion.Fields.ToDictionary(field => field.FieldId);
 
 			if (languageVersionItem == null)
 			{
@@ -429,7 +436,8 @@ namespace Rainbow.Storage.Sc.Deserialization
 					if (field.Shared || field.Unversioned) continue;
 
 					// if we have a value in the serialized item, we don't need to reset the field
-					if (serializedVersion.Fields.Any(x => x.FieldId == field.ID.Guid)) continue;
+					if (serializedVersionFieldsLookup.ContainsKey(field.ID.Guid)) continue;
+
 					// if the field is one of revision, updated, or updated by we can specially ignore it, because these will get set below if actual field changes occur
 					// so there's no need to reset them as well
 					if (field.ID == FieldIDs.Revision || field.ID == FieldIDs.UpdatedBy || field.ID == FieldIDs.Updated) continue;
@@ -467,20 +475,17 @@ namespace Rainbow.Storage.Sc.Deserialization
 				// if the item came with blank statistics, and we're creating the item or have version updates already, let's set some sane defaults - update revision, set last updated, etc
 				if (creatingNewItem || commitEditContext)
 				{
-					// ReSharper disable once SimplifyLinqExpression
-					if (!serializedVersion.Fields.Any(f => f.FieldId == FieldIDs.Revision.Guid))
+					if (!serializedVersionFieldsLookup.ContainsKey(FieldIDs.Revision.Guid))
 					{
 						languageVersionItem.Fields[FieldIDs.Revision].SetValue(Guid.NewGuid().ToString(), true);
 					}
 
-					// ReSharper disable once SimplifyLinqExpression
-					if (!serializedVersion.Fields.Any(f => f.FieldId == FieldIDs.Updated.Guid))
+					if (!serializedVersionFieldsLookup.ContainsKey(FieldIDs.Updated.Guid))
 					{
 						languageVersionItem[FieldIDs.Updated] = DateUtil.ToIsoDate(DateTime.UtcNow);
 					}
 
-					// ReSharper disable once SimplifyLinqExpression
-					if (!serializedVersion.Fields.Any(f => f.FieldId == FieldIDs.UpdatedBy.Guid))
+					if (!serializedVersionFieldsLookup.ContainsKey(FieldIDs.UpdatedBy.Guid))
 					{
 						languageVersionItem[FieldIDs.UpdatedBy] = @"sitecore\unicorn";
 					}
