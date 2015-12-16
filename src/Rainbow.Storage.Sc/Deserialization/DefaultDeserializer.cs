@@ -441,11 +441,11 @@ namespace Rainbow.Storage.Sc.Deserialization
 					// if the field is one of revision, updated, or updated by we can specially ignore it, because these will get set below if actual field changes occur
 					// so there's no need to reset them as well
 					if (field.ID == FieldIDs.Revision || field.ID == FieldIDs.UpdatedBy || field.ID == FieldIDs.Updated) continue;
-					// if the field value is already blank - ignoring standard values - we can assume there's no need to reset it
-					if (field.GetValue(false, false) == string.Empty) continue;
 
 					_logger.ResetFieldThatDidNotExistInSerialized(field);
+
 					field.Reset();
+
 					commitEditContext = true;
 				}
 
