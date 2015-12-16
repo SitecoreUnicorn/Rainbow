@@ -399,17 +399,28 @@ namespace Rainbow.Storage.Sc.Deserialization
 		{
 			Language language = Language.Parse(serializedVersion.Language.Name);
 			var targetVersion = Version.Parse(serializedVersion.VersionNumber);
+
 			Item languageItem = item.Database.GetItem(item.ID, language);
+
 			Item languageVersionItem = languageItem.Versions[targetVersion];
+
 			IDictionary<Guid, IItemFieldValue> serializedVersionFieldsLookup = serializedVersion.Fields.ToDictionary(field => field.FieldId);
 
+			// Add a new version if we need to for the serialized version we're pasting
+			// NOTE: normally Sitecore will return an empty version when requested (e.g. you can ask for 'en#25' and get a blank version back)
+			// so this null check is only here for legacy support
 			if (languageVersionItem == null)
 			{
 				languageVersionItem = languageItem.Versions.AddVersion();
+
+				if(languageVersionItem == null) throw new InvalidOperationException("Failed to add a new version: AddVersion() returned null.");
+
 				if (!creatingNewItem)
 					_logger.AddedNewVersion(languageVersionItem);
 			}
 
+			// Based on the note above, in order to detect the modern form where item.Versions[] returns a blank version no matter what,
+			// we need to check again to see if the version we requested is actually currently present on the item or not, so we can correctly log version adds
 			// ReSharper disable once SimplifyLinqExpression
 			if (!languageVersionItem.Versions.GetVersionNumbers().Any(x => x.Number == languageVersionItem.Version.Number))
 			{
@@ -417,6 +428,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 					_logger.AddedNewVersion(languageVersionItem);
 			}
 
+			// begin writing the version data
 			bool commitEditContext = false;
 
 			try
