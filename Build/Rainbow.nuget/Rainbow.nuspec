@@ -18,6 +18,5 @@
 	</metadata>
 	<files>
 		<file src="..\..\src\Rainbow\Rainbow.config" target="content\App_Config\Include" />
-		<file src="..\..\src\Rainbow\Rainbow.TFS.config.example" target="content\App_Config\Include" />
 	</files>
 </package>

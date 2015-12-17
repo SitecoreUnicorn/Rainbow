@@ -95,7 +95,6 @@
     <Compile Include="Storage\TreeWatcher.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Rainbow.TFS.config.example" />
     <None Include="TODO.txt" />
   </ItemGroup>
   <ItemGroup>
