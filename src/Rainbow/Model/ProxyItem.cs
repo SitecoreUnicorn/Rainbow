@@ -49,6 +49,7 @@ namespace Rainbow.Model
 			DatabaseName = databaseName;
 			SharedFields = Enumerable.Empty<IItemFieldValue>();
 			Versions = Enumerable.Empty<IItemVersion>();
+			UnversionedFields = Enumerable.Empty<IItemLanguage>();
 		}
 
 		public virtual Guid Id { get; set; }
