@@ -64,17 +64,9 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 				PasteSharedFields(serializedItemData, targetItem, newItemWasCreated, softErrors);
 
-				PasteUnversionedFields(serializedItemData, targetItem, newItemWasCreated, softErrors);
-
-				ClearCaches(targetItem.Database, new ID(serializedItemData.Id));
-
-				targetItem.Reload();
-
-				ResetTemplateEngineIfItemIsTemplate(targetItem);
-
 				PasteVersions(serializedItemData, targetItem, newItemWasCreated, softErrors);
 
-				ClearCaches(targetItem.Database, targetItem.ID);
+				PasteUnversionedFields(serializedItemData, targetItem, newItemWasCreated, softErrors);
 
 				if (softErrors.Count > 0) throw TemplateMissingFieldException.Merge(softErrors);
 
@@ -307,60 +299,15 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 				// we commit the edit context - and write to the DB - only if we changed something
 				if (commitEditContext)
-					targetItem.Editing.EndEdit();
-			}
-			finally
-			{
-				if (targetItem.Editing.IsEditing)
-					targetItem.Editing.CancelEdit();
-			}
-		}
-
-		protected virtual void PasteUnversionedFields(IItemData serializedItemData, Item targetItem, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors)
-		{
-			bool commitEditContext = false;
-
-			try
-			{
-				targetItem.Editing.BeginEdit();
-
-				targetItem.RuntimeSettings.ReadOnlyStatistics = true;
-				targetItem.RuntimeSettings.SaveAll = true;
-
-				var allTargetUnversionedFields = serializedItemData.UnversionedFields.SelectMany(lang => lang.Fields).ToLookup(field => field.FieldId);
-
-				foreach (Field field in targetItem.Fields)
 				{
-					// field was not serialized. Which means the field is either blank or has its standard value, so let's reset it
-					if (field.Unversioned && !allTargetUnversionedFields.Contains(field.ID.Guid))
-					{
-						_logger.ResetFieldThatDidNotExistInSerialized(field);
-
-						field.Reset();
-
-						commitEditContext = true;
-					}
-				}
-
-				foreach (var language in serializedItemData.UnversionedFields)
-				{
-					foreach (var field in language.Fields)
-					{
-						try
-						{
-							if (PasteField(targetItem, field, newItemWasCreated))
-								commitEditContext = true;
-						}
-						catch (TemplateMissingFieldException tex)
-						{
-							softErrors.Add(tex);
-						}
-					}
-				}
-
-				// we commit the edit context - and write to the DB - only if we changed something
-				if (commitEditContext)
 					targetItem.Editing.EndEdit();
+
+					ClearCaches(targetItem.Database, new ID(serializedItemData.Id));
+
+					targetItem.Reload();
+
+					ResetTemplateEngineIfItemIsTemplate(targetItem);
+				}
 			}
 			finally
 			{
@@ -520,6 +467,68 @@ namespace Rainbow.Storage.Sc.Deserialization
 			}
 
 			return languageVersionItem;
+		}
+
+		protected virtual void PasteUnversionedFields(IItemData serializedItemData, Item targetItem, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors)
+		{
+			foreach (var language in serializedItemData.UnversionedFields)
+			{
+				PasteUnversionedLanguage(targetItem, language, newItemWasCreated, softErrors);
+			}
+		}
+
+		protected virtual void PasteUnversionedLanguage(Item item, IItemLanguage serializedLanguage, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors)
+		{
+			Language language = Language.Parse(serializedLanguage.Language.Name);
+
+			Item targetItem = item.Database.GetItem(item.ID, language);
+
+			bool commitEditContext = false;
+
+			try
+			{
+				targetItem.Editing.BeginEdit();
+
+				targetItem.RuntimeSettings.ReadOnlyStatistics = true;
+				targetItem.RuntimeSettings.SaveAll = true;
+
+				var allTargetUnversionedFields = serializedLanguage.Fields.ToLookup(field => field.FieldId);
+
+				foreach (Field field in targetItem.Fields)
+				{
+					// field was not serialized. Which means the field is either blank or has its standard value, so let's reset it
+					if (field.Unversioned && !allTargetUnversionedFields.Contains(field.ID.Guid))
+					{
+						_logger.ResetFieldThatDidNotExistInSerialized(field);
+
+						field.Reset();
+
+						commitEditContext = true;
+					}
+				}
+
+				foreach (var field in serializedLanguage.Fields)
+				{
+					try
+					{
+						if (PasteField(targetItem, field, newItemWasCreated))
+							commitEditContext = true;
+					}
+					catch (TemplateMissingFieldException tex)
+					{
+						softErrors.Add(tex);
+					}
+				}
+
+				// we commit the edit context - and write to the DB - only if we changed something
+				if (commitEditContext)
+					targetItem.Editing.EndEdit();
+			}
+			finally
+			{
+				if (targetItem.Editing.IsEditing)
+					targetItem.Editing.CancelEdit();
+			}
 		}
 
 		/// <summary>
