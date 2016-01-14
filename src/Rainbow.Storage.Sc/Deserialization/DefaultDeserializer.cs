@@ -497,7 +497,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 				foreach (Field field in targetItem.Fields)
 				{
 					// field was not serialized. Which means the field is either blank or has its standard value, so let's reset it
-					if (field.Unversioned && !allTargetUnversionedFields.Contains(field.ID.Guid))
+					if (field.Unversioned && !field.Shared && !allTargetUnversionedFields.Contains(field.ID.Guid))
 					{
 						_logger.ResetFieldThatDidNotExistInSerialized(field);
 
