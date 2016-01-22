@@ -6,6 +6,7 @@ using System.Linq;
 using Rainbow.Filtering;
 using Rainbow.Model;
 using Sitecore;
+using Sitecore.Caching;
 using Sitecore.Configuration;
 using Sitecore.Data;
 using Sitecore.Data.Fields;
@@ -135,7 +136,9 @@ namespace Rainbow.Storage.Sc.Deserialization
 				{
 					var oldParent = targetItem.Parent;
 					targetItem.MoveTo(destinationParentItem);
-					_logger.MovedItemToNewParent(destinationParentItem, oldParent, targetItem);
+
+					if (!targetItem.ParentID.IsNull)
+						_logger.MovedItemToNewParent(destinationParentItem, oldParent, targetItem);
 				}
 			}
 			return targetItem;
@@ -360,7 +363,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			{
 				languageVersionItem = languageItem.Versions.AddVersion();
 
-				if(languageVersionItem == null) throw new InvalidOperationException("Failed to add a new version: AddVersion() returned null.");
+				if (languageVersionItem == null) throw new InvalidOperationException("Failed to add a new version: AddVersion() returned null.");
 
 				if (!creatingNewItem)
 					_logger.AddedNewVersion(languageVersionItem);
@@ -480,8 +483,17 @@ namespace Rainbow.Storage.Sc.Deserialization
 		protected virtual void PasteUnversionedLanguage(Item item, IItemLanguage serializedLanguage, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors)
 		{
 			Language language = Language.Parse(serializedLanguage.Language.Name);
-
+			
 			Item targetItem = item.Database.GetItem(item.ID, language);
+
+			if (targetItem == null)
+			{
+				// this can occasionally occur when syncing a tpSync config
+				CacheManager.ClearAllCaches();
+				targetItem = item.Database.GetItem(item.ID, language);
+			}
+
+			Assert.IsNotNull(targetItem, "Target item language to paste unversioned fields into was null.");
 
 			bool commitEditContext = false;
 
