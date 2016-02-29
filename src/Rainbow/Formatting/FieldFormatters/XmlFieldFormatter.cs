@@ -3,6 +3,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using Rainbow.Model;
+using Sitecore.Configuration;
 using Sitecore.Diagnostics;
 
 namespace Rainbow.Formatting.FieldFormatters
@@ -11,12 +12,28 @@ namespace Rainbow.Formatting.FieldFormatters
 	{
 		public override string[] SupportedFieldTypes => new[] { "Layout", "Tracking", "Rules" };
 
+		protected virtual bool UseLegacyFormatting => Settings.GetBoolSetting("Rainbow.XmlFormat.UseLegacyAttributeFormatting", false);
+
 		public override string Format(IItemFieldValue field)
 		{
 			try
 			{
 				XDocument doc = XDocument.Parse(field.Value);
-				return doc.ToString();
+				XmlWriterSettings settings = new XmlWriterSettings
+				{
+					OmitXmlDeclaration = true,
+					Indent = true,
+					NewLineOnAttributes = !UseLegacyFormatting,
+				};
+
+				StringBuilder result = new StringBuilder();
+
+				using (XmlWriter writer = XmlWriter.Create(result, settings))
+				{
+					doc.WriteTo(writer);
+				}
+
+				return result.ToString();
 			}
 			catch (Exception ex)
 			{
