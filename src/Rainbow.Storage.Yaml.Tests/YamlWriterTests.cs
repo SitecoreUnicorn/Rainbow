@@ -49,6 +49,21 @@ namespace Rainbow.Storage.Yaml.Tests
 			}, "---\r\nHello: \"\\\"What a nice world this is\\\"\"\r\n", "Written map was not in expected format!");
 		}
 
+		[Theory]
+		[InlineData("- there")]
+		[InlineData("yo:dawg")]
+		[InlineData("hey [there]")]
+		[InlineData("{nope}")]
+		[InlineData("!bang")]
+		[InlineData("what?")]
+		public void YamlWriter_WritesMap_WithEscaping_WhenValueContainsYamlEscapeChar(string value)
+		{
+			ExecuteYamlWriter(writer =>
+			{
+				writer.WriteMap("Hello", value);
+			}, "---\r\nHello: \"" + value + "\"\r\n", "Written map was not in expected format!");
+		}
+
 		[Fact]
 		public void YamlWriter_WritesMultilineMap_AtRoot()
 		{

@@ -53,6 +53,16 @@ namespace Rainbow.Storage.Yaml.Tests
 		}
 
 		[Fact]
+		public void YamlReader_ReadsMap_WithEscaping_AtRoot_ContainingColonInValue()
+		{
+			ExecuteYamlReader("---\r\nHello: \"Whirled: \\\"Pe:as\\\"\"\r\n", reader =>
+			{
+				var value = reader.ReadExpectedMap("Hello");
+				Assert.Equal("Whirled: \"Pe:as\"", value);
+			});
+		}
+
+		[Fact]
 		public void YamlReader_ReadsMultilineMap_AtRoot()
 		{
 			ExecuteYamlReader("---\r\nHello: |\r\n  <div>\r\n    <p>Hello!</p>\r\n  </div>\r\nFake: Value", reader =>
