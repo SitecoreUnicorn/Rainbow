@@ -211,5 +211,18 @@ namespace Rainbow.Tests.Storage
 				Assert.EndsWith("Html Editor Drop Down.yml", children[1].SerializedItemId);
 			}
 		}
+
+	    [Fact]
+	    public void Save_SetsSerializedItemId_WhenUsingDataCache()
+	    {
+	        using (var testTree = new TestSfsTree(useDataCache: true))
+	        {
+	            testTree.CreateTestTree("/sitecore");
+
+	            var item = testTree.GetItemsByPath("/sitecore").First();
+
+	            Assert.Equal(item.SerializedItemId, Path.Combine(testTree.PhysicalRootPath, "sitecore.yml"));
+	        }
+	    }
 	}
 }

@@ -8,8 +8,8 @@ namespace Rainbow.Tests.Storage
 {
 	internal class TestSfsTree : SerializationFileSystemTree
 	{
-		public TestSfsTree(string globalRootItemPath = "/sitecore")
-			: base("Unit Testing", globalRootItemPath, "UnitTesting", Path.Combine(Path.GetTempPath(), Guid.NewGuid() + " rb"), new YamlSerializationFormatter(null, null), false)
+		public TestSfsTree(string globalRootItemPath = "/sitecore", bool useDataCache = false)
+			: base("Unit Testing", globalRootItemPath, "UnitTesting", Path.Combine(Path.GetTempPath(), Guid.NewGuid() + " rb"), new YamlSerializationFormatter(null, null), useDataCache)
 		{
 			MaxPathLengthForTests = base.MaxRelativePathLength;
 			MaxFileNameLengthForTests = base.MaxItemNameLengthBeforeTruncation;
@@ -23,7 +23,7 @@ namespace Rainbow.Tests.Storage
 		protected override void Dispose(bool disposing)
 		{
 			base.Dispose(disposing);
-			
+
 			if (PhysicalRootPath != null && Directory.Exists(PhysicalRootPath))
 				Directory.Delete(PhysicalRootPath, true);
 		}
