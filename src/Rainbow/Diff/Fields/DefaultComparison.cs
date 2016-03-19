@@ -1,4 +1,5 @@
-﻿using Rainbow.Model;
+﻿using System;
+using Rainbow.Model;
 
 namespace Rainbow.Diff.Fields
 {
@@ -18,7 +19,7 @@ namespace Rainbow.Diff.Fields
 
 			if (field1Value == null || field2Value == null) return false;
 
-			return field1Value.Equals(field2Value);
+			return field1Value.Equals(field2Value, StringComparison.Ordinal);
 		}
 	}
 }

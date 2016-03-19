@@ -51,6 +51,7 @@
     <Compile Include="Diff\Fields\FieldComparisonResult.cs" />
     <Compile Include="Diff\Fields\FieldTypeBasedComparison.cs" />
     <Compile Include="Diff\Fields\IFieldComparer.cs" />
+    <Compile Include="Diff\Fields\CheckboxComparison.cs" />
     <Compile Include="Diff\Fields\MultiLineTextComparison.cs" />
     <Compile Include="Diff\Fields\MultilistComparison.cs" />
     <Compile Include="Diff\Fields\XmlComparison.cs" />
