@@ -423,7 +423,7 @@ namespace Rainbow.Storage
 			//  If no matches exist, and the item isn't the root item, throw - parent must be serialized
 			if (parentItem == null)
 			{
-				throw new InvalidOperationException("The parent item of {0} was not serialized. You cannot have a sparse serialized tree.".FormatWith(item.Path));
+				throw new InvalidOperationException("The parent item of {0} was not serialized. You cannot have a sparse serialized tree. You may need to serialize this item's parents.".FormatWith(item.Path));
 			}
 
 			// Determine if this item has any name-dupes in the source store.
