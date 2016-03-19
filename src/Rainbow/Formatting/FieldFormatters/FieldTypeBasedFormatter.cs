@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Rainbow.Formatting.FieldFormatters;
 using Rainbow.Model;
 using Sitecore.Diagnostics;
 
-namespace Rainbow.Formatting
+namespace Rainbow.Formatting.FieldFormatters
 {
 	public abstract class FieldTypeBasedFormatter : IFieldFormatter
 	{

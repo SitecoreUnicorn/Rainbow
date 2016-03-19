@@ -64,9 +64,10 @@
     <Compile Include="Filtering\FilteredItem.cs" />
     <Compile Include="Filtering\IFieldFilter.cs" />
     <Compile Include="Formatting\FieldFormatters\IFieldFormatter.cs" />
+    <Compile Include="Formatting\FieldFormatters\CheckboxFieldFormatter.cs" />
     <Compile Include="Formatting\FieldFormatters\MultilistFormatter.cs" />
     <Compile Include="Formatting\FieldFormatters\XmlFieldFormatter.cs" />
-    <Compile Include="Formatting\FieldTypeBasedFormatter.cs" />
+    <Compile Include="Formatting\FieldFormatters\FieldTypeBasedFormatter.cs" />
     <Compile Include="Formatting\ISerializationFormatter.cs" />
     <Compile Include="IDocumentable.cs" />
     <Compile Include="Model\IItemLanguage.cs" />
