@@ -349,9 +349,9 @@ namespace Rainbow.Storage
 			Assert.ArgumentNotNull(item, "item");
 			Assert.ArgumentNotNullOrEmpty(path, "path");
 
-		    var proxiedItem = new ProxyItem(item) {SerializedItemId = path};
+			var proxiedItem = new ProxyItem(item) { SerializedItemId = path };
 
-		    lock (FileUtil.GetFileLock(path))
+			lock (FileUtil.GetFileLock(path))
 			{
 				try
 				{

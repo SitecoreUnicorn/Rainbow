@@ -191,28 +191,28 @@ Languages:
 				});
 
 			var expectedYml = @"---
-ID: a4f985d9-98b3-4b52-aaaf-4344f6e747c6
-Parent: 001dd393-96c5-490b-924a-b0f25cd9efd8
-Template: 007a464d-5b09-4d0e-8481-cb6a604a5948
+ID: ""a4f985d9-98b3-4b52-aaaf-4344f6e747c6""
+Parent: ""001dd393-96c5-490b-924a-b0f25cd9efd8""
+Template: ""007a464d-5b09-4d0e-8481-cb6a604a5948""
 Path: /sitecore/content/test
 DB: master
-BranchID: 25bed78c-4957-4165-998a-ca1b52f67497
+BranchID: ""25bed78c-4957-4165-998a-ca1b52f67497""
 SharedFields:
-- ID: 549fa670-79ab-4810-9450-aba0c06a2b87
+- ID: ""549fa670-79ab-4810-9450-aba0c06a2b87""
   Hint: Text Shared
   Value: SHARED
 Languages:
 - Language: en
   Fields:
-  - ID: ffffd78c-4957-4165-998a-ca1b52f67497
+  - ID: ""ffffd78c-4957-4165-998a-ca1b52f67497""
     Hint: Unversioned
     Value: unversioned
   Versions:
   - Version: 1
     Fields:
-    - ID: 25bed78c-4957-4165-998a-ca1b52f67497
+    - ID: ""25bed78c-4957-4165-998a-ca1b52f67497""
       Hint: __Created
-      Value: 20140918T062658:635466184182719253
+      Value: ""20140918T062658:635466184182719253""
 ";
 
 			using (var ms = new MemoryStream())
@@ -255,13 +255,13 @@ Languages:
 				name: "test");
 
 			var expectedYml = @"---
-ID: a4f985d9-98b3-4b52-aaaf-4344f6e747c6
-Parent: 001dd393-96c5-490b-924a-b0f25cd9efd8
-Template: 007a464d-5b09-4d0e-8481-cb6a604a5948
+ID: ""a4f985d9-98b3-4b52-aaaf-4344f6e747c6""
+Parent: ""001dd393-96c5-490b-924a-b0f25cd9efd8""
+Template: ""007a464d-5b09-4d0e-8481-cb6a604a5948""
 Path: /sitecore/content/test
 DB: master
 SharedFields:
-- ID: 549fa670-79ab-4810-9450-aba0c06a2b87
+- ID: ""549fa670-79ab-4810-9450-aba0c06a2b87""
   Hint: Multilist Field
   Type: Multilist
   Value: |
