@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using Rainbow.Model;
-using Sitecore.Data.Fields;
 using Sitecore.Data.Items;
 
 namespace Rainbow.Storage.Sc
@@ -17,8 +15,8 @@ namespace Rainbow.Storage.Sc
 		private Item[] _itemVersions;
 		// ReSharper disable once RedundantDefaultMemberInitializer
 		private bool _fieldsLoaded = false;
-		protected static FieldReader FieldReader = new FieldReader();
-		private static Version _sitecoreVersion = Version.Parse(Sitecore.Configuration.About.GetVersionNumber(true));
+		protected internal static FieldReader FieldReader = new FieldReader();
+		private static readonly Version SitecoreVersion = Version.Parse(Sitecore.Configuration.About.GetVersionNumber(true));
 
 		public ItemData(Item item)
 		{
@@ -145,7 +143,7 @@ namespace Rainbow.Storage.Sc
 				// if we are on Sitecore 8.1.x we need to cull any language fallback'ed versions
 				// but we don't want to break compatibility with earlier Sitecore versions so we do a runtime version
 				// check prior to invoking the 8.1 API
-				if (_sitecoreVersion.Major > 8 || (_sitecoreVersion.Major == 8 && _sitecoreVersion.Minor >= 1))
+				if (SitecoreVersion.Major > 8 || (SitecoreVersion.Major == 8 && SitecoreVersion.Minor >= 1))
 				{
 					_itemVersions = _itemVersions.Where(version => !version.IsFallback).ToArray();
 				}
@@ -162,116 +160,6 @@ namespace Rainbow.Storage.Sc
 		protected virtual FieldReader CreateFieldReader()
 		{
 			return FieldReader;
-		}
-
-		[DebuggerDisplay("{NameHint} ({FieldType})")]
-		protected internal class ItemFieldValue : IItemFieldValue
-		{
-			private readonly Field _field;
-			private readonly string _retrievedStringValue;
-
-			public ItemFieldValue(Field field, string retrievedStringValue)
-			{
-				_field = field;
-				_retrievedStringValue = retrievedStringValue;
-			}
-
-			public Guid FieldId => _field.ID.Guid;
-
-			public virtual string Value
-			{
-				get
-				{
-					if (_field.IsBlobField)
-					{
-						if (!_field.HasBlobStream) return null;
-
-						using (var stream = _field.GetBlobStream())
-						{
-							var buf = new byte[stream.Length];
-
-							stream.Read(buf, 0, (int)stream.Length);
-
-							return Convert.ToBase64String(buf);
-						}
-					}
-					return _retrievedStringValue;
-				}
-			}
-
-			public string FieldType => _field.Type;
-
-			public virtual Guid? BlobId
-			{
-				get
-				{
-					if (_field.IsBlobField)
-					{
-						string parsedIdValue = _field.Value;
-						if (parsedIdValue.Length > 38)
-							parsedIdValue = parsedIdValue.Substring(0, 38);
-
-						Guid blobId;
-						if (Guid.TryParse(parsedIdValue, out blobId)) return blobId;
-					}
-
-					return null;
-				}
-			}
-
-			public string NameHint => _field.Name;
-		}
-
-		[DebuggerDisplay("{Language} #{VersionNumber}")]
-		protected class ItemVersionValue : IItemVersion
-		{
-			private readonly Item _version;
-			// ReSharper disable once RedundantDefaultMemberInitializer
-			private bool _fieldsLoaded = false;
-
-			public ItemVersionValue(Item version)
-			{
-				_version = version;
-			}
-
-			private List<IItemFieldValue> _fields;
-
-			public virtual IEnumerable<IItemFieldValue> Fields
-			{
-				get
-				{
-					if (_fields == null)
-					{
-						EnsureFields();
-
-						_fields = CreateFieldReader().ParseFields(_version, FieldReader.FieldReadType.Versioned);
-					}
-
-					return _fields;
-				}
-			}
-
-			public CultureInfo Language => _version.Language.CultureInfo;
-
-			public int VersionNumber => _version.Version.Number;
-
-			protected virtual void EnsureFields()
-			{
-				if (!_fieldsLoaded)
-				{
-					_version.Fields.ReadAll();
-					_fieldsLoaded = true;
-				}
-			}
-			protected virtual IItemFieldValue CreateFieldValue(Field field, string value)
-			{
-				return new ItemFieldValue(field, value);
-			}
-
-			protected virtual FieldReader CreateFieldReader()
-			{
-				return FieldReader;
-			}
 		}
 	}
 }

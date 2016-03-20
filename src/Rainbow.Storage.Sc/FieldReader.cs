@@ -74,7 +74,7 @@ namespace Rainbow.Storage.Sc
 
 		protected virtual IItemFieldValue CreateFieldValue(Field field, string value)
 		{
-			return new ItemData.ItemFieldValue(field, value);
+			return new ItemFieldValue(field, value);
 		}
 
 		public enum FieldReadType { Versioned, Unversioned, Shared }
