@@ -18,6 +18,7 @@ namespace Rainbow.Storage.Sc
 		// ReSharper disable once RedundantDefaultMemberInitializer
 		private bool _fieldsLoaded = false;
 		protected static FieldReader FieldReader = new FieldReader();
+		private static Version _sitecoreVersion = Version.Parse(Sitecore.Configuration.About.GetVersionNumber(true));
 
 		public ItemData(Item item)
 		{
@@ -138,7 +139,17 @@ namespace Rainbow.Storage.Sc
 		protected virtual Item[] GetVersions()
 		{
 			if (_itemVersions == null)
+			{
 				_itemVersions = _item.Versions.GetVersions(true);
+
+				// if we are on Sitecore 8.1.x we need to cull any language fallback'ed versions
+				// but we don't want to break compatibility with earlier Sitecore versions so we do a runtime version
+				// check prior to invoking the 8.1 API
+				if (_sitecoreVersion.Major > 8 || (_sitecoreVersion.Major == 8 && _sitecoreVersion.Minor >= 1))
+				{
+					_itemVersions = _itemVersions.Where(version => !version.IsFallback).ToArray();
+				}
+			}
 
 			return _itemVersions;
 		}
