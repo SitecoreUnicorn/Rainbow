@@ -16,7 +16,20 @@ namespace Rainbow.Storage.Sc
 		// ReSharper disable once RedundantDefaultMemberInitializer
 		private bool _fieldsLoaded = false;
 		protected internal static FieldReader FieldReader = new FieldReader();
-		private static readonly Version SitecoreVersion = Version.Parse(Sitecore.Configuration.About.GetVersionNumber(true));
+		private static readonly Version SitecoreVersion;
+
+		static ItemData()
+		{
+			try
+			{
+				SitecoreVersion = Version.Parse(Sitecore.Configuration.About.GetVersionNumber(true));
+			}
+			catch(Exception ex)
+			{
+				Sitecore.Diagnostics.Log.Error("Rainbow: Error getting Sitecore version.", ex, typeof(ItemData));
+				SitecoreVersion = new Version(8, 1, 0);
+			}
+		}
 
 		public ItemData(Item item)
 		{
