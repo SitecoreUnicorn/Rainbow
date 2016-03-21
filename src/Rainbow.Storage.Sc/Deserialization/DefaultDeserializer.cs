@@ -217,6 +217,9 @@ namespace Rainbow.Storage.Sc.Deserialization
 		/// </summary>
 		protected void UpdateFieldSharingIfNeeded(IItemData serializedItemData, Item targetItem)
 		{
+			Assert.ArgumentNotNull(serializedItemData, nameof(serializedItemData));
+			Assert.ArgumentNotNull(targetItem, nameof(targetItem));
+
 			if (serializedItemData.TemplateId != TemplateIDs.TemplateField.Guid) return;
 
 			var shared = serializedItemData.SharedFields.FirstOrDefault(field => field.FieldId == TemplateFieldIDs.Shared.Guid);
@@ -228,6 +231,17 @@ namespace Rainbow.Storage.Sc.Deserialization
 			else if (unversioned != null && unversioned.Value.Equals("1")) sharedness = TemplateFieldSharing.Unversioned;
 
 			var templateField = TemplateManager.GetTemplateField(targetItem.ID, targetItem.Parent.Parent.ID, targetItem.Database);
+
+			if (templateField == null)
+			{
+				// BOMB WIG
+				CacheManager.ClearAllCaches();
+				targetItem.Database.Engines.TemplateEngine.Reset();
+
+				templateField = TemplateManager.GetTemplateField(targetItem.ID, targetItem.Parent.Parent.ID, targetItem.Database);
+			}
+
+			Assert.IsNotNull(templateField, $"Unable to find template field {targetItem.ID} in {targetItem.Database.Name}, even after resetting the engine.");
 
 			TemplateFieldSharing templateSharedness = TemplateFieldSharing.None;
 			if (templateField.IsShared) templateSharedness = TemplateFieldSharing.Shared;
