@@ -44,7 +44,10 @@ namespace Rainbow.Storage.Sc
 
 				var value = field.GetValue(allowDefaultValue: false, allowStandardValue: false);
 
-				if (!string.IsNullOrEmpty(value))
+                // @cassidydotdk: 07-June-2016: If there is a value (and it's not coming from std values or elsewhere), it is significant
+                // origial:
+                //  if (!string.IsNullOrEmpty(value))
+                if (value != null)
 				{
 					fieldResults.Add(CreateFieldValue(field, value));
 					continue;
