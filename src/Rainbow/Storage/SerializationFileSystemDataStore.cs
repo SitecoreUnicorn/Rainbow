@@ -94,10 +94,13 @@ namespace Rainbow.Storage
 
 					if (tree == null) throw new InvalidOperationException("No trees contained the global path " + parent.Path);
 
-					var savedPath = tree.Save(parent);
+					using (new SfsDuplicateIdCheckingDisabler())
+					{
+						var savedPath = tree.Save(parent);
 
-					// if we saved an item that was a former child of the item we want to keep it when we're doing deletions
-					if (oldPathItemAndDescendants.ContainsKey(savedPath)) oldPathItemAndDescendants.Remove(savedPath);
+						// if we saved an item that was a former child of the item we want to keep it when we're doing deletions
+						if (oldPathItemAndDescendants.ContainsKey(savedPath)) oldPathItemAndDescendants.Remove(savedPath);
+					}
 
 					var children = parent.GetChildren();
 

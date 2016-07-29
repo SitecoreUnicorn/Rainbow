@@ -96,6 +96,33 @@ namespace Rainbow.Tests.Storage
 		}
 
 		[Fact]
+		public void MoveOrRename_RenamesItem_WhenDestinationIsASubsetOfSourceName()
+		{
+			using (var dataStore = new TestSfsDataStore("/sitecore"))
+			{
+				var startingItemName = "thumpy basscannon";
+				var renameItemName = "thumpy";
+
+				dataStore.CreateTestItemTree("/sitecore");
+
+				var itemToRename = new FakeItem(path: $"/sitecore/{startingItemName}", name: startingItemName, id: Guid.NewGuid());
+				
+				dataStore.Save(itemToRename);
+
+				// note adding children with old paths; method takes care of rewriting child paths
+				var renamedItem = new FakeItem(id: itemToRename.Id, path: $"/sitecore/{renameItemName}", name: renameItemName);
+
+				dataStore.MoveOrRenameItem(renamedItem, itemToRename.Path);
+
+				var retrievedRenamedItem = dataStore.GetByPath($"/sitecore/{renameItemName}", "master").ToArray();
+
+				retrievedRenamedItem.Length.Should().Be(1);
+				retrievedRenamedItem.First().Path.Should().Be($"/sitecore/{renameItemName}");
+				retrievedRenamedItem.First().SerializedItemId.Should().EndWith($"\\{renameItemName}.yml");
+			}
+		}
+
+		[Fact]
 		public void MoveOrRename_RenamesItem_WhenChildrenAreOnShortPaths()
 		{
 			// This test checks that moves and renames when children are on loopback paths succeed. See Unicorn#77 and Unicorn#81
