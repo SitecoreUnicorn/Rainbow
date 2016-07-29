@@ -100,6 +100,8 @@ namespace Rainbow.Storage
 			Assert.IsTrue(globalRootItemPath.Length > 1, "The global root item path cannot be '/' - there is no root item. You probably mean '/sitecore'.");
 
 			_globalRootItemPath = globalRootItemPath.TrimEnd('/');
+			// enforce that the physical root path is filesystem-safe
+			AssertValidPhysicalPath(physicalRootPath);
 			_physicalRootPath = physicalRootPath;
 			_formatter = formatter;
 			_dataCache = new FsCache<IItemData>(useDataCache);
@@ -577,6 +579,27 @@ namespace Rainbow.Storage
 			if (InvalidFileNames.Contains(validifiedName)) return "_" + validifiedName;
 
 			return validifiedName;
+		}
+
+		protected void AssertValidPhysicalPath(string physicalPath)
+		{
+			var pathPieces = physicalPath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+			
+			foreach (var pathPiece in pathPieces)
+			{
+				if (InvalidFileNames.Contains(pathPiece)) throw new ArgumentException($"Illegal file or directory name {pathPiece} is part of the tree root physical path {physicalPath}. If you're using Unicorn, you may need to specify a 'name' attribute on your include to make the path a valid name.", nameof(physicalPath));
+
+				foreach (var invalidChar in InvalidFileNameCharacters)
+				{
+					if (pathPiece.Contains(invalidChar))
+					{
+						// : is okay for a drive letter :)
+						if (invalidChar == ':' && pathPiece.IndexOf(':') == 1) continue;
+
+						throw new ArgumentException($"Illegal character {invalidChar} in tree root physical path {physicalPath}. If you're using Unicorn, you may need to specify a 'name' attribute on your include to make the path a valid name.", nameof(physicalPath));
+					}
+				}
+			}
 		}
 
 		protected virtual IItemMetadata GetItemForGlobalPath(string globalPath, Guid expectedItemId)
