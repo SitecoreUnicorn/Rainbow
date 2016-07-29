@@ -258,6 +258,20 @@ namespace Rainbow.Tests.Diff
 		}
 
 		[Fact]
+		public void ItemComparer_IsNotEqual_WhenBranchesAreUnequal()
+		{
+			var comparer = new TestItemComparer();
+
+			var sourceItem = new FakeItem(branchId: Guid.NewGuid());
+			var targetItem = new FakeItem(branchId: Guid.NewGuid());
+
+			var comparison = comparer.Compare(sourceItem, targetItem);
+
+			Assert.False(comparison.AreEqual);
+			Assert.True(comparison.IsBranchChanged);
+		}
+
+		[Fact]
 		public void EvaluateUpdate_DoesNotDeserialize_WhenItemsAreEqual()
 		{
 			var comparer = new TestItemComparer();

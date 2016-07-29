@@ -149,6 +149,22 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 		}
 
 		[Fact]
+		public void Deserialize_DeserializesExistingItem_WithBranchChanged()
+		{
+			// FakeDb does not yet support setting branchID: https://github.com/sergeyshushlyapin/Sitecore.FakeDb/issues/136
+			//RunItemChangeTest(
+			//	setup: itemData =>
+			//	{
+			//		itemData.BranchId = _testTemplate2Id.Guid;
+			//	},
+			//	assert: dbItem =>
+			//	{
+			//		Assert.Equal(_testTemplate2Id, dbItem.BranchId);
+			//	}
+			//);
+		}
+
+		[Fact]
 		public void Deserialize_DeserializesExistingItem_WithVersionAdded()
 		{
 			RunItemChangeTest(

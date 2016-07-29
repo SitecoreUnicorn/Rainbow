@@ -57,6 +57,8 @@ namespace Rainbow.Storage.Sc.Deserialization
 			{
 				ChangeTemplateIfNeeded(serializedItemData, targetItem);
 
+				ChangeBranchIfNeeded(serializedItemData, targetItem);
+
 				RenameIfNeeded(serializedItemData, targetItem);
 
 				ResetTemplateEngineIfItemIsTemplate(targetItem);
@@ -144,18 +146,35 @@ namespace Rainbow.Storage.Sc.Deserialization
 			return targetItem;
 		}
 
-		protected void RenameIfNeeded(IItemData serializedItemData, Item targetItem)
+		protected void ChangeBranchIfNeeded(IItemData serializedItemData, Item targetItem)
 		{
-			if (targetItem.Name == serializedItemData.Name && targetItem.BranchId.Guid.Equals(serializedItemData.BranchId)) return;
+			if (targetItem.BranchId.Guid.Equals(serializedItemData.BranchId)) return;
 
-			string oldName = targetItem.Name;
 			Guid oldBranchId = targetItem.BranchId.Guid;
 
 			using (new EditContext(targetItem))
 			{
 				targetItem.RuntimeSettings.ReadOnlyStatistics = true;
-				targetItem.Name = serializedItemData.Name;
 				targetItem.BranchId = ID.Parse(serializedItemData.BranchId);
+			}
+
+			ClearCaches(targetItem.Database, targetItem.ID);
+			targetItem.Reload();
+
+			if (oldBranchId != serializedItemData.BranchId)
+				_logger.ChangedBranchTemplate(targetItem, new ID(oldBranchId).ToString());
+		}
+
+		protected void RenameIfNeeded(IItemData serializedItemData, Item targetItem)
+		{
+			if (targetItem.Name.Equals(serializedItemData.Name, StringComparison.Ordinal)) return;
+
+			string oldName = targetItem.Name;
+
+			using (new EditContext(targetItem))
+			{
+				targetItem.RuntimeSettings.ReadOnlyStatistics = true;
+				targetItem.Name = serializedItemData.Name;
 			}
 
 			ClearCaches(targetItem.Database, targetItem.ID);
@@ -163,9 +182,6 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 			if (oldName != serializedItemData.Name)
 				_logger.RenamedItem(targetItem, oldName);
-
-			if (oldBranchId != serializedItemData.BranchId)
-				_logger.ChangedBranchTemplate(targetItem, new ID(oldBranchId).ToString());
 		}
 
 		protected void ChangeTemplateIfNeeded(IItemData serializedItemData, Item targetItem)

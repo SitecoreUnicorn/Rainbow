@@ -7,7 +7,7 @@ namespace Rainbow.Diff
 {
 	public class ItemComparisonResult
 	{
-		public ItemComparisonResult(IItemData sourceItemData, IItemData targetItemData, bool isRenamed = false, bool isMoved = false, bool isTemplateChanged = false, FieldComparisonResult[] changedSharedFields = null, ItemVersionComparisonResult[] changedVersions = null, ItemLanguageComparisonResult[] changedUnversionedFields = null)
+		public ItemComparisonResult(IItemData sourceItemData, IItemData targetItemData, bool isRenamed = false, bool isMoved = false, bool isTemplateChanged = false, bool isBranchChanged = false, FieldComparisonResult[] changedSharedFields = null, ItemVersionComparisonResult[] changedVersions = null, ItemLanguageComparisonResult[] changedUnversionedFields = null)
 		{
 			Assert.ArgumentNotNull(sourceItemData, "sourceItem");
 			Assert.ArgumentNotNull(targetItemData, "targetItem");
@@ -17,6 +17,7 @@ namespace Rainbow.Diff
 			IsRenamed = isRenamed;
 			IsMoved = isMoved;
 			IsTemplateChanged = isTemplateChanged;
+			IsBranchChanged = isBranchChanged;
 			ChangedSharedFields = changedSharedFields ?? new FieldComparisonResult[0];
 			ChangedVersions = changedVersions ?? new ItemVersionComparisonResult[0];
 			ChangedUnversionedFields = changedUnversionedFields ?? new ItemLanguageComparisonResult[0];
@@ -31,6 +32,7 @@ namespace Rainbow.Diff
 			{
 				return !IsRenamed &&
 						!IsTemplateChanged &&
+						!IsBranchChanged &&
 						!IsMoved &&
 						ChangedSharedFields.Length == 0 &&
 						ChangedUnversionedFields.Length == 0 &&
@@ -44,6 +46,7 @@ namespace Rainbow.Diff
 		public bool IsRenamed { get; }
 		public bool IsMoved { get; }
 		public bool IsTemplateChanged { get; }
+		public bool IsBranchChanged { get; }
 		public FieldComparisonResult[] ChangedSharedFields { get; }
 		public ItemLanguageComparisonResult[] ChangedUnversionedFields { get; }
 		public ItemVersionComparisonResult[] ChangedVersions { get; }
