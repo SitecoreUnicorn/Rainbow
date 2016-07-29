@@ -240,7 +240,10 @@ namespace Rainbow.Storage
 		{
 			if (rootPath.StartsWith("~") || rootPath.StartsWith("/"))
 			{
-				rootPath = HostingEnvironment.MapPath("~/").TrimEnd(Path.DirectorySeparatorChar) + rootPath.Substring(1).Replace("/", Path.DirectorySeparatorChar.ToString());
+				var cleanRootPath = rootPath.TrimStart('~', Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+				cleanRootPath = cleanRootPath.Replace("/", Path.DirectorySeparatorChar.ToString());
+
+				rootPath = Path.Combine(HostingEnvironment.MapPath("~/"), cleanRootPath);
 			}
 
 			if (!Directory.Exists(rootPath)) Directory.CreateDirectory(rootPath);
