@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using Sitecore.Diagnostics;
 
 namespace Rainbow.Storage
 {
@@ -90,7 +91,15 @@ namespace Rainbow.Storage
 		{
 			if (disposing)
 			{
-				_watcher?.Dispose();
+				if (_watcher != null)
+				{
+					_watcher.EnableRaisingEvents = false;
+					_watcher.Changed -= OnFileChanged;
+					_watcher.Created -= OnFileChanged;
+					_watcher.Deleted -= OnFileChanged;
+					_watcher.Renamed -= OnFileChanged;
+					_watcher.Dispose();
+				}
 				_eventFlusher?.Dispose();
 			}
 		}
