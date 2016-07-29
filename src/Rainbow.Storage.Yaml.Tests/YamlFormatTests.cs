@@ -160,7 +160,8 @@ DB: master
   - Version: 1
     Fields:
     - ID: ""9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf""
-      Value: ""Hello \""silly\"" world.""
+      Value: |
+        Hello ""silly"" world.
     - ID: ""badd9cf9-53e0-4d0c-bcc0-2d784c282f6a""
       Hint: Test Field
       Value: |
@@ -170,13 +171,15 @@ DB: master
   - Version: 2
     Fields:
     - ID: ""9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf""
-      Value: ""Hello \""silly\"" world.""
+      Value: |
+        Hello ""silly"" world.
 - Language: ""en-US""
   Versions:
   - Version: 1
     Fields:
     - ID: ""9a5a2ce9-9ae3-4a21-92f0-dba3cb7ac2bf""
-      Value: ""Hello \""silly\"" world.""
+      Value: |
+        Hello ""silly"" world.
     - ID: ""badd9cf9-53e0-4d0c-bcc0-2d784c282f6a""
       Hint: Test Field
       Value: |

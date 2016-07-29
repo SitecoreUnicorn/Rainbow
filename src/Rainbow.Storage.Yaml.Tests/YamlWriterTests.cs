@@ -31,24 +31,6 @@ namespace Rainbow.Storage.Yaml.Tests
 			}, "---\r\nHello: World\r\n", "Written unescaped map was not in expected format!");
 		}
 
-		[Fact]
-		public void YamlWriter_WritesMap_WithEscaping_AtRoot()
-		{
-			ExecuteYamlWriter(writer =>
-			{
-				writer.WriteMap("Hello", "What a nice \"world\" this is");
-			}, "---\r\nHello: \"What a nice \\\"world\\\" this is\"\r\n", "Written map was not in expected format!");
-		}
-
-		[Fact]
-		public void YamlWriter_WritesMap_WithEscaping_AroundWholeValue_AtRoot()
-		{
-			ExecuteYamlWriter(writer =>
-			{
-				writer.WriteMap("Hello", "\"What a nice world this is\"");
-			}, "---\r\nHello: \"\\\"What a nice world this is\\\"\"\r\n", "Written map was not in expected format!");
-		}
-
 		[Theory]
 		[InlineData("- there")]
 		[InlineData("yo:dawg")]
