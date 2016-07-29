@@ -59,7 +59,7 @@ namespace Rainbow.Storage.Yaml
 
 		protected virtual void WriteMapInternal(string key, string value)
 		{
-			if (value.IndexOfAny(new [] { '\n', '\r' }) > -1) // captures any style of endline, cr, lf, or crlf
+			if (value.IndexOfAny(new [] { '\n', '\r', '"', '\\' }) > -1) // captures any style of endline, cr, lf, or crlf
 			{
 				_writer.WriteLine("{0}: |{1}{2}", key, Environment.NewLine, IndentMultilineString(Indent + IndentSpaces, value));
 				return;
