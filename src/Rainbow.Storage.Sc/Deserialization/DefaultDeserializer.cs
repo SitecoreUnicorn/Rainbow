@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Rainbow.Filtering;
@@ -107,6 +108,17 @@ namespace Rainbow.Storage.Sc.Deserialization
 			Item targetItem = database.GetItem(new ID(serializedItemData.Id));
 
 			newItemWasCreated = false;
+
+			// very occasionally the caches will be out of date, and can return that an item 'exists' but
+			// has no parent. If this occurs, we want to dump all caches and return the item, which will
+			// then correctly reflect that the item did not exist and create it.
+			// Why? Not sure.
+			if (targetItem != null && targetItem.ParentID == ID.Null)
+			{
+				CacheManager.ClearAllCaches();
+
+				targetItem = database.GetItem(new ID(serializedItemData.Id));
+			}
 
 			// the target item did not yet exist, so we need to start by creating it
 			if (targetItem == null)
