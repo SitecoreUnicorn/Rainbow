@@ -46,28 +46,7 @@ namespace Rainbow.Storage.Sc
 
 				// @cassidydotdk: 07-June-2016: If there is a value (and it's not coming from std values or elsewhere), it is significant
 				if (value != null)
-				{
 					fieldResults.Add(CreateFieldValue(field, value));
-					continue;
-				}
-
-				// if the value was null or empty, we could still have a "significant empty value" - e.g.
-				// a checkbox that is explicitly set to FALSE, when the standard value is TRUE
-				// so we grab the value, allowing standard values, and if the standard value is not null or empty
-				// we set the field value to an empty string explicitly
-				var standardValue = field.GetValue(true, false);
-
-				if (standardValue == null) continue;
-
-				// given: the field value without standard values is null or empty (if above)
-				// we verify: if the field is NOT a standard value (in which case we know the value is blank), AND the standard value is not empty
-				// if so: we know the field has a significant empty value (its local value is blank and the standard value is NOT blank)
-				if (!field.ContainsStandardValue && !string.IsNullOrEmpty(field.GetStandardValue()))
-					fieldResults.Add(CreateFieldValue(field, string.Empty));
-
-				// we check for empty or null standard values as a number of Sitecore default items have
-				// explicit blank values set for fields whose standard value is also blank. Which is pretty pointless
-				// to store in serialization as it's essentially a tautology.
 			}
 
 			return fieldResults;
