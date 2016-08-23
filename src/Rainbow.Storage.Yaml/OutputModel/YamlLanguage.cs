@@ -44,6 +44,10 @@ namespace Rainbow.Storage.Yaml.OutputModel
 
 		public void WriteYaml(YamlWriter writer)
 		{
+			// at times we may receive an empty language with no fields or versions
+			// we avoid writing it the output, as it's irrelevant
+			if (UnversionedFields.Count == 0 && Versions.Count == 0) return;
+
 			writer.WriteBeginListItem("Language", Language);
 
 			if (UnversionedFields.Count > 0)
