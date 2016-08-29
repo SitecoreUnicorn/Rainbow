@@ -53,7 +53,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 
 			if (Type != null)
 				writer.WriteMap("Type", Type);
-
+            if(Value != null)
 			writer.WriteMap("Value", Value);
 		}
 
