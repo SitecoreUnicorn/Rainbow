@@ -36,7 +36,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 				}
 			}
 
-			Value = value;
+			Value = value ?? string.Empty;
 		}
 
 		public void WriteYaml(YamlWriter writer)
