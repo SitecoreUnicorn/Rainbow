@@ -62,7 +62,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Sitecore.Analytics">
-      <HintPath>..\..\lib\Sitecore\v7\Sitecore.Analytics.dll</HintPath>
+      <HintPath>..\..\packages\Sitecore.Analytics.NoReferences.8.2.160729\lib\net452\Sitecore.Analytics.dll</HintPath>
     </Reference>
     <Reference Include="Sitecore.FakeDb, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Sitecore.FakeDb.1.2.0\lib\net45\Sitecore.FakeDb.dll</HintPath>
@@ -78,11 +78,11 @@
     </Reference>
     <Reference Include="Sitecore.Kernel, Version=7.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\lib\Sitecore\v7\Sitecore.Kernel.dll</HintPath>
+      <HintPath>..\..\packages\Sitecore.Kernel.NoReferences.8.2.160729\lib\net452\Sitecore.Kernel.dll</HintPath>
     </Reference>
     <Reference Include="Sitecore.Logging, Version=1.2.0.30715, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\lib\Sitecore\v7\Sitecore.Logging.dll</HintPath>
+      <HintPath>..\..\packages\Sitecore.Logging.NoReferences.8.2.160729\lib\net452\Sitecore.Logging.dll</HintPath>
     </Reference>
     <Reference Include="sitecore.nexus">
       <HintPath>..\..\lib\Sitecore\v7\sitecore.nexus.dll</HintPath>
@@ -123,7 +123,9 @@
     <Compile Include="SitecoreDataStoreTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
