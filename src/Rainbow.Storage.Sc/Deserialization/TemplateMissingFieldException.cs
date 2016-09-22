@@ -33,7 +33,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 		public override string Message
 		{
-			get { return "The field{0} {1} {2} not present in Sitecore on the {3} template.".FormatWith(Fields.Length == 1 ? string.Empty : "s", string.Join(", ", Fields.Select(f => f.FieldId)), Fields.Length == 1 ? "is" : "are", TemplateName); }
+			get { return "The field{0} {1} {2} not present in Sitecore on the {3} template.".FormatWith(Fields.Length == 1 ? string.Empty : "s", string.Join(", ", Fields.Select(f => $"{f.FieldId} (likely {f.NameHint})")), Fields.Length == 1 ? "is" : "are", TemplateName); }
 		}
 
 		public static TemplateMissingFieldException Merge(IEnumerable<TemplateMissingFieldException> exceptions)
