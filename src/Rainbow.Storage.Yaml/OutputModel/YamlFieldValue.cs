@@ -36,7 +36,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 				}
 			}
 
-			Value = value;
+			Value = value ?? string.Empty;
 		}
 
 		public void WriteYaml(YamlWriter writer)
@@ -53,7 +53,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 
 			if (Type != null)
 				writer.WriteMap("Type", Type);
-
+           
 			writer.WriteMap("Value", Value);
 		}
 
