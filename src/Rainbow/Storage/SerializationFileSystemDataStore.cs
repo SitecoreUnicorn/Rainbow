@@ -25,7 +25,7 @@ namespace Rainbow.Storage
 
 		public SerializationFileSystemDataStore(string physicalRootPath, bool useDataCache, ITreeRootFactory rootFactory, ISerializationFormatter formatter)
 		{
-			Assert.ArgumentNotNullOrEmpty(physicalRootPath, "rootPath");
+			Assert.ArgumentNotNullOrEmpty(physicalRootPath, "physicalRootPath");
 			Assert.ArgumentNotNull(formatter, "formatter");
 			Assert.ArgumentNotNull(rootFactory, "rootFactory");
 
@@ -246,7 +246,12 @@ namespace Rainbow.Storage
 				rootPath = Path.Combine(HostingEnvironment.MapPath("~/"), cleanRootPath);
 			}
 
-			if (!Directory.Exists(rootPath)) Directory.CreateDirectory(rootPath);
+            //convert root path to canonical form, so subsequent transformations can do string comparison
+            //http://stackoverflow.com/questions/970911/net-remove-dots-from-the-path
+            if (rootPath.Contains(".."))
+                rootPath = Path.GetFullPath(rootPath);
+
+            if (!Directory.Exists(rootPath)) Directory.CreateDirectory(rootPath);
 
 			return rootPath;
 		}

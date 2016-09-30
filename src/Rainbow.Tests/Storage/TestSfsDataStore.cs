@@ -9,12 +9,24 @@ namespace Rainbow.Tests.Storage
 {
 	internal class TestSfsDataStore : SerializationFileSystemDataStore
 	{
-		public TestSfsDataStore(params string[] rootPaths) : 
+        public TestSfsDataStore(string rootPath) :
+            base(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()), false, new FakeRootFactory(new [] { rootPath }), new YamlSerializationFormatter(null, null))
+        {
+        }
+
+        public TestSfsDataStore(string[] rootPaths) : 
 			base(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()), false, new FakeRootFactory(rootPaths), new YamlSerializationFormatter(null, null))
 		{
 		}
 
-		public void CreateTestItemTree(string path, string database = "master")
+        public TestSfsDataStore(string rootPath, string physicalRootPath) :
+            base(physicalRootPath, false, new FakeRootFactory(new [] { rootPath }), new YamlSerializationFormatter(null, null))
+        {
+        }
+
+	    public string PhysicalRootPathAccessor => PhysicalRootPath;
+
+	    public void CreateTestItemTree(string path, string database = "master")
 		{
 			var tree = GetTreeForPath(path, database);
 

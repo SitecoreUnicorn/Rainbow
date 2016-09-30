@@ -170,7 +170,24 @@ namespace Rainbow.Tests.Storage
 			}
 		}
 
-		[Fact]
+        [Fact]
+        public void Save_WritesItem_WhenRootPathIsRelative()
+        {
+            using (var testTree = new TestSfsTree("/../../Items", "/sitecore"))
+            { 
+                testTree.CreateTestTree("/sitecore/hello");
+
+                var rootItem = testTree.GetRootItem();
+
+                var overlengthItem = testTree.GetChildren(rootItem).First();
+
+                Assert.Equal("/sitecore/hello", overlengthItem.Path);
+                Assert.EndsWith("\\Items\\sitecore\\hello.yml", overlengthItem.SerializedItemId);
+                Assert.False(overlengthItem.SerializedItemId.Contains(".."));
+            }
+        }
+
+        [Fact]
 		public void Save_WritesExpectedItems_WhenItemNameIsTooLong_AndItemsWithSameShortenedNameExist()
 		{
 			using (var testTree = new TestSfsTree())
