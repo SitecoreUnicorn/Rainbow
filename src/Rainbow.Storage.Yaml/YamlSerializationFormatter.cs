@@ -34,6 +34,15 @@ namespace Rainbow.Storage.Yaml
 			}
 		}
 
+		// used for testing
+		protected YamlSerializationFormatter(IFieldFilter fieldFilter, params IFieldFormatter[] fieldFormatters)
+		{
+			_fieldFilter = fieldFilter;
+
+			if(fieldFormatters != null)
+				FieldFormatters.AddRange(fieldFormatters);
+		}
+
 		public List<IFieldFormatter> FieldFormatters { get; } = new List<IFieldFormatter>();
 
 		public virtual IItemData ReadSerializedItem(Stream dataStream, string serializedItemId)
