@@ -228,7 +228,7 @@ namespace Rainbow.Storage
 					{
 						lock (FileUtil.GetFileLock(descendant.SerializedItemId))
 						{
-							_treeWatcher.PushKnownUpdate(descendant.SerializedItemId);
+							_treeWatcher.PushKnownUpdate(descendant.SerializedItemId, TreeWatcher.TreeWatcherChangeType.Delete);
 							File.Delete(descendant.SerializedItemId);
 						}
 					});
@@ -248,7 +248,7 @@ namespace Rainbow.Storage
 					{
 						ActionRetryer.Perform(() =>
 						{
-							_treeWatcher.PushKnownUpdate(childrenDirectory);
+							_treeWatcher.PushKnownUpdate(childrenDirectory, TreeWatcher.TreeWatcherChangeType.Delete);
 							Directory.Delete(childrenDirectory, true);
 						});
 					}
@@ -267,7 +267,7 @@ namespace Rainbow.Storage
 					{
 						ActionRetryer.Perform(() =>
 						{
-							_treeWatcher.PushKnownUpdate(shortChildrenDirectory.FullName);
+							_treeWatcher.PushKnownUpdate(shortChildrenDirectory.FullName, TreeWatcher.TreeWatcherChangeType.Delete);
 							Directory.Delete(shortChildrenDirectory.FullName);
 						});
 					}
@@ -357,7 +357,7 @@ namespace Rainbow.Storage
 			{
 				try
 				{
-					_treeWatcher.PushKnownUpdate(path);
+					_treeWatcher.PushKnownUpdate(path, TreeWatcher.TreeWatcherChangeType.ChangeOrAdd);
 					var directory = Path.GetDirectoryName(path);
 					if (directory != null && !Directory.Exists(directory)) Directory.CreateDirectory(directory);
 

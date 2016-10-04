@@ -35,9 +35,9 @@ namespace Rainbow.Storage
 			_eventFlusher = new Timer(FlushEvents);
 		}
 
-		public void PushKnownUpdate(string path)
+		public void PushKnownUpdate(string path, TreeWatcherChangeType changeType)
 		{
-			_knownUpdates.TryAdd(path, true);
+			_knownUpdates.TryAdd(path + changeType, true);
 		}
 
 		private void OnFileChanged(object source, FileSystemEventArgs args)
@@ -69,10 +69,10 @@ namespace Rainbow.Storage
 
 					// a known update is a file we knew about the change to, so we signal the watcher to ignore it
 					// because SFS did it, so all the caches are good
-					if (_knownUpdates.ContainsKey(queueItem.Path))
+					if (_knownUpdates.ContainsKey(key))
 					{
 						bool val;
-						_knownUpdates.TryRemove(queueItem.Path, out val);
+						_knownUpdates.TryRemove(key, out val);
 						continue;
 					}
 
