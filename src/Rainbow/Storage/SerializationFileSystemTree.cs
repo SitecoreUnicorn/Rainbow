@@ -471,11 +471,11 @@ namespace Rainbow.Storage
 			if (basePath == null)
 				basePath = string.Concat(Path.ChangeExtension(parentItem.SerializedItemId, null), Path.DirectorySeparatorChar, strippedItemName, _formatter.FileExtension);
 
-            // Determine if the relative base-string is over - length(which would be 240 - $(Serialization.SerializationFolderPathMaxLength))
-            if (_physicalRootPath.Length > basePath.Length)
-                throw new Exception($"_physicalRootPath '{_physicalRootPath}' cannot be larger than '{basePath}'");
+			// Determine if the relative base-string is over - length(which would be 240 - $(Serialization.SerializationFolderPathMaxLength))
+			if (_physicalRootPath.Length > basePath.Length)
+				throw new InvalidOperationException($"_physicalRootPath '{_physicalRootPath}' cannot be larger than '{basePath}'");
 
-            string relativeBasePath = basePath.Substring(_physicalRootPath.Length);
+			string relativeBasePath = basePath.Substring(_physicalRootPath.Length);
 			int maxPathLength = MaxRelativePathLength;
 
 			// path not over length = return it and we're done here
@@ -587,7 +587,7 @@ namespace Rainbow.Storage
 		protected void AssertValidPhysicalPath(string physicalPath)
 		{
 			var pathPieces = physicalPath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-			
+
 			foreach (var pathPiece in pathPieces)
 			{
 				if (InvalidFileNames.Contains(pathPiece)) throw new ArgumentException($"Illegal file or directory name {pathPiece} is part of the tree root physical path {physicalPath}. If you're using Unicorn, you may need to specify a 'name' attribute on your include to make the path a valid name.", nameof(physicalPath));

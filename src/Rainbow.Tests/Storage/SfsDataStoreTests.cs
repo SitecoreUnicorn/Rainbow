@@ -19,16 +19,16 @@ namespace Rainbow.Tests.Storage
 			}
 		}
 
-        [Fact]
-        public void InitializeRootPath_RemovesDots()
-        {
-            using (var dataStore = new TestSfsDataStore("/sitecore", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "..\\Items")))
-            {
-                Assert.False(dataStore.PhysicalRootPathAccessor.Contains(".."));
-            }
-        }
+		[Fact]
+		public void InitializeRootPath_RemovesDots()
+		{
+			using (var dataStore = new TestSfsDataStore("/sitecore", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), @"..\Items")))
+			{
+				Assert.False(dataStore.PhysicalRootPathAccessor.Contains(".."));
+			}
+		}
 
-        [Fact]
+		[Fact]
 		public void Save_ErrorWhenItemNotInTree()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
@@ -116,7 +116,7 @@ namespace Rainbow.Tests.Storage
 				dataStore.CreateTestItemTree("/sitecore");
 
 				var itemToRename = new FakeItem(path: $"/sitecore/{startingItemName}", name: startingItemName, id: Guid.NewGuid());
-				
+
 				dataStore.Save(itemToRename);
 
 				// note adding children with old paths; method takes care of rewriting child paths
@@ -350,7 +350,7 @@ namespace Rainbow.Tests.Storage
 		{
 			Assert.Throws<InvalidOperationException>(() =>
 			{
-				using (var dataStore = new TestSfsDataStore(new []{ "/sitecore", "/sitecore/content" }))
+				using (var dataStore = new TestSfsDataStore(new[] { "/sitecore", "/sitecore/content" }))
 				{
 					dataStore.GetByPath("/sitecore/content/home", "master");
 				}

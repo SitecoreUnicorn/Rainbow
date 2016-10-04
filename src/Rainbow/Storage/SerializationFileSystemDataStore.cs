@@ -25,9 +25,9 @@ namespace Rainbow.Storage
 
 		public SerializationFileSystemDataStore(string physicalRootPath, bool useDataCache, ITreeRootFactory rootFactory, ISerializationFormatter formatter)
 		{
-			Assert.ArgumentNotNullOrEmpty(physicalRootPath, "physicalRootPath");
-			Assert.ArgumentNotNull(formatter, "formatter");
-			Assert.ArgumentNotNull(rootFactory, "rootFactory");
+			Assert.ArgumentNotNullOrEmpty(physicalRootPath, nameof(physicalRootPath));
+			Assert.ArgumentNotNull(formatter, nameof(formatter));
+			Assert.ArgumentNotNull(rootFactory, nameof(rootFactory));
 
 			_useDataCache = useDataCache;
 			_rootFactory = rootFactory;
@@ -208,7 +208,7 @@ namespace Rainbow.Storage
 		public virtual void Clear()
 		{
 			// since we're tearing everything down we dispose all existing trees, watchers, etc and start over
-			foreach(var tree in Trees) tree.Dispose();
+			foreach (var tree in Trees) tree.Dispose();
 			Trees.Clear();
 
 			ActionRetryer.Perform(ClearAllFiles);
@@ -246,12 +246,12 @@ namespace Rainbow.Storage
 				rootPath = Path.Combine(HostingEnvironment.MapPath("~/"), cleanRootPath);
 			}
 
-            //convert root path to canonical form, so subsequent transformations can do string comparison
-            //http://stackoverflow.com/questions/970911/net-remove-dots-from-the-path
-            if (rootPath.Contains(".."))
-                rootPath = Path.GetFullPath(rootPath);
+			// convert root path to canonical form, so subsequent transformations can do string comparison
+			// http://stackoverflow.com/questions/970911/net-remove-dots-from-the-path
+			if (rootPath.Contains(".."))
+				rootPath = Path.GetFullPath(rootPath);
 
-            if (!Directory.Exists(rootPath)) Directory.CreateDirectory(rootPath);
+			if (!Directory.Exists(rootPath)) Directory.CreateDirectory(rootPath);
 
 			return rootPath;
 		}
@@ -339,7 +339,7 @@ namespace Rainbow.Storage
 		{
 			if (disposing)
 			{
-				foreach(var tree in Trees) tree.Dispose();
+				foreach (var tree in Trees) tree.Dispose();
 			}
 		}
 	}
