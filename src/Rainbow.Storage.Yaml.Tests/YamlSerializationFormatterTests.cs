@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using FluentAssertions;
+using Rainbow.Formatting.FieldFormatters;
 using Rainbow.Model;
 using Rainbow.Tests;
 using Xunit;
@@ -234,14 +235,7 @@ Languages:
 		[Fact]
 		public void YamlFormatter_WritesItem_WithFieldFormatter_AsExpected()
 		{
-			var xmlConfigNode = @"<serializationFormatter>
-						<fieldFormatter type=""Rainbow.Formatting.FieldFormatters.MultilistFormatter, Rainbow"" />
-					</serializationFormatter>";
-
-			var configDoc = new XmlDocument();
-			configDoc.LoadXml(xmlConfigNode);
-
-			var formatter = new YamlSerializationFormatter(configDoc.DocumentElement, null);
+			var formatter = new TestYamlSerializationFormatter(null, new MultilistFormatter());
 
 			var item = new FakeItem(
 				id: new Guid("a4f985d9-98b3-4b52-aaaf-4344f6e747c6"),
