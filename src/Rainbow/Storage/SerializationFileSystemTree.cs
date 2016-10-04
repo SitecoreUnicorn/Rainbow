@@ -471,8 +471,11 @@ namespace Rainbow.Storage
 			if (basePath == null)
 				basePath = string.Concat(Path.ChangeExtension(parentItem.SerializedItemId, null), Path.DirectorySeparatorChar, strippedItemName, _formatter.FileExtension);
 
-			// Determine if the relative base-string is over - length(which would be 240 - $(Serialization.SerializationFolderPathMaxLength))
-			string relativeBasePath = basePath.Substring(_physicalRootPath.Length);
+            // Determine if the relative base-string is over - length(which would be 240 - $(Serialization.SerializationFolderPathMaxLength))
+            if (_physicalRootPath.Length > basePath.Length)
+                throw new Exception($"_physicalRootPath '{_physicalRootPath}' cannot be larger than '{basePath}'");
+
+            string relativeBasePath = basePath.Substring(_physicalRootPath.Length);
 			int maxPathLength = MaxRelativePathLength;
 
 			// path not over length = return it and we're done here

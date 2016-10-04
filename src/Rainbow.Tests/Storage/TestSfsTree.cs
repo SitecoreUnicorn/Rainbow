@@ -15,7 +15,14 @@ namespace Rainbow.Tests.Storage
 			MaxFileNameLengthForTests = base.MaxItemNameLengthBeforeTruncation;
 		}
 
-		public string PrepareItemNameForFileSystemTest(string name)
+        public TestSfsTree(string physicalRootPath,  string globalRootItemPath, bool useDataCache = false)
+            : base("Unit Testing", globalRootItemPath, "UnitTesting", physicalRootPath, new YamlSerializationFormatter(null, null), useDataCache)
+        {
+            MaxPathLengthForTests = base.MaxRelativePathLength;
+            MaxFileNameLengthForTests = base.MaxItemNameLengthBeforeTruncation;
+        }
+
+        public string PrepareItemNameForFileSystemTest(string name)
 		{
 			return PrepareItemNameForFileSystem(name);
 		}

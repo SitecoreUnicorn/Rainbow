@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Xunit;
@@ -18,7 +19,16 @@ namespace Rainbow.Tests.Storage
 			}
 		}
 
-		[Fact]
+        [Fact]
+        public void InitializeRootPath_RemovesDots()
+        {
+            using (var dataStore = new TestSfsDataStore("/sitecore", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "..\\Items")))
+            {
+                Assert.False(dataStore.PhysicalRootPathAccessor.Contains(".."));
+            }
+        }
+
+        [Fact]
 		public void Save_ErrorWhenItemNotInTree()
 		{
 			using (var dataStore = new TestSfsDataStore("/sitecore"))
@@ -340,7 +350,7 @@ namespace Rainbow.Tests.Storage
 		{
 			Assert.Throws<InvalidOperationException>(() =>
 			{
-				using (var dataStore = new TestSfsDataStore("/sitecore", "/sitecore/content"))
+				using (var dataStore = new TestSfsDataStore(new []{ "/sitecore", "/sitecore/content" }))
 				{
 					dataStore.GetByPath("/sitecore/content/home", "master");
 				}
@@ -350,7 +360,7 @@ namespace Rainbow.Tests.Storage
 		[Fact]
 		public void GetItem_DoesNotThrowError_WhenSimilarNonOverlappingPaths()
 		{
-			using (var dataStore = new TestSfsDataStore("/sitecore/content", "/sitecore/content cemetary"))
+			using (var dataStore = new TestSfsDataStore(new[] { "/sitecore/content", "/sitecore/content cemetary" }))
 			{
 				dataStore.GetByPath("/sitecore/content cemetary/foo", "master");
 			}
