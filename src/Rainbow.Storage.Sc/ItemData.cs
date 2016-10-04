@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Rainbow.Model;
+using Sitecore.Data;
 using Sitecore.Data.Items;
 
 namespace Rainbow.Storage.Sc
@@ -10,6 +11,7 @@ namespace Rainbow.Storage.Sc
 	[DebuggerDisplay("{Name} ({DatabaseName}::{Id}) [DB ITEM]")]
 	public class ItemData : IItemData
 	{
+		private readonly Func<IDisposable> _itemOperationContextFactory;
 		private readonly Item _item;
 		private readonly IDataStore _sourceDataStore;
 		private Item[] _itemVersions;
@@ -25,6 +27,13 @@ namespace Rainbow.Storage.Sc
 		public ItemData(Item item, IDataStore sourceDataStore) : this(item)
 		{
 			_sourceDataStore = sourceDataStore;
+		}
+
+		/// <param name="item">The item to wrap</param>
+		/// <param name="itemOperationContextFactory">Creates a disposable context for operations that may hit the DB. Used to disable caches and such as needed to preserve the item's context when getting children, versions, etc.</param>
+		public ItemData(Item item, Func<IDisposable> itemOperationContextFactory) : this(item)
+		{
+			_itemOperationContextFactory = itemOperationContextFactory;
 		}
 
 		public virtual Guid Id => _item.ID.Guid;
@@ -121,14 +130,14 @@ namespace Rainbow.Storage.Sc
 			if (_sourceDataStore != null)
 				return _sourceDataStore.GetChildren(this);
 
-			return _item.GetChildren().Select(child => new ItemData(child));
+			return ItemOperation(() => _item.GetChildren()).Select(child => new ItemData(child, _itemOperationContextFactory));
 		}
 
 		protected virtual void EnsureFields()
 		{
 			if (!_fieldsLoaded)
 			{
-				_item.Fields.ReadAll();
+				ItemOperation(() => _item.Fields.ReadAll());
 				_fieldsLoaded = true;
 			}
 		}
@@ -137,7 +146,7 @@ namespace Rainbow.Storage.Sc
 		{
 			if (_itemVersions == null)
 			{
-				_itemVersions = _item.Versions.GetVersions(true);
+				_itemVersions = ItemOperation(() => _item.Versions.GetVersions(true));
 
 				// if we are on Sitecore 8.1.x we need to cull any language fallback'ed versions
 				// but we don't want to break compatibility with earlier Sitecore versions so we do a runtime version
@@ -159,6 +168,30 @@ namespace Rainbow.Storage.Sc
 		protected virtual FieldReader CreateFieldReader()
 		{
 			return FieldReader;
+		}
+
+		protected virtual void ItemOperation(Action action)
+		{
+			if (_itemOperationContextFactory == null)
+			{
+				action();
+				return;
+			}
+
+			using (_itemOperationContextFactory())
+			{
+				action();
+			}
+		}
+
+		protected virtual TResult ItemOperation<TResult>(Func<TResult> action)
+		{
+			if (_itemOperationContextFactory == null) return action();
+
+			using (_itemOperationContextFactory())
+			{
+				return action();
+			}
 		}
 	}
 }
