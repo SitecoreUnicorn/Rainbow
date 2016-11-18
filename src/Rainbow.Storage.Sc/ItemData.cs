@@ -168,7 +168,10 @@ namespace Rainbow.Storage.Sc
 				// get the item in all known system languages
 				// this is different than getting all versions as unversioned fields may reside on items
 				// who do not have a version in a given language. Unusual, but possible.
-				_itemLanguages = ItemOperation(() => _item.Languages.Select(lang => _item.Database.GetItem(_item.ID, lang)).ToArray());
+				_itemLanguages = ItemOperation(() => _item.Languages
+					.Select(lang => _item.Database.GetItem(_item.ID, lang))
+					.Where(item => item != null)
+					.ToArray());
 			}
 
 			return _itemLanguages;
