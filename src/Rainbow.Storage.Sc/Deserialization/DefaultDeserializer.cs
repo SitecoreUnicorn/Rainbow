@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Rainbow.Filtering;
@@ -614,11 +613,25 @@ namespace Rainbow.Storage.Sc.Deserialization
 			Field itemField = item.Fields[new ID(field.FieldId)];
 			if (itemField.IsBlobField)
 			{
-				if (!field.BlobId.HasValue) throw new InvalidOperationException("Field " + field.FieldId + " is a blob field, but it had no blob ID.");
+				Guid existingBlobId;
+				bool hasExistingId = Guid.TryParse(itemField.Value, out existingBlobId);
+
+				// serialized blob has no value (media item with detached media)
+				if (!field.BlobId.HasValue)
+				{
+					if (!hasExistingId || existingBlobId == Guid.Empty) return false; // no blob ID and none in DB either, so we're cool
+
+					// existing blob in DB but none in serialized
+					// so clear the blob and field value
+					ItemManager.RemoveBlobStream(existingBlobId, item.Database);
+					itemField.SetValue(string.Empty, true);
+					_logger.WroteBlobStream(item, field);
+
+					return true;
+				}
 
 				// check if existing blob is here with the same ID; abort if so
-				Guid existingBlobId;
-				if (Guid.TryParse(itemField.Value, out existingBlobId) && existingBlobId == field.BlobId.Value) return false;
+				if (hasExistingId && existingBlobId == field.BlobId.Value) return false;
 
 				byte[] buffer = Convert.FromBase64String(field.Value);
 

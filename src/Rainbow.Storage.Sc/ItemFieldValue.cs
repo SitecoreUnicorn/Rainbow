@@ -25,7 +25,7 @@ namespace Rainbow.Storage.Sc
 			{
 				if (_field.IsBlobField)
 				{
-					if (!_field.HasBlobStream) return null;
+					if (!_field.HasBlobStream) return string.Empty;
 
 					using (var stream = _field.GetBlobStream())
 					{
