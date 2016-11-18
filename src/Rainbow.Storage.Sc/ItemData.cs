@@ -15,6 +15,7 @@ namespace Rainbow.Storage.Sc
 		private readonly Item _item;
 		private readonly IDataStore _sourceDataStore;
 		private Item[] _itemVersions;
+		private Item[] _itemLanguages;
 		// ReSharper disable once RedundantDefaultMemberInitializer
 		private bool _fieldsLoaded = false;
 		protected internal static FieldReader FieldReader = new FieldReader();
@@ -89,11 +90,11 @@ namespace Rainbow.Storage.Sc
 
 					var fieldReader = CreateFieldReader();
 
-					// Get all item versions, dedupe down to one per language only, then parse out the unversioned fields for each and project into a ProxyItemLanguage.
-					_unversionedFields = GetVersions()
-						.GroupBy(version => version.Language.Name)
-						.Select(group => group.First())
+					// Get all item languages (note: not versions, because you can have unversioned fields without a version in a language)
+					// then parse out the unversioned fields for each and project into a ProxyItemLanguage.
+					_unversionedFields = GetAllLanguages()
 						.Select(language => (IItemLanguage)new ProxyItemLanguage(language.Language.CultureInfo) { Fields = fieldReader.ParseFields(language, FieldReader.FieldReadType.Unversioned) })
+						.Where(language => language.Fields.Any())
 						.ToArray();
 				}
 
@@ -158,6 +159,19 @@ namespace Rainbow.Storage.Sc
 			}
 
 			return _itemVersions;
+		}
+
+		protected virtual Item[] GetAllLanguages()
+		{
+			if (_itemLanguages == null)
+			{
+				// get the item in all known system languages
+				// this is different than getting all versions as unversioned fields may reside on items
+				// who do not have a version in a given language. Unusual, but possible.
+				_itemLanguages = ItemOperation(() => _item.Languages.Select(lang => _item.Database.GetItem(_item.ID, lang)).ToArray());
+			}
+
+			return _itemLanguages;
 		}
 
 		protected virtual IItemVersion CreateVersion(Item version)

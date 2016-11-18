@@ -174,6 +174,9 @@ namespace Rainbow.Storage.Yaml
 				{
 					foreach (var language in _item.Languages)
 					{
+						// do not return unversioned languages if no unversioned fields exist in that language
+						if (language.UnversionedFields.Count == 0) continue;
+
 						yield return new YamlItemLanguage(language, _formatters);
 					}
 				}
