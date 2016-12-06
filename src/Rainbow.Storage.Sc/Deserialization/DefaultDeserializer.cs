@@ -392,6 +392,8 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 			Item languageItem = item.Database.GetItem(item.ID, language);
 
+			if(languageItem == null) throw new InvalidOperationException("Item retrieved from the database was null. This may indicate issues with the Sitecore cache. Recycle your app pool and try again and it should work.");
+
 			Item languageVersionItem = languageItem.Versions[targetVersion];
 
 			IDictionary<Guid, IItemFieldValue> serializedVersionFieldsLookup = serializedVersion.Fields.ToDictionary(field => field.FieldId);
