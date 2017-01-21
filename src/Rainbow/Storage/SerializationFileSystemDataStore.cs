@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Web.Hosting;
 using Rainbow.Formatting;
 using Rainbow.Model;
@@ -209,6 +210,7 @@ namespace Rainbow.Storage
 		{
 			// since we're tearing everything down we dispose all existing trees, watchers, etc and start over
 			foreach (var tree in Trees) tree.Dispose();
+
 			Trees.Clear();
 
 			ActionRetryer.Perform(ClearAllFiles);
@@ -273,7 +275,15 @@ namespace Rainbow.Storage
 		// note: we pass in these params (formatter, datacache) so that overriding classes may get access to private vars indirectly (can't get at them otherwise because this is called from the constructor)
 		protected virtual List<SerializationFileSystemTree> InitializeTrees(ISerializationFormatter formatter, bool useDataCache)
 		{
-			return _rootFactory.CreateTreeRoots().Select(tree => CreateTree(tree, formatter, useDataCache)).ToList();
+			var result = new List<SerializationFileSystemTree>();
+			var roots = _rootFactory.CreateTreeRoots();
+
+			foreach (var root in roots)
+			{
+				result.Add(CreateTree(root, formatter, useDataCache));
+			}
+
+			return result;
 		}
 
 		// note: we pass in these params (formatter, datacache) so that overriding classes may get access to private vars indirectly (can't get at them otherwise because this is called from the constructor)

@@ -226,11 +226,8 @@ namespace Rainbow.Storage
 				{
 					ActionRetryer.Perform(() =>
 					{
-						lock (FileUtil.GetFileLock(descendant.SerializedItemId))
-						{
-							_treeWatcher.PushKnownUpdate(descendant.SerializedItemId, TreeWatcher.TreeWatcherChangeType.Delete);
-							File.Delete(descendant.SerializedItemId);
-						}
+						_treeWatcher.PushKnownUpdate(descendant.SerializedItemId, TreeWatcher.TreeWatcherChangeType.Delete);
+						File.Delete(descendant.SerializedItemId);
 					});
 				}
 				catch (Exception exception)
