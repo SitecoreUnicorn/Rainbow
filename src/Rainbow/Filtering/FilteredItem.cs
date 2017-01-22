@@ -45,10 +45,7 @@ namespace Rainbow.Filtering
 
 			public override IEnumerable<IItemFieldValue> Fields
 			{
-				get
-				{
-					return _innerVersion.Fields.Where(field => _fieldFilter.Includes(field.FieldId));
-				}
+				get { return _innerVersion.Fields.Where(field => _fieldFilter.Includes(field.FieldId)); }
 			}
 		}
 	}

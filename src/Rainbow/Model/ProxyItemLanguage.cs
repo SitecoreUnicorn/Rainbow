@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Linq;
 using Sitecore.Diagnostics;
+// ReSharper disable DoNotCallOverridableMethodsInConstructor
 
 namespace Rainbow.Model
 {
@@ -23,7 +24,7 @@ namespace Rainbow.Model
 			Fields = Enumerable.Empty<IItemFieldValue>();
 		}
 
-		public IEnumerable<IItemFieldValue> Fields { get; set; }
-		public CultureInfo Language { get; set; }
+		public virtual IEnumerable<IItemFieldValue> Fields { get; set; }
+		public virtual CultureInfo Language { get; set; }
 	}
 }

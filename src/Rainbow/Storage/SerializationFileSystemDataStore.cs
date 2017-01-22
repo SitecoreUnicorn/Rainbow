@@ -260,16 +260,21 @@ namespace Rainbow.Storage
 
 		protected virtual SerializationFileSystemTree GetTreeForPath(string path, string database)
 		{
-			var trees = Trees.Where(tree => tree.DatabaseName.Equals(database, StringComparison.OrdinalIgnoreCase) && tree.ContainsPath(path)).ToArray();
-
-			if (trees.Length == 0)
+			SerializationFileSystemTree foundTree = null;
+			foreach (var tree in Trees)
 			{
-				return null;
+				if (!tree.DatabaseName.Equals(database, StringComparison.OrdinalIgnoreCase)) continue;
+				if (!tree.ContainsPath(path)) continue;
+
+				if (foundTree != null)
+				{
+					throw new InvalidOperationException($"The trees {foundTree.Name} and {tree.Name} both contained the global path {path} - overlapping trees are not allowed.");
+				}
+
+				foundTree = tree;
 			}
 
-			if (trees.Length > 1) throw new InvalidOperationException("The trees {0} contained the global path {1} - overlapping trees are not allowed.".FormatWith(string.Join(", ", trees.Select(tree => tree.Name)), path));
-
-			return trees[0];
+			return foundTree;
 		}
 
 		// note: we pass in these params (formatter, datacache) so that overriding classes may get access to private vars indirectly (can't get at them otherwise because this is called from the constructor)
