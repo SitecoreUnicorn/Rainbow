@@ -10,7 +10,7 @@ namespace Rainbow.Filtering
 	/// FieldPredicate that reads from an XML config body to define field exclusions, e.g.
 	/// <exclude fieldID="{79FA7A4C-378F-425B-B50E-EE2FCC5A8FEF}" note="/sitecore/templates/Sites/Example Site/Subcontent/Test Template/Test/Title" />
 	/// </summary>
-	public class ConfigurationFieldFilter : IFieldFilter
+	public class ConfigurationFieldFilter : IFieldFilter, IEnumerableFieldFilter
 	{
 		private readonly HashSet<Guid> _excludedFieldIds = new HashSet<Guid>();
  
@@ -32,5 +32,7 @@ namespace Rainbow.Filtering
 		{
 			return !_excludedFieldIds.Contains(fieldId);
 		}
+
+		public IEnumerable<Guid> Excludes => _excludedFieldIds;
 	}
 }

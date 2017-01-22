@@ -65,6 +65,7 @@
     <Compile Include="DocumentationUtility.cs" />
     <Compile Include="Filtering\ConfigurationFieldFilter.cs" />
     <Compile Include="Filtering\FilteredItem.cs" />
+    <Compile Include="Filtering\IEnumerableFieldFilter.cs" />
     <Compile Include="Filtering\IFieldFilter.cs" />
     <Compile Include="Formatting\FieldFormatters\IFieldFormatter.cs" />
     <Compile Include="Formatting\FieldFormatters\CheckboxFieldFormatter.cs" />
