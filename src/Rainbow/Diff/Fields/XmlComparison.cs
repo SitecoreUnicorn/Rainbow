@@ -2,7 +2,6 @@
 using System.Xml;
 using System.Xml.Linq;
 using Rainbow.Model;
-using Sitecore.Diagnostics;
 
 namespace Rainbow.Diff.Fields
 {

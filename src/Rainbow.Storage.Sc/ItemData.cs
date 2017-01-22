@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Rainbow.Model;
-using Sitecore.Data;
 using Sitecore.Data.Items;
 
 namespace Rainbow.Storage.Sc
@@ -80,7 +79,7 @@ namespace Rainbow.Storage.Sc
 		}
 
 		private IItemLanguage[] _unversionedFields;
-		public IEnumerable<IItemLanguage> UnversionedFields
+		public virtual IEnumerable<IItemLanguage> UnversionedFields
 		{
 			get
 			{

@@ -23,25 +23,25 @@ namespace Rainbow.Storage.Sc
 			_deserializer.ParentDataStore = this;
 		}
 
-		public IEnumerable<string> GetDatabaseNames()
+		public virtual IEnumerable<string> GetDatabaseNames()
 		{
 			return Factory.GetDatabaseNames();
 		}
 
-		public void Save(IItemData item)
+		public virtual void Save(IItemData item)
 		{
 			Assert.ArgumentNotNull(item, "item");
 
 			_deserializer.Deserialize(item);
 		}
 
-		public void MoveOrRenameItem(IItemData itemWithFinalPath, string oldPath)
+		public virtual void MoveOrRenameItem(IItemData itemWithFinalPath, string oldPath)
 		{
 			// We don't ask the Sitecore provider to move or rename
 			throw new NotImplementedException();
 		}
 
-		public IEnumerable<IItemData> GetByPath(string path, string database)
+		public virtual IEnumerable<IItemData> GetByPath(string path, string database)
 		{
 			Assert.ArgumentNotNullOrEmpty(database, "database");
 			Assert.ArgumentNotNullOrEmpty(path, "path");
@@ -59,13 +59,13 @@ namespace Rainbow.Storage.Sc
 			return dbItems.Select(item => new ItemData(item, this));
 		}
 
-		public IItemData GetByPathAndId(string path, Guid id, string database)
+		public virtual IItemData GetByPathAndId(string path, Guid id, string database)
 		{
 			// note: because we always have the ID this is just GetById() for Sitecore
 			return GetById(id, database);
 		}
 
-		public IItemData GetById(Guid id, string database)
+		public virtual IItemData GetById(Guid id, string database)
 		{
 			Assert.ArgumentNotNullOrEmpty(database, "database");
 			Assert.ArgumentCondition(id != default(Guid), "id", "The item ID must not be the null guid. Use GetByPath() if you don't know the ID.");
@@ -78,12 +78,12 @@ namespace Rainbow.Storage.Sc
 			return item == null ? null : new ItemData(item);
 		}
 
-		public IEnumerable<IItemMetadata> GetMetadataByTemplateId(Guid templateId, string database)
+		public virtual IEnumerable<IItemMetadata> GetMetadataByTemplateId(Guid templateId, string database)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IEnumerable<IItemData> GetChildren(IItemData parentItem)
+		public virtual IEnumerable<IItemData> GetChildren(IItemData parentItem)
 		{
 			Assert.ArgumentNotNull(parentItem, "parentItem");
 
@@ -98,12 +98,12 @@ namespace Rainbow.Storage.Sc
 			return item.GetChildren(ChildListOptions.SkipSorting).Select(child => (IItemData)new ItemData(child, this)).ToArray();
 		}
 
-		public void CheckConsistency(string database, bool fixErrors, Action<string> logMessageReceiver)
+		public virtual void CheckConsistency(string database, bool fixErrors, Action<string> logMessageReceiver)
 		{
 			// do nothing - the Sitecore database is always considered consistent.
 		}
 
-		public void ResetTemplateEngine()
+		public virtual void ResetTemplateEngine()
 		{
 			foreach (Database current in Factory.GetDatabases())
 			{
@@ -111,7 +111,7 @@ namespace Rainbow.Storage.Sc
 			}
 		}
 
-		public bool Remove(IItemData item)
+		public virtual bool Remove(IItemData item)
 		{
 			Assert.ArgumentNotNull(item, "item");
 
@@ -137,12 +137,12 @@ namespace Rainbow.Storage.Sc
 			return true;
 		}
 
-		public void RegisterForChanges(Action<IItemMetadata, string> actionOnChange)
+		public virtual void RegisterForChanges(Action<IItemMetadata, string> actionOnChange)
 		{
 			throw new NotImplementedException("You may not watch Sitecore for changes.");
 		}
 
-		public void Clear()
+		public virtual void Clear()
 		{
 			throw new NotImplementedException("You crazy? I'm not going to clear the Sitecore database for you! :)");
 		}
@@ -152,10 +152,10 @@ namespace Rainbow.Storage.Sc
 			return Factory.GetDatabase(databaseName);
 		}
 
-		public string FriendlyName => "Sitecore Data Store";
-		public string Description => "Reads and writes data from a Sitecore database.";
+		public virtual string FriendlyName => "Sitecore Data Store";
+		public virtual string Description => "Reads and writes data from a Sitecore database.";
 
-		public KeyValuePair<string, string>[] GetConfigurationDetails()
+		public virtual KeyValuePair<string, string>[] GetConfigurationDetails()
 		{
 			return new [] { new KeyValuePair<string, string>("Deserializer", DocumentationUtility.GetFriendlyName(_deserializer)) };
 		}
