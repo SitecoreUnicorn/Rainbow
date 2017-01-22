@@ -10,6 +10,8 @@ namespace Rainbow.Diff.Fields
 	{
 		public override bool AreEqual(IItemFieldValue field1, IItemFieldValue field2)
 		{
+			if (string.IsNullOrWhiteSpace(field1.Value) && string.IsNullOrWhiteSpace(field2.Value)) return true;
+
 			if (string.IsNullOrWhiteSpace(field1.Value) || string.IsNullOrWhiteSpace(field2.Value)) return false;
 
 			try
