@@ -57,7 +57,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			{
 				ChangeTemplateIfNeeded(serializedItemData, targetItem);
 
-				ChangeBranchIfNeeded(serializedItemData, targetItem);
+				ChangeBranchIfNeeded(serializedItemData, targetItem, newItemWasCreated);
 
 				RenameIfNeeded(serializedItemData, targetItem);
 
@@ -157,7 +157,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			return targetItem;
 		}
 
-		protected void ChangeBranchIfNeeded(IItemData serializedItemData, Item targetItem)
+		protected void ChangeBranchIfNeeded(IItemData serializedItemData, Item targetItem, bool newItemWasCreated)
 		{
 			if (targetItem.BranchId.Guid.Equals(serializedItemData.BranchId)) return;
 
@@ -171,8 +171,10 @@ namespace Rainbow.Storage.Sc.Deserialization
 			ClearCaches(targetItem.Database, targetItem.ID);
 			targetItem.Reload();
 
-			if (oldBranchId != serializedItemData.BranchId)
+			if (oldBranchId != serializedItemData.BranchId && !newItemWasCreated)
+			{
 				_logger.ChangedBranchTemplate(targetItem, new ID(oldBranchId).ToString());
+			}
 		}
 
 		protected void RenameIfNeeded(IItemData serializedItemData, Item targetItem)
