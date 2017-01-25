@@ -170,14 +170,14 @@ namespace Rainbow.Storage
 		{
 			Assert.ArgumentNotNull(parentItem, "parentItem");
 
-			return GetChildPaths(parentItem).Select(ReadItem);
+			return GetChildPaths(parentItem).AsParallel().AsOrdered().Select(ReadItem);
 		}
 
 		public virtual IEnumerable<IItemMetadata> GetChildrenMetadata(IItemMetadata parentItem)
 		{
 			Assert.ArgumentNotNull(parentItem, "parentItem");
 
-			return GetChildPaths(parentItem).Select(ReadItemMetadata);
+			return GetChildPaths(parentItem).AsParallel().AsOrdered().Select(ReadItemMetadata);
 		}
 
 		/*
