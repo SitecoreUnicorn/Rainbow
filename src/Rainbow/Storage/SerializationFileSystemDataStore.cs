@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Web.Hosting;
 using Rainbow.Formatting;
 using Rainbow.Model;
 using Sitecore.Diagnostics;
-using Sitecore.StringExtensions;
 
 namespace Rainbow.Storage
 {
@@ -15,7 +13,7 @@ namespace Rainbow.Storage
 	/// SFS data store stores serialized items on the file system.
 	/// Items are organized into one or more subtrees. Each tree must be solid (e.g. if a child is written all parents must also be written)
 	/// </summary>
-	public class SerializationFileSystemDataStore : IDataStore, IDocumentable, IDisposable
+	public class SerializationFileSystemDataStore : ISnapshotCapableDataStore, IDocumentable, IDisposable
 	{
 		protected readonly string PhysicalRootPath;
 		private readonly bool _useDataCache;
@@ -40,6 +38,11 @@ namespace Rainbow.Storage
 
 			// ReSharper disable once DoNotCallOverridableMethodsInConstructor
 			Trees = InitializeTrees(_formatter, useDataCache);
+		}
+
+		public virtual IEnumerable<IItemData> GetSnapshot()
+		{
+			return Trees.SelectMany(tree => tree.GetSnapshot());
 		}
 
 		public virtual void Save(IItemData item)

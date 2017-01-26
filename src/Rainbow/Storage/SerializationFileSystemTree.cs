@@ -120,6 +120,16 @@ namespace Rainbow.Storage
 		[ExcludeFromCodeCoverage]
 		public virtual string Name { get; private set; }
 
+		/// <summary>
+		/// Gets every single item in the tree without regard to hierarchy traversal. Much faster than hierarchy traversal.
+		/// </summary>
+		public virtual IEnumerable<IItemData> GetSnapshot()
+		{
+			return FastDirectoryEnumerator.EnumerateFiles(_physicalRootPath, "*" + _formatter.FileExtension, SearchOption.AllDirectories)
+				.AsParallel()
+				.Select(file => ReadItem(file.Path));
+		}
+
 		public virtual bool ContainsPath(string globalPath)
 		{
 			if (!globalPath.EndsWith("/")) globalPath += "/";
@@ -170,14 +180,14 @@ namespace Rainbow.Storage
 		{
 			Assert.ArgumentNotNull(parentItem, "parentItem");
 
-			return GetChildPaths(parentItem).AsParallel().AsOrdered().Select(ReadItem);
+			return GetChildPaths(parentItem).AsParallel().Select(ReadItem);
 		}
 
 		public virtual IEnumerable<IItemMetadata> GetChildrenMetadata(IItemMetadata parentItem)
 		{
 			Assert.ArgumentNotNull(parentItem, "parentItem");
 
-			return GetChildPaths(parentItem).AsParallel().AsOrdered().Select(ReadItemMetadata);
+			return GetChildPaths(parentItem).AsParallel().Select(ReadItemMetadata);
 		}
 
 		/*
