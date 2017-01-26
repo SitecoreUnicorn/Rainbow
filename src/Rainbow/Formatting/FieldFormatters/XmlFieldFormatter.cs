@@ -16,6 +16,8 @@ namespace Rainbow.Formatting.FieldFormatters
 
 		public override string Format(IItemFieldValue field)
 		{
+			if (string.IsNullOrWhiteSpace(field.Value)) return field.Value;
+
 			try
 			{
 				XDocument doc = XDocument.Parse(field.Value);
@@ -37,7 +39,7 @@ namespace Rainbow.Formatting.FieldFormatters
 			}
 			catch (Exception ex)
 			{
-				Log.Error($"Error while formatting XML field {field.FieldId} ({field.NameHint}). The raw value will be used instead.", ex, this);
+				Log.Error($"Error while formatting XML field {field.FieldId} ({field.NameHint}). The raw value will be used instead. Raw value was {field.Value}", ex, this);
 				return field.Value;
 			}
 		}
