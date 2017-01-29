@@ -1,7 +1,7 @@
-﻿using System;
-using System.Xml;
+﻿using System.Xml;
 using System.Xml.Linq;
 using Rainbow.Model;
+using Sitecore.Diagnostics;
 
 namespace Rainbow.Diff.Fields
 {
@@ -22,7 +22,9 @@ namespace Rainbow.Diff.Fields
 			}
 			catch (XmlException xe)
 			{
-				throw new InvalidOperationException($"Unable to compare {field1.NameHint ?? field2.NameHint} field due to invalid XML value.", xe);
+				Log.Error($"Field {field1.NameHint ?? field2.NameHint} contained an invalid XML value. Falling back to string comparison.", xe, this);
+
+				return new DefaultComparison().AreEqual(field1, field2);
 			}
 		}
 
