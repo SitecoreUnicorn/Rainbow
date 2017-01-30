@@ -125,9 +125,9 @@ namespace Rainbow.Storage
 		/// </summary>
 		public virtual IEnumerable<IItemData> GetSnapshot()
 		{
-			return FastDirectoryEnumerator.EnumerateFiles(_physicalRootPath, "*" + _formatter.FileExtension, SearchOption.AllDirectories)
+			return Directory.EnumerateFiles(_physicalRootPath, "*" + _formatter.FileExtension, SearchOption.AllDirectories)
 				.AsParallel()
-				.Select(file => ReadItem(file.Path));
+				.Select(ReadItem);
 		}
 
 		public virtual bool ContainsPath(string globalPath)
@@ -557,21 +557,21 @@ namespace Rainbow.Storage
 			if (serializedItem == null)
 				throw new InvalidOperationException("Item {0} does not exist on disk.".FormatWith(item.Path));
 
-			IEnumerable<FileData> children = Enumerable.Empty<FileData>();
+			IEnumerable<string> children = Enumerable.Empty<string>();
 
 			var childrenPath = Path.ChangeExtension(serializedItem.SerializedItemId, null);
 
 			if (Directory.Exists(childrenPath))
 			{
-				children = FastDirectoryEnumerator.GetFiles(childrenPath, "*" + _formatter.FileExtension, SearchOption.TopDirectoryOnly);
+				children = Directory.EnumerateFiles(childrenPath, "*" + _formatter.FileExtension, SearchOption.TopDirectoryOnly);
 			}
 
 			var shortPath = Path.Combine(_physicalRootPath, item.Id.ToString());
 
 			if (Directory.Exists(shortPath))
-				children = children.Concat(FastDirectoryEnumerator.GetFiles(shortPath, "*" + _formatter.FileExtension, SearchOption.TopDirectoryOnly));
+				children = children.Concat(Directory.EnumerateFiles(shortPath, "*" + _formatter.FileExtension, SearchOption.TopDirectoryOnly));
 
-			return children.Select(result => result.Path).ToArray();
+			return children.ToArray();
 		}
 
 		protected virtual string PrepareItemNameForFileSystem(string name)
@@ -623,7 +623,7 @@ namespace Rainbow.Storage
 
 			var result = GetPhysicalFilePathsForVirtualPath(localPath)
 				.Select(ReadItemMetadata)
-				.FirstOrDefault(candidateItem => candidateItem.Id == expectedItemId);
+				.FirstOrDefault(candidateItem => candidateItem != null && candidateItem.Id == expectedItemId);
 
 			if (result == null) return null;
 
