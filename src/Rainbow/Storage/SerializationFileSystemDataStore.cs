@@ -104,13 +104,13 @@ namespace Rainbow.Storage
 
 						// if we saved an item that was a former child of the item we want to keep it when we're doing deletions
 						if (oldPathItemAndDescendants.ContainsKey(savedPath)) oldPathItemAndDescendants.Remove(savedPath);
-					}
 
-					var children = parent.GetChildren();
+						var children = parent.GetChildren();
 
-					foreach (var child in children)
-					{
-						saveQueue.Enqueue(child);
+						foreach (var child in children)
+						{
+							saveQueue.Enqueue(child);
+						}
 					}
 				}
 			}
