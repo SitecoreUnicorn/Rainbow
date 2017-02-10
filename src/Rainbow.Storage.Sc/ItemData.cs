@@ -92,7 +92,11 @@ namespace Rainbow.Storage.Sc
 					// Get all item languages (note: not versions, because you can have unversioned fields without a version in a language)
 					// then parse out the unversioned fields for each and project into a ProxyItemLanguage.
 					_unversionedFields = GetAllLanguages()
-						.Select(language => (IItemLanguage)new ProxyItemLanguage(language.Language.CultureInfo) { Fields = fieldReader.ParseFields(language, FieldReader.FieldReadType.Unversioned) })
+						.Select(language =>
+						{
+							language.Fields.ReadAll();
+							return (IItemLanguage)new ProxyItemLanguage(language.Language.CultureInfo) { Fields = fieldReader.ParseFields(language, FieldReader.FieldReadType.Unversioned) };
+						})
 						.Where(language => language.Fields.Any())
 						.ToArray();
 				}
