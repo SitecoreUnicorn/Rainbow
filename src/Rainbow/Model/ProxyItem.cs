@@ -14,7 +14,7 @@ namespace Rainbow.Model
 	/// </summary>
 	public class ProxyItem : IItemData
 	{
-		private IEnumerable<IItemData> _proxyChildren;
+		private Func<IEnumerable<IItemData>> _proxyChildrenFactory;
 		 
 		public ProxyItem() : this("Unnamed", Guid.NewGuid(), Guid.Empty, Guid.Empty, "[orphan]", "master")
 		{
@@ -66,15 +66,20 @@ namespace Rainbow.Model
 
 		public virtual void SetProxyChildren(IEnumerable<IItemData> children)
 		{
-			_proxyChildren = children;
-		} 
+			SetProxyChildren(() => children);
+		}
+
+		public virtual void SetProxyChildren(Func<IEnumerable<IItemData>> childrenFactory)
+		{
+			_proxyChildrenFactory = childrenFactory;
+		}
 
 		public virtual IEnumerable<IItemData> GetChildren()
 		{
-			if(_proxyChildren == null)
+			if(_proxyChildrenFactory == null)
 				throw new NotImplementedException("Cannot get children of a proxied item that does not have them explicitly set with SetProxyChildren()");
 
-			return _proxyChildren;
+			return _proxyChildrenFactory();
 		}
 	}
 }

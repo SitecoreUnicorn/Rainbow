@@ -359,6 +359,8 @@ namespace Rainbow.Storage
 			Assert.ArgumentNotNullOrEmpty(path, "path");
 
 			var proxiedItem = new ProxyItem(item) { SerializedItemId = path };
+			// this preserves ability to get the children of the proxy when its placed in the cache by using a factory callback
+			proxiedItem.SetProxyChildren(item.GetChildren);
 
 			lock (FileUtil.GetFileLock(path))
 			{
@@ -380,7 +382,7 @@ namespace Rainbow.Storage
 				}
 			}
 
-			AddToMetadataCache(item, path);
+			AddToMetadataCache(proxiedItem, path);
 			_dataCache.AddOrUpdate(path, proxiedItem);
 		}
 
