@@ -35,9 +35,11 @@ namespace Rainbow.Model
 			DatabaseName = itemToProxy.DatabaseName;
 		}
 
-		public ProxyItem(string name, Guid id, Guid parentId, Guid templateId, string path, string databaseName, Func<IEnumerable<IItemData>> childrenFactory) : this(name, id, parentId, templateId, path, databaseName)
+		/// <param name="itemToProxy">The item to evaluate into a proxy</param>
+		/// <param name="proxyChildren">If true, the method to get children of the proxy item will be kept as a factory for the proxy item's children. Be careful with this as it can have undesirable memory effects as well as as cache issues</param>
+		public ProxyItem(IItemData itemToProxy, bool proxyChildren) : this(itemToProxy)
 		{
-			SetProxyChildren(childrenFactory);
+			if(proxyChildren) SetProxyChildren(itemToProxy.GetChildren);
 		}
 
 		public ProxyItem(string name, Guid id, Guid parentId, Guid templateId, string path, string databaseName)
@@ -55,6 +57,11 @@ namespace Rainbow.Model
 			SharedFields = Enumerable.Empty<IItemFieldValue>();
 			Versions = Enumerable.Empty<IItemVersion>();
 			UnversionedFields = Enumerable.Empty<IItemLanguage>();
+		}
+
+		public ProxyItem(string name, Guid id, Guid parentId, Guid templateId, string path, string databaseName, Func<IEnumerable<IItemData>> childrenFactory) : this(name, id, parentId, templateId, path, databaseName)
+		{
+			SetProxyChildren(childrenFactory);
 		}
 
 		public virtual Guid Id { get; set; }
