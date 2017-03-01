@@ -35,6 +35,11 @@ namespace Rainbow.Model
 			DatabaseName = itemToProxy.DatabaseName;
 		}
 
+		public ProxyItem(string name, Guid id, Guid parentId, Guid templateId, string path, string databaseName, Func<IEnumerable<IItemData>> childrenFactory) : this(name, id, parentId, templateId, path, databaseName)
+		{
+			SetProxyChildren(childrenFactory);
+		}
+
 		public ProxyItem(string name, Guid id, Guid parentId, Guid templateId, string path, string databaseName)
 		{
 			Assert.ArgumentNotNullOrEmpty(name, "name");

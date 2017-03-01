@@ -358,9 +358,8 @@ namespace Rainbow.Storage
 			Assert.ArgumentNotNull(item, "item");
 			Assert.ArgumentNotNullOrEmpty(path, "path");
 
-			var proxiedItem = new ProxyItem(item) { SerializedItemId = path };
-			// this preserves ability to get the children of the proxy when its placed in the cache by using a factory callback
-			proxiedItem.SetProxyChildren(item.GetChildren);
+			// proxyChildren preserves ability to get the children of the proxy when its placed in the cache by using a factory callback
+			var proxiedItem = new ProxyItem(item, proxyChildren: true) { SerializedItemId = path };
 
 			lock (FileUtil.GetFileLock(path))
 			{
