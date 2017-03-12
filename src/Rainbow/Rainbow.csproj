@@ -74,6 +74,7 @@
     <Compile Include="Formatting\FieldFormatters\FieldTypeBasedFormatter.cs" />
     <Compile Include="Formatting\ISerializationFormatter.cs" />
     <Compile Include="IDocumentable.cs" />
+    <Compile Include="Model\FsCachedItem.cs" />
     <Compile Include="Model\IItemLanguage.cs" />
     <Compile Include="Model\PathRebasingProxyItem.cs" />
     <Compile Include="Model\ProxyFieldValue.cs" />

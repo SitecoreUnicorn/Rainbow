@@ -307,8 +307,8 @@ namespace Rainbow.Storage
 		protected virtual IItemData ReadItem(string path)
 		{
 			Assert.ArgumentNotNullOrEmpty(path, "path");
-
-			return _dataCache.GetValue(path, fileInfo =>
+			
+			var item = _dataCache.GetValue(path, fileInfo =>
 			{
 				try
 				{
@@ -327,6 +327,12 @@ namespace Rainbow.Storage
 					throw new SfsReadException("Error while reading SFS item " + path, exception);
 				}
 			});
+
+			// when the data cache is enabled we have to 'restore' the item's children to it
+			// (this allows us to successfully move and rename data cached items)
+			if(_dataCache.Enabled) return new FsCachedItem(item, () => GetChildren(item));
+
+			return item;
 		}
 
 		protected virtual IItemMetadata ReadItemMetadata(string path)
@@ -358,8 +364,7 @@ namespace Rainbow.Storage
 			Assert.ArgumentNotNull(item, "item");
 			Assert.ArgumentNotNullOrEmpty(path, "path");
 
-			// proxyChildren preserves ability to get the children of the proxy when its placed in the cache by using a factory callback
-			var proxiedItem = new ProxyItem(item, proxyChildren: true) { SerializedItemId = path };
+			var proxiedItem = new ProxyItem(item) { SerializedItemId = path };
 
 			lock (FileUtil.GetFileLock(path))
 			{

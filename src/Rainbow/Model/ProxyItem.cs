@@ -35,13 +35,6 @@ namespace Rainbow.Model
 			DatabaseName = itemToProxy.DatabaseName;
 		}
 
-		/// <param name="itemToProxy">The item to evaluate into a proxy</param>
-		/// <param name="proxyChildren">If true, the method to get children of the proxy item will be kept as a factory for the proxy item's children. Be careful with this as it can have undesirable memory effects as well as as cache issues</param>
-		public ProxyItem(IItemData itemToProxy, bool proxyChildren) : this(itemToProxy)
-		{
-			if(proxyChildren) SetProxyChildren(itemToProxy.GetChildren);
-		}
-
 		public ProxyItem(string name, Guid id, Guid parentId, Guid templateId, string path, string databaseName)
 		{
 			Assert.ArgumentNotNullOrEmpty(name, "name");
