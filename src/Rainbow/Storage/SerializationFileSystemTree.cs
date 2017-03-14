@@ -330,7 +330,7 @@ namespace Rainbow.Storage
 
 			// when the data cache is enabled we have to 'restore' the item's children to it
 			// (this allows us to successfully move and rename data cached items)
-			if(_dataCache.Enabled) return new FsCachedItem(item, () => GetChildren(item));
+			if(_dataCache.Enabled && item != null) return new FsCachedItem(item, () => GetChildren(item));
 
 			return item;
 		}
