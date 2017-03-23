@@ -103,8 +103,17 @@ namespace Rainbow.Storage.Sc.Deserialization
 		{
 			Database database = Factory.GetDatabase(serializedItemData.DatabaseName);
 
-			Item destinationParentItem = database.GetItem(new ID(serializedItemData.ParentId));
-			Item targetItem = database.GetItem(new ID(serializedItemData.Id));
+			var parentId = new ID(serializedItemData.ParentId);
+			var itemId = new ID(serializedItemData.Id);
+
+			// When Transparent Sync is enabled, it's possible for items - especially templates when the template engine resets -
+			// to bypass TransparentSyncDisabler and sneak into the data caches. This can cause spurious detection of items existing
+			// when they really do not in the database. By pre-clearing the item cache, we eliminate this possibility.
+			ClearCaches(database, parentId);
+			ClearCaches(database, itemId);
+
+			Item destinationParentItem = database.GetItem(parentId);
+			Item targetItem = database.GetItem(itemId);
 
 			newItemWasCreated = false;
 
@@ -112,11 +121,21 @@ namespace Rainbow.Storage.Sc.Deserialization
 			// has no parent. If this occurs, we want to dump all caches and return the item, which will
 			// then correctly reflect that the item did not exist and create it.
 			// Why? Not sure.
+			// NOTE: there's a good chance that the fix above - which decaches the item before attempting to get it -
+			// makes the below if statement irrelevant. However, because it won't hurt anything if it is irrelevant,
+			// and I don't feel like spending hours diagnosing it if it turns out it ISN'T irrelevant later, I'm leaving it in.
 			if (targetItem != null && targetItem.ParentID == ID.Null)
 			{
-				CacheManager.ClearAllCaches();
+				ClearCaches(database, itemId);
 
-				targetItem = database.GetItem(new ID(serializedItemData.Id));
+				targetItem = database.GetItem(itemId);
+
+				if (targetItem != null && targetItem.ParentID == ID.Null)
+				{
+					CacheManager.ClearAllCaches();
+
+					targetItem = database.GetItem(itemId);
+				}
 			}
 
 			// the target item did not yet exist, so we need to start by creating it
