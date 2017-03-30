@@ -11,7 +11,6 @@ using Rainbow.Formatting;
 using Rainbow.Formatting.FieldFormatters;
 using Rainbow.Model;
 using Rainbow.Storage.Yaml.OutputModel;
-using Sitecore.Configuration;
 using Sitecore.Diagnostics;
 
 namespace Rainbow.Storage.Yaml
@@ -30,7 +29,7 @@ namespace Rainbow.Storage.Yaml
 
 			foreach (XmlNode formatter in formatters)
 			{
-				if (formatter.NodeType == XmlNodeType.Element && formatter.Name.Equals("fieldFormatter")) FieldFormatters.Add(Factory.CreateObject<IFieldFormatter>(formatter));
+				if (formatter.NodeType == XmlNodeType.Element && formatter.Name.Equals("fieldFormatter")) FieldFormatters.Add(XmlActivator.CreateObject<IFieldFormatter>(formatter));
 			}
 		}
 

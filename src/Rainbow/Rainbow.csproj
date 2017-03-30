@@ -99,6 +99,7 @@
     <Compile Include="Storage\SfsWriteException.cs" />
     <Compile Include="Storage\TreeRoot.cs" />
     <Compile Include="Storage\TreeWatcher.cs" />
+    <Compile Include="XmlActivator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

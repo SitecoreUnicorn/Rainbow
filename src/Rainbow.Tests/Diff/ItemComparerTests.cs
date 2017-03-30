@@ -291,22 +291,20 @@ namespace Rainbow.Tests.Diff
 			Assert.False(comparison.IsMoved || comparison.IsRenamed || comparison.IsTemplateChanged);
 		}
 
-		// Commented out due to a bug in Sitecore 8.2 RTM that causes Factory.CreateObject<T>() to throw a null ref exception in a test context
-		// FTW!
-		//[Fact]
-		//public void ItemComparer_AddsComparerFromXmlConfig()
-		//{
-		//	var xmlConfigNode = @"<itemComparer>
-		//			<fieldComparer type=""Rainbow.Diff.Fields.XmlComparison, Rainbow"" />
-		//		</itemComparer>";
+		[Fact]
+		public void ItemComparer_AddsComparerFromXmlConfig()
+		{
+			var xmlConfigNode = @"<itemComparer>
+					<fieldComparer type=""Rainbow.Diff.Fields.XmlComparison, Rainbow"" />
+				</itemComparer>";
 
-		//	var configDoc = new XmlDocument();
-		//	configDoc.LoadXml(xmlConfigNode);
+			var configDoc = new XmlDocument();
+			configDoc.LoadXml(xmlConfigNode);
 
-		//	var comparer = new TestComparisonItemComparer(configDoc.DocumentElement);
+			var comparer = new TestComparisonItemComparer(configDoc.DocumentElement);
 
-		//	Assert.True(comparer.Comparers.Any(c => c.GetType() == typeof(XmlComparison)));
-		//}
+			Assert.True(comparer.Comparers.Any(c => c.GetType() == typeof(XmlComparison)));
+		}
 
 		private class TestItemComparer : ItemComparer
 		{

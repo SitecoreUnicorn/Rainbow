@@ -4,7 +4,6 @@ using System.Linq;
 using System.Xml;
 using Rainbow.Diff.Fields;
 using Rainbow.Model;
-using Sitecore.Configuration;
 using Sitecore.Diagnostics;
 // ReSharper disable TooWideLocalVariableScope
 // ReSharper disable LoopCanBeConvertedToQuery
@@ -29,7 +28,9 @@ namespace Rainbow.Diff
 			foreach (XmlNode comparer in comparers)
 			{
 				if (comparer.NodeType == XmlNodeType.Element && comparer.Name.Equals("fieldComparer"))
-					FieldComparers.Add(Factory.CreateObject<IFieldComparer>(comparer));
+				{
+					FieldComparers.Add(XmlActivator.CreateObject<IFieldComparer>(comparer));
+				}
 			}
 
 			FieldComparers.Add(new DefaultComparison());
@@ -254,6 +255,7 @@ namespace Rainbow.Diff
 			if (!targetFields.TryGetValue(fieldId, out targetField)) return true;
 
 			IFieldComparer comparer;
+			// ReSharper disable once ForCanBeConvertedToForeach
 			for (var index = 0; index < FieldComparers.Count; index++)
 			{
 				comparer = FieldComparers[index];
