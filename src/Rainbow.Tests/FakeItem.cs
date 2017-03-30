@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Rainbow.Model;
+// ReSharper disable VirtualMemberCallInConstructor
 
 namespace Rainbow.Tests
 {

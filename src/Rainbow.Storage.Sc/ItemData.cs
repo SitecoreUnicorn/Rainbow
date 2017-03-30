@@ -115,6 +115,7 @@ namespace Rainbow.Storage.Sc
 					var versionResults = new List<IItemVersion>();
 
 					var versions = GetVersions();
+					// ReSharper disable once ForCanBeConvertedToForeach
 					for (int i = 0; i < versions.Length; i++)
 					{
 						versionResults.Add(CreateVersion(versions[i]));
@@ -166,6 +167,7 @@ namespace Rainbow.Storage.Sc
 
 		protected virtual Item[] GetAllLanguages()
 		{
+			// ReSharper disable once ConvertIfStatementToNullCoalescingExpression
 			if (_itemLanguages == null)
 			{
 				// get the item in all known system languages

@@ -7,6 +7,7 @@ namespace Rainbow.Tests
 	{
 		public FakeItemVersion(int versionNumber = 1, string language = "en", params IItemFieldValue[] fields) : base(new CultureInfo(language), versionNumber)
 		{
+			// ReSharper disable once VirtualMemberCallInConstructor
 			Fields = fields;
 		}
 	}

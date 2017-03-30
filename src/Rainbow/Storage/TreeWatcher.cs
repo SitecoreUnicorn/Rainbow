@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using Sitecore.Diagnostics;
 
 namespace Rainbow.Storage
 {
@@ -24,6 +23,7 @@ namespace Rainbow.Storage
 		public TreeWatcher(string rootPath, string extension, Action<string, TreeWatcherChangeType> actionOnChange)
 		{
 			_actionOnChange = actionOnChange;
+			// ReSharper disable once UseObjectOrCollectionInitializer
 			_watcher = new FileSystemWatcher(rootPath, "*" + extension);
 			_watcher.IncludeSubdirectories = true;
 			_watcher.Changed += OnFileChanged;

@@ -12,6 +12,7 @@ namespace Rainbow.Model
 	public class PathRebasingProxyItem : ItemDecorator
 	{
 		private readonly string _newParentPath;
+		// ReSharper disable once RedundantDefaultMemberInitializer
 		private readonly bool _parentPathIsLiteral = false;
 
 		/// <summary>

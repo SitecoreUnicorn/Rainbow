@@ -42,6 +42,7 @@ namespace Rainbow.Storage.Yaml.Tests
 			}, VersionsExpected);
 		}
 
+		// ReSharper disable once UnusedParameter.Local
 		private void ExecuteYamlWriter(Action<YamlWriter> actions, string expectedOutput)
 		{
 			using (var ms = new MemoryStream())

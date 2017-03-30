@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using Rainbow.Model;
+// ReSharper disable VirtualMemberCallInConstructor
 
 namespace Rainbow.Tests
 {

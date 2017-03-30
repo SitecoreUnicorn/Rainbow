@@ -47,11 +47,12 @@ xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" >
 		}
 
 		[Fact]
-		public void Throws_WhenPassedInvalidXmlValues()
+		public void FallsBackToStringComparison_WhenPassedInvalidXmlValues()
 		{
 			var comparison = new XmlComparison();
 
-			Assert.Throws<InvalidOperationException>(() => RunComparer(comparison, "NOT XML", "NOT XML", false));
+			RunComparer(comparison, "NOT XML", "NOT XML", true);
+			RunComparer(comparison, "NOT XML", "ALSO NOT XML", false);
 		}
 	}
 }

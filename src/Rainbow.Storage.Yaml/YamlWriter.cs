@@ -70,6 +70,7 @@ namespace Rainbow.Storage.Yaml
 
 		protected virtual string Encode(string value)
 		{
+			// ReSharper disable once UseStringInterpolation
 			return string.Format("\"{0}\"", value.Replace("\"", @"\"""));
 		}
 

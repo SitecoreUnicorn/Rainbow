@@ -95,14 +95,7 @@ namespace Rainbow.Storage.Yaml
 
 			var mapValue = initialValue.Substring(mapIndex + 2);
 
-			if (mapValue.Equals("|"))
-			{
-				mapValue = ReadMultilineString(currentIndent + IndentSpaces);
-			}
-			else
-			{
-				mapValue = Decode(mapValue);
-			}
+			mapValue = mapValue.Equals("|") ? ReadMultilineString(currentIndent + IndentSpaces) : Decode(mapValue);
 
 			return new KeyValuePair<string, string>(mapKey, mapValue);
 		}

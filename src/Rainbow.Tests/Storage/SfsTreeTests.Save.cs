@@ -171,23 +171,6 @@ namespace Rainbow.Tests.Storage
 		}
 
 		[Fact]
-		public void Save_WritesItem_WhenRootPathIsRelative()
-		{
-			using (var testTree = new TestSfsTree("/../../Items", "/sitecore"))
-			{
-				testTree.CreateTestTree("/sitecore/hello");
-
-				var rootItem = testTree.GetRootItem();
-
-				var childItem = testTree.GetChildren(rootItem).First();
-
-				Assert.Equal("/sitecore/hello", childItem.Path);
-				Assert.EndsWith("\\Items\\sitecore\\hello.yml", childItem.SerializedItemId);
-				Assert.False(childItem.SerializedItemId.Contains(".."));
-			}
-		}
-
-		[Fact]
 		public void Save_WritesExpectedItems_WhenItemNameIsTooLong_AndItemsWithSameShortenedNameExist()
 		{
 			using (var testTree = new TestSfsTree())

@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using Xunit;
 using Rainbow.Diff.Fields;
 
 namespace Rainbow.Tests.Diff.Fields
