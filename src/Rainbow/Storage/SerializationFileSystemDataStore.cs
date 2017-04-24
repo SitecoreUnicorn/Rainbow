@@ -248,7 +248,8 @@ namespace Rainbow.Storage
 				var cleanRootPath = rootPath.TrimStart('~', Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 				cleanRootPath = cleanRootPath.Replace("/", Path.DirectorySeparatorChar.ToString());
 
-				rootPath = Path.Combine(HostingEnvironment.MapPath("~/"), cleanRootPath);
+				var basePath = HostingEnvironment.IsHosted ? HostingEnvironment.MapPath("~/") : AppDomain.CurrentDomain.BaseDirectory;
+				rootPath = Path.Combine(basePath, cleanRootPath);
 			}
 
 			// convert root path to canonical form, so subsequent transformations can do string comparison
