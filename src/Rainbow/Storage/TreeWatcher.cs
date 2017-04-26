@@ -20,11 +20,11 @@ namespace Rainbow.Storage
 		private readonly ConcurrentDictionary<string, bool> _knownUpdates = new ConcurrentDictionary<string, bool>();
 		private bool _enableEvents = true;
 
-		public TreeWatcher(string rootPath, string extension, Action<string, TreeWatcherChangeType> actionOnChange)
+		public TreeWatcher(string rootPath, string filter, Action<string, TreeWatcherChangeType> actionOnChange)
 		{
 			_actionOnChange = actionOnChange;
 			// ReSharper disable once UseObjectOrCollectionInitializer
-			_watcher = new FileSystemWatcher(rootPath, "*" + extension);
+			_watcher = new FileSystemWatcher(rootPath, filter);
 			_watcher.IncludeSubdirectories = true;
 			_watcher.Changed += OnFileChanged;
 			_watcher.Created += OnFileChanged;
