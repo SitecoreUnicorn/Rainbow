@@ -234,7 +234,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			{
 				// this generally means that we tried to sync an item and change its template AND we already deleted the item's old template in the same sync
 				// the Sitecore change template API chokes if the item's CURRENT template is unavailable, but we can get around that
-				// issure reported to Sitecore Support (406546)
+				// issue reported to Sitecore Support (406546)
 				lock (targetItem.SyncRoot)
 				{
 					Template sourceTemplate = TemplateManager.GetTemplate(targetItem);
