@@ -12,6 +12,7 @@ using Sitecore.Diagnostics;
 using Sitecore.IO;
 using Sitecore.StringExtensions;
 using System.Diagnostics;
+using Rainbow.Settings;
 
 namespace Rainbow.Storage
 {
@@ -68,8 +69,8 @@ namespace Rainbow.Storage
 		private readonly FsCache<IItemData> _dataCache;
 		private readonly FsCache<IItemMetadata> _metadataCache = new FsCache<IItemMetadata>(true);
 		private readonly TreeWatcher _treeWatcher;
-		protected char[] InvalidFileNameCharacters = Path.GetInvalidFileNameChars().Concat(Settings.GetSetting("Rainbow.SFS.ExtraInvalidFilenameCharacters", string.Empty).ToCharArray()).ToArray();
-		protected static HashSet<string> InvalidFileNames = new HashSet<string>(Settings.GetSetting("Rainbow.SFS.InvalidFilenames", "CON,PRN,AUX,NUL,COM1,COM2,COM3,COM4,COM5,COM6,COM7,COM8,COM9,LPT1,LPT2,LPT3,LPT4,LPT5,LPT6,LPT7,LPT8,LPT9").Split(','), StringComparer.OrdinalIgnoreCase);
+		protected char[] InvalidFileNameCharacters = Path.GetInvalidFileNameChars().Concat(RainbowSettings.Current.SfsExtraInvalidFilenameCharacters).ToArray();
+		protected static HashSet<string> InvalidFileNames = new HashSet<string>(RainbowSettings.Current.SfsInvalidFilenames, StringComparer.OrdinalIgnoreCase);
 
 		// ReSharper disable once RedundantDefaultMemberInitializer
 		private bool _configuredForFastReads = false;
@@ -730,7 +731,7 @@ namespace Rainbow.Storage
 				if (_maxRelativePathLength == null)
 				{
 					const int windowsMaxPathLength = 240; // 260 - sundry directory chars, separators, file extension allowance, etc
-					int expectedPhysicalPathMaxConstant = Settings.GetIntSetting("Rainbow.SFS.SerializationFolderPathMaxLength", 80);
+					int expectedPhysicalPathMaxConstant = RainbowSettings.Current.SfsSerializationFolderPathMaxLength;
 
 					if (_physicalRootPath.Length > expectedPhysicalPathMaxConstant)
 						throw new InvalidOperationException("The physical root path of this SFS tree, {0}, is longer than the configured max base path length {1}. If the tree contains any loopback paths, unexpected behavior may occur. You should increase the Rainbow.SFS.SerializationFolderPathMaxLength setting in Rainbow.config to greater than {2} and perform a reserialization from a master content database."
@@ -755,7 +756,7 @@ namespace Rainbow.Storage
 			{
 				if (_maxItemNameLength == null)
 				{
-					var configSetting = Settings.GetIntSetting("Rainbow.SFS.MaxItemNameLengthBeforeTruncation", 100);
+					var configSetting = RainbowSettings.Current.SfsMaxItemNameLengthBeforeTruncation;
 					var maxLength = MaxRelativePathLength - Guid.Empty.ToString().Length - _formatter.FileExtension.Length;
 					if (configSetting > maxLength)
 						throw new InvalidOperationException("The MaxItemNameLengthBeforeTruncation setting ({0}) is too long given the SerializationFolderPathMaxLength. Reduce the max name length to at or below {1}.".FormatWith(configSetting, maxLength));

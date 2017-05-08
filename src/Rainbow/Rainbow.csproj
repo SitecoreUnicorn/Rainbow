@@ -82,6 +82,8 @@
     <Compile Include="Model\ProxyItemLanguage.cs" />
     <Compile Include="Model\ProxyItemVersion.cs" />
     <Compile Include="Model\ItemDecorator.cs" />
+    <Compile Include="Settings\RainbowSettings.cs" />
+    <Compile Include="Settings\RainbowSitecoreSettings.cs" />
     <Compile Include="Storage\ISnapshotCapableDataStore.cs" />
     <Compile Include="Storage\SfsDuplicateIdCheckingDisabler.cs" />
     <Compile Include="Storage\FsCache.cs" />
@@ -103,11 +105,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="TODO.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Rainbow.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
