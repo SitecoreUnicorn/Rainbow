@@ -24,7 +24,10 @@ namespace Rainbow.Formatting.FieldFormatters
 		public override string Unformat(string value)
 		{
 			if (value.Equals("0", StringComparison.Ordinal))
+			{
 				return string.Empty;
+			}
+
 			return value;
 		}
 	}
