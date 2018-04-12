@@ -24,3 +24,5 @@ packages/*
 Build/*.nupkg
 
 src/Rainbow.*.Tests/license.xml
+
+.vs/

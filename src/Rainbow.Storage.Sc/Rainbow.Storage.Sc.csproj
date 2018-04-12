@@ -1,17 +1,16 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{956AFE8B-51CD-4D61-B8C1-BFFDC749FD82}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Rainbow.Storage.Sc</RootNamespace>
-    <AssemblyName>Rainbow.Storage.Sc</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <TargetFramework>net462</TargetFramework>
+    <Configurations>Debug;Release</Configurations>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
+    <Authors>Kam Figy</Authors>
+    <Description>Implements the Sitecore database as a Rainbow data store</Description>
+    <PackageIconUrl>http://kamsar.net/nuget/rainbow/sc.png</PackageIconUrl>
+    <PackageId>Rainbow.Storage.Sc</PackageId>
+    <PackageLicenseUrl>http://opensource.org/licenses/MIT</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/kamsar/Rainbow</PackageProjectUrl>
+    <PackageTags>sitecore</PackageTags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -30,48 +29,17 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup />
+  <PropertyGroup />
   <ItemGroup>
-    <Reference Include="Sitecore.Kernel, Version=10.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Sitecore.Kernel.NoReferences.8.2.160729\lib\NET452\Sitecore.Kernel.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System" />
+    <ProjectReference Include="..\Rainbow\Rainbow.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Sitecore.Kernel.NoReferences" Version="9.0.171219">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\SharedAssemblyInfo.cs">
-      <Link>Properties\SharedAssemblyInfo.cs</Link>
-    </Compile>
-    <Compile Include="Deserialization\DefaultDeserializer.cs" />
-    <Compile Include="Deserialization\TemplateMissingFieldException.cs" />
-    <Compile Include="Deserialization\DeserializationException.cs" />
-    <Compile Include="Deserialization\IDefaultDeserializerLogger.cs" />
-    <Compile Include="Deserialization\IDeserializer.cs" />
-    <Compile Include="FieldReader.cs" />
-    <Compile Include="ItemFieldValue.cs" />
-    <Compile Include="ItemVersionValue.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ItemData.cs" />
-    <Compile Include="SitecoreDataStore.cs" />
-    <Compile Include="SitecoreVersionResolver.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Rainbow\Rainbow.csproj">
-      <Project>{8ff75c8b-2a9e-4d95-91ad-333071813199}</Project>
-      <Name>Rainbow</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

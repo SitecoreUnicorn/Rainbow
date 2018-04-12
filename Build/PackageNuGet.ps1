@@ -26,13 +26,21 @@ $msBuild = Resolve-MsBuild
 $nuGet = "$scriptRoot..\tools\NuGet.exe"
 $solution = "$scriptRoot\..\Rainbow.sln"
 
+Remove-Item $scriptRoot\..\src\*\bin\release\*.nupkg
+
 & $nuGet restore $solution
 & $msBuild $solution /p:Configuration=Release /t:Rebuild /m
 
-$synthesisAssembly = Get-Item "$scriptRoot\..\src\Rainbow\bin\Release\Rainbow.dll" | Select-Object -ExpandProperty VersionInfo
-$targetAssemblyVersion = $synthesisAssembly.ProductVersion
+$version = Read-Host "Enter version to build"
 
-& $nuGet pack "$scriptRoot\Rainbow.nuget\Rainbow.nuspec" -version $targetAssemblyVersion
-& $nuGet pack "$scriptRoot\..\src\Rainbow\Rainbow.csproj" -Symbols -Prop Configuration=Release
-& $nuGet pack "$scriptRoot\..\src\Rainbow.Storage.Sc\Rainbow.Storage.Sc.csproj" -Symbols -Prop Configuration=Release
-& $nuGet pack "$scriptRoot\..\src\Rainbow.Storage.Yaml\Rainbow.Storage.Yaml.csproj" -Symbols -Prop Configuration=Release
+function PackNCopy($projFile) {
+	& $msBuild $projFile /p:Configuration=Release /t:pack /p:Version=$version /p:IncludeSymbols=true
+	$outputPath = [IO.Path]::GetDirectoryName($projFile)
+	$outputPath = Resolve-Path $outputPath\bin\release\*.nupkg
+	Copy-Item $outputPath $scriptRoot
+}
+
+& $nuGet pack "$scriptRoot\Rainbow.nuget\Rainbow.nuspec" -version $version
+PackNCopy "$scriptRoot\..\src\Rainbow\Rainbow.csproj"
+PackNCopy "$scriptRoot\..\src\Rainbow.Storage.Sc\Rainbow.Storage.Sc.csproj"
+PackNCopy "$scriptRoot\..\src\Rainbow.Storage.Yaml\Rainbow.Storage.Yaml.csproj"

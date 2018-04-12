@@ -1,19 +1,8 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{9BE98224-AA2D-4376-AEA8-52BF247875FB}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Rainbow.Storage.Yaml.Tests</RootNamespace>
-    <AssemblyName>Rainbow.Storage.Yaml.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-    <TargetFrameworkProfile />
+    <TargetFramework>net462</TargetFramework>
+    <Configurations>Debug;Release</Configurations>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -32,6 +21,39 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup />
+  <PropertyGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Rainbow.Storage.Yaml\Rainbow.Storage.Yaml.csproj" />
+    <ProjectReference Include="..\Rainbow.Tests\Rainbow.Tests.csproj" />
+    <ProjectReference Include="..\Rainbow\Rainbow.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="4.14.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="1.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="1.0.0" />
+    <PackageReference Include="Sitecore.Kernel.NoReferences" Version="9.0.171219">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="System.Collections" Version="4.0.11" />
+    <PackageReference Include="System.Collections.Concurrent" Version="4.0.12" />
+    <PackageReference Include="System.ComponentModel" Version="4.0.1" />
+    <PackageReference Include="System.Diagnostics.Debug" Version="4.0.11" />
+    <PackageReference Include="System.Globalization" Version="4.0.11" />
+    <PackageReference Include="System.Linq" Version="4.1.0" />
+    <PackageReference Include="System.Linq.Expressions" Version="4.1.0" />
+    <PackageReference Include="System.Reflection" Version="4.1.0" />
+    <PackageReference Include="System.Resources.ResourceManager" Version="4.0.1" />
+    <PackageReference Include="System.Runtime.Extensions" Version="4.1.0" />
+    <PackageReference Include="System.Threading" Version="4.0.11" />
+    <PackageReference Include="System.Threading.Tasks" Version="4.0.11" />
+    <PackageReference Include="xunit" Version="2.1.0" />
+    <PackageReference Include="xunit.abstractions" Version="2.0.0" />
+    <PackageReference Include="xunit.assert" Version="2.1.0" />
+    <PackageReference Include="xunit.core" Version="2.1.0" />
+    <PackageReference Include="xunit.extensibility.core" Version="2.1.0" />
+    <PackageReference Include="xunit.extensibility.execution" Version="2.1.0" />
+  </ItemGroup>
   <ItemGroup>
     <Reference Include="FluentAssertions, Version=4.14.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\FluentAssertions.4.14.0\lib\net45\FluentAssertions.dll</HintPath>
@@ -49,15 +71,10 @@
       <HintPath>..\..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.1.0.0\lib\netstandard1.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Sitecore.Kernel, Version=10.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Sitecore.Kernel.NoReferences.8.2.160729\lib\NET452\Sitecore.Kernel.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Sitecore.Kernel, Version=11.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Sitecore.Kernel.NoReferences.9.0.171219\lib\NET462\Sitecore.Kernel.dll</HintPath>
     </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.XML" />
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <HintPath>..\..\packages\xunit.abstractions.2.0.0\lib\net35\xunit.abstractions.dll</HintPath>
       <Private>True</Private>
@@ -76,39 +93,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\SharedAssemblyInfo.cs">
-      <Link>Properties\SharedAssemblyInfo.cs</Link>
-    </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestYamlSerializationFormatter.cs" />
-    <Compile Include="YamlReaderTests.cs" />
-    <Compile Include="YamlFormatTests.cs" />
-    <Compile Include="YamlSerializationFormatterTests.cs" />
-    <Compile Include="YamlWriterTests.cs" />
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Rainbow.Storage.Yaml\Rainbow.Storage.Yaml.csproj">
-      <Project>{371181c9-45dc-4885-8894-43ffc235d124}</Project>
-      <Name>Rainbow.Storage.Yaml</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Rainbow.Tests\Rainbow.Tests.csproj">
-      <Project>{3a8495ae-e286-44a2-8bbb-ee9911f5ba43}</Project>
-      <Name>Rainbow.Tests</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Rainbow\Rainbow.csproj">
-      <Project>{8ff75c8b-2a9e-4d95-91ad-333071813199}</Project>
-      <Name>Rainbow</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>
