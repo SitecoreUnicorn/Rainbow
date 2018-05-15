@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using Rainbow.Filtering;
 using Rainbow.Model;
 using Sitecore;
@@ -48,54 +49,60 @@ namespace Rainbow.Storage.Sc.Deserialization
 		{
 			Assert.ArgumentNotNull(serializedItemData, "serializedItem");
 
-			bool newItemWasCreated;
-			var targetItem = GetOrCreateTargetItem(serializedItemData, out newItemWasCreated);
-
-			var softErrors = new List<TemplateMissingFieldException>();
-
-			try
+			// In regards to https://github.com/kamsar/Unicorn/issues/280
+			// At no point in these processes, do we expect anything but raw API results - not filtered by version disablers or anything similar
+			// Encapsulating the entire Deserialize call to ensure this
+			using (new EnforceVersionPresenceDisabler())
 			{
-				ChangeTemplateIfNeeded(serializedItemData, targetItem);
+				bool newItemWasCreated;
+				var targetItem = GetOrCreateTargetItem(serializedItemData, out newItemWasCreated);
 
-				ChangeBranchIfNeeded(serializedItemData, targetItem, newItemWasCreated);
+				var softErrors = new List<TemplateMissingFieldException>();
 
-				RenameIfNeeded(serializedItemData, targetItem);
-
-				ResetTemplateEngineIfItemIsTemplate(targetItem);
-
-				UpdateFieldSharingIfNeeded(serializedItemData, targetItem);
-
-				PasteSharedFields(serializedItemData, targetItem, newItemWasCreated, softErrors);
-
-				PasteVersions(serializedItemData, targetItem, newItemWasCreated, softErrors);
-
-				PasteUnversionedFields(serializedItemData, targetItem, newItemWasCreated, softErrors);
-
-				if (softErrors.Count > 0) throw TemplateMissingFieldException.Merge(softErrors);
-
-				return new ItemData(targetItem, ParentDataStore);
-			}
-			catch (ParentForMovedItemNotFoundException)
-			{
-				throw;
-			}
-			catch (ParentItemNotFoundException)
-			{
-				throw;
-			}
-			catch (TemplateMissingFieldException)
-			{
-				throw;
-			}
-			catch (Exception ex)
-			{
-				if (newItemWasCreated)
+				try
 				{
-					targetItem.Delete();
-					ClearCaches(targetItem.Database, new ID(serializedItemData.Id));
-				}
+					ChangeTemplateIfNeeded(serializedItemData, targetItem);
 
-				throw new DeserializationException("Failed to paste item: " + serializedItemData.Path, ex);
+					ChangeBranchIfNeeded(serializedItemData, targetItem, newItemWasCreated);
+
+					RenameIfNeeded(serializedItemData, targetItem);
+
+					ResetTemplateEngineIfItemIsTemplate(targetItem);
+
+					UpdateFieldSharingIfNeeded(serializedItemData, targetItem);
+
+					PasteSharedFields(serializedItemData, targetItem, newItemWasCreated, softErrors);
+
+					PasteVersions(serializedItemData, targetItem, newItemWasCreated, softErrors);
+
+					PasteUnversionedFields(serializedItemData, targetItem, newItemWasCreated, softErrors);
+
+					if (softErrors.Count > 0) throw TemplateMissingFieldException.Merge(softErrors);
+
+					return new ItemData(targetItem, ParentDataStore);
+				}
+				catch (ParentForMovedItemNotFoundException)
+				{
+					throw;
+				}
+				catch (ParentItemNotFoundException)
+				{
+					throw;
+				}
+				catch (TemplateMissingFieldException)
+				{
+					throw;
+				}
+				catch (Exception ex)
+				{
+					if (newItemWasCreated)
+					{
+						targetItem.Delete();
+						ClearCaches(targetItem.Database, new ID(serializedItemData.Id));
+					}
+
+					throw new DeserializationException("Failed to paste item: " + serializedItemData.Path, ex);
+				}
 			}
 		}
 
