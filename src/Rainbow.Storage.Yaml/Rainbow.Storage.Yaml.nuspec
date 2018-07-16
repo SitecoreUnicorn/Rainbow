@@ -3,10 +3,10 @@
   <metadata>
     <id>Rainbow.Storage.Yaml</id>
     <version>$version$</version>
-    <authors>Kam Figy</authors>
+    <authors>Kam Figy, Mark Cassidy</authors>
     <owners>Kam Figy</owners>
     <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
-    <projectUrl>https://github.com/kamsar/Rainbow</projectUrl>
+    <projectUrl>https://github.com/SitecoreUnicorn/Rainbow</projectUrl>
     <iconUrl>http://kamsar.net/nuget/rainbow/yml.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Implements a YAML-based serialization format as a Rainbow data store</description>
