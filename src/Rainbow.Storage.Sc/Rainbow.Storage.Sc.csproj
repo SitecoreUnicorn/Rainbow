@@ -39,6 +39,7 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\SharedAssemblyInfo.cs">
@@ -49,6 +50,7 @@
     <Compile Include="Deserialization\DeserializationException.cs" />
     <Compile Include="Deserialization\IDefaultDeserializerLogger.cs" />
     <Compile Include="Deserialization\IDeserializer.cs" />
+    <Compile Include="Deserialization\VersionSafeEnforceVersionPresenceDisabler.cs" />
     <Compile Include="FieldReader.cs" />
     <Compile Include="ItemFieldValue.cs" />
     <Compile Include="ItemVersionValue.cs" />

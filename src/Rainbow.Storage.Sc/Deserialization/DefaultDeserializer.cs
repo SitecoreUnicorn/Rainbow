@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
 using Rainbow.Filtering;
 using Rainbow.Model;
 using Sitecore;
@@ -52,7 +51,8 @@ namespace Rainbow.Storage.Sc.Deserialization
 			// In regards to https://github.com/kamsar/Unicorn/issues/280
 			// At no point in these processes, do we expect anything but raw API results - not filtered by version disablers or anything similar
 			// Encapsulating the entire Deserialize call to ensure this
-			using (new EnforceVersionPresenceDisabler())
+			// Updated to try and bring back Sitecore 7 compatibility for Rainbow moving forward. https://github.com/SitecoreUnicorn/Rainbow/issues/25
+			using (new VersionSafeEnforceVersionPresenceDisabler())
 			{
 				bool newItemWasCreated;
 				var targetItem = GetOrCreateTargetItem(serializedItemData, out newItemWasCreated);
