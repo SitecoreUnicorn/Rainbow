@@ -10,23 +10,26 @@ namespace Rainbow.Storage.Sc.Deserialization
 	public class VersionSafeEnforceVersionPresenceDisabler : IDisposable
 	{
 		private readonly IDisposable _sitecoreEnforceVersionPresenceDisabler;
-
-		public VersionSafeEnforceVersionPresenceDisabler()
+		private static readonly Lazy<Type> ReflectedTypeEnforcedVersionPresenceDisabler = new Lazy<Type>(() =>
 		{
-			_sitecoreEnforceVersionPresenceDisabler = null;
-
 			// Lifted out of SPE codebase - cheers Adam :)
 			var kernel = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName()
 				.Name.Equals("Sitecore.Kernel", StringComparison.OrdinalIgnoreCase));
 
+			Type reflectedType = null;
+
 			if (kernel != null)
 			{
-				var enforceVersionPresenceDisabler = kernel.GetType("Sitecore.Data.Items.EnforceVersionPresenceDisabler", false, true);
-				if (enforceVersionPresenceDisabler != null)
-				{
-					_sitecoreEnforceVersionPresenceDisabler = (IDisposable) ReflectionUtil.CreateObject(enforceVersionPresenceDisabler);
-				}
+				reflectedType = kernel.GetType("Sitecore.Data.Items.EnforceVersionPresenceDisabler", false, true);
 			}
+
+			return reflectedType;
+		});
+
+		public VersionSafeEnforceVersionPresenceDisabler()
+		{
+			if(ReflectedTypeEnforcedVersionPresenceDisabler.Value != null)
+				_sitecoreEnforceVersionPresenceDisabler = (IDisposable)ReflectionUtil.CreateObject(ReflectedTypeEnforcedVersionPresenceDisabler.Value);
 		}
 
 		public void Dispose()
