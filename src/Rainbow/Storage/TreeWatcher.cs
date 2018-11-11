@@ -25,6 +25,11 @@ namespace Rainbow.Storage
 			_actionOnChange = actionOnChange;
 			// ReSharper disable once UseObjectOrCollectionInitializer
 			_watcher = new FileSystemWatcher(rootPath, filter);
+
+			// In reference to https://github.com/SitecoreUnicorn/Unicorn/issues/299
+			// Adding this in, to see if it lessens the burden of large git checkout branch swaps
+			_watcher.NotifyFilter = NotifyFilters.LastWrite;
+
 			_watcher.IncludeSubdirectories = true;
 			_watcher.Changed += OnFileChanged;
 			_watcher.Created += OnFileChanged;

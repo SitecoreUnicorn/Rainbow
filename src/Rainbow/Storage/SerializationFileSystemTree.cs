@@ -113,13 +113,8 @@ namespace Rainbow.Storage
 			Name = name;
 			DatabaseName = databaseName;
 
-			if (!Directory.Exists(_physicalRootPath))
-			{
-				Directory.CreateDirectory(_physicalRootPath);
-			} else {
-				// ReSharper disable once VirtualMemberCallInConstructor
-				ValidatePhysicalRootPath();
-			}
+			// ReSharper disable once VirtualMemberCallInConstructor
+			ValidatePhysicalRootPath();
 
 			_treeWatcher = new TreeWatcher(_physicalRootPath, "*" + _formatter.FileExtension, HandleDataItemChanged);
 		}
@@ -130,11 +125,21 @@ namespace Rainbow.Storage
 			string repositorySettings = $"{RainbowSettings.Current.SfsSerializationFolderPathMaxLength} {RainbowSettings.Current.SfsMaxItemNameLengthBeforeTruncation}";
 			string repositorySettingsFilename = Path.Combine(_physicalRootPath, RainbowRepositorySettingsFilename);
 
+			if (!Directory.Exists(_physicalRootPath)) Directory.CreateDirectory(_physicalRootPath);
+
 			if (!File.Exists(repositorySettingsFilename))
 			{
 				// File not present. Repository has been untouched by this version of Rainbow. We don't actually know for sure which settings were used to create the repository.
 				// Will write the file anyway, to ensure all future Reserializes happen on same settings.
-				File.WriteAllText(repositorySettingsFilename, $"{version} {repositorySettings}");
+
+				try
+				{
+					File.WriteAllText(repositorySettingsFilename, $"{version} {repositorySettings}");
+				}
+				catch (DirectoryNotFoundException uae)
+				{
+					throw new UnauthorizedAccessException("Could not create .rainbow configuration setting file. Please make sure you're not keeping any folders locked; e.g. having File Explorer open inside your repository", uae);
+				}
 			}
 			else
 			{
