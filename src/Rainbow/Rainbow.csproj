@@ -82,6 +82,7 @@
     <Compile Include="Model\ProxyItemLanguage.cs" />
     <Compile Include="Model\ProxyItemVersion.cs" />
     <Compile Include="Model\ItemDecorator.cs" />
+    <Compile Include="RainbowVersion.cs" />
     <Compile Include="Settings\RainbowSettings.cs" />
     <Compile Include="Settings\RainbowSitecoreSettings.cs" />
     <Compile Include="Storage\ISnapshotCapableDataStore.cs" />
