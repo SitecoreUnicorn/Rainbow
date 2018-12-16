@@ -35,10 +35,15 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 		public IDataStore ParentDataStore { get; set; }
 
-		public DefaultDeserializer(IDefaultDeserializerLogger logger, IFieldFilter fieldFilter)
+		public bool IgnoreBranchId { get; }
+
+		public DefaultDeserializer(bool ignoreBranchId, IDefaultDeserializerLogger logger, IFieldFilter fieldFilter)
 		{
 			Assert.ArgumentNotNull(logger, "logger");
 			Assert.ArgumentNotNull(fieldFilter, "fieldFilter");
+
+			// In reference to issue 283. https://github.com/SitecoreUnicorn/Unicorn/issues/283
+			IgnoreBranchId = ignoreBranchId;
 
 			_logger = logger;
 			_fieldFilter = fieldFilter;
@@ -63,7 +68,10 @@ namespace Rainbow.Storage.Sc.Deserialization
 				{
 					ChangeTemplateIfNeeded(serializedItemData, targetItem);
 
-					ChangeBranchIfNeeded(serializedItemData, targetItem, newItemWasCreated);
+					if (!IgnoreBranchId)
+					{
+						ChangeBranchIfNeeded(serializedItemData, targetItem, newItemWasCreated);
+					}
 
 					RenameIfNeeded(serializedItemData, targetItem);
 
