@@ -207,7 +207,7 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 			fieldFilter.Includes(Arg.Any<Guid>()).Returns(true);
 			fieldFilter.Includes(ignoredFieldId.Guid).Returns(false);
 
-			var deserializer = new DefaultDeserializer(Substitute.For<IDefaultDeserializerLogger>(), fieldFilter);
+			var deserializer = new DefaultDeserializer(false, Substitute.For<IDefaultDeserializerLogger>(), fieldFilter);
 			deserializer.ParentDataStore = new SitecoreDataStore(deserializer);
 
 			using (var db = new Db())
@@ -238,7 +238,7 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 			var fieldFilter = Substitute.For<IFieldFilter>();
 			fieldFilter.Includes(Arg.Any<Guid>()).Returns(true);
 
-			var deserializer = new DefaultDeserializer(Substitute.For<IDefaultDeserializerLogger>(), fieldFilter);
+			var deserializer = new DefaultDeserializer(false, Substitute.For<IDefaultDeserializerLogger>(), fieldFilter);
 			deserializer.ParentDataStore = new SitecoreDataStore(deserializer);
 
 			db.Add(new DbTemplate("Test Template", _testTemplateId)
