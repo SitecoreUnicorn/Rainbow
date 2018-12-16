@@ -28,6 +28,7 @@ namespace Rainbow.Storage
 
 			// In reference to https://github.com/SitecoreUnicorn/Unicorn/issues/299
 			// Adding this in, to see if it lessens the burden of large git checkout branch swaps
+			// Reference: https://www.intertech.com/Blog/avoiding-file-concurrency-using-system-io-filesystemwatcher/
 			_watcher.NotifyFilter = NotifyFilters.LastWrite;
 
 			_watcher.IncludeSubdirectories = true;
