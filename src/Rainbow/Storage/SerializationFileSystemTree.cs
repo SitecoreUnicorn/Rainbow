@@ -113,55 +113,7 @@ namespace Rainbow.Storage
 			Name = name;
 			DatabaseName = databaseName;
 
-			// ReSharper disable once VirtualMemberCallInConstructor
-			ValidatePhysicalRootPath();
-
 			_treeWatcher = new TreeWatcher(_physicalRootPath, "*" + _formatter.FileExtension, HandleDataItemChanged);
-		}
-
-		public virtual void ValidatePhysicalRootPath()
-		{
-			string version = RainbowVersion.Current;
-			string repositorySettings = $"{RainbowSettings.Current.SfsSerializationFolderPathMaxLength} {RainbowSettings.Current.SfsMaxItemNameLengthBeforeTruncation}";
-			string repositorySettingsFilename = Path.Combine(_physicalRootPath, RainbowRepositorySettingsFilename);
-
-			if (!Directory.Exists(_physicalRootPath)) Directory.CreateDirectory(_physicalRootPath);
-
-			if (!File.Exists(repositorySettingsFilename))
-			{
-				// File not present. Repository has been untouched by this version of Rainbow. We don't actually know for sure which settings were used to create the repository.
-				// Will write the file anyway, to ensure all future Reserializes happen on same settings.
-
-				try
-				{
-					File.WriteAllText(repositorySettingsFilename, $"{version} {repositorySettings}");
-				}
-				catch (DirectoryNotFoundException uae)
-				{
-					throw new UnauthorizedAccessException("Could not create .rainbow configuration setting file. Please make sure you're not keeping any folders locked; e.g. having File Explorer open inside your repository", uae);
-				}
-			}
-			else
-			{
-				string existingSettings = File.ReadAllText(repositorySettingsFilename);
-				if (existingSettings.Length > version.Length + 1)
-				{
-					// Ignoring version number for comparison. Keeping the version in the file, in case this mechanic needs to be updated later on.
-					existingSettings = existingSettings.Remove(0, existingSettings.IndexOf(' ') + 1);
-				}
-
-				if (!string.Equals(existingSettings, repositorySettings, StringComparison.Ordinal))
-				{
-					// This repository has been serialized with Path Length settings different than our current set. It likely means:
-					// 1) A developer changed the setting locally to accomodate a long local path but failed to reserialize the entire repository to match the new setting
-					// 2) The setting was changed in DevOps to accomodate changed paths in CI/CD scenarios
-					// 3) Something else (d'uh)
-
-					// For more information, see: https://github.com/SitecoreUnicorn/Rainbow/wiki/Path-Length-limitations-and-Rainbow-Settings
-
-					throw new InvalidOperationException($"Existing Serialization Repository \"{_physicalRootPath}\" has been initialized with different Rainbow settings for 'SerializationFolderPathMaxLength' and 'MaxItemNameLengthBeforeTruncation' than you have currently defined. These settings are GLOBAL for ALL users of the Repository and MUST remain the same on ALL environments. See https://github.com/SitecoreUnicorn/Rainbow/wiki/Path-Length-limitations-and-Rainbow-Settings for details.");
-				}
-			}
 		}
 
 		public virtual string DatabaseName { get; }

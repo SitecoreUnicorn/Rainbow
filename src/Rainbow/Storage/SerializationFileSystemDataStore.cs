@@ -278,8 +278,6 @@ namespace Rainbow.Storage
 				foundTree = tree;
 			}
 
-			foundTree?.ValidatePhysicalRootPath();
-
 			return foundTree;
 		}
 
