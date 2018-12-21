@@ -113,6 +113,11 @@ namespace Rainbow.Storage
 			Name = name;
 			DatabaseName = databaseName;
 
+			if (!Directory.Exists(_physicalRootPath))
+			{
+				Directory.CreateDirectory(_physicalRootPath);
+			}
+
 			_treeWatcher = new TreeWatcher(_physicalRootPath, "*" + _formatter.FileExtension, HandleDataItemChanged);
 		}
 
