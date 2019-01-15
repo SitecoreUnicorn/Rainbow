@@ -221,7 +221,7 @@ namespace Rainbow.Diff
 					}
 					// NOTE: empty values in the source are considered to be 'allowed to not exist in the target'
 					// e.g. a field may exist in Sitecore that may not be serialized.
-					else if (!string.IsNullOrEmpty(sourceField.Value))
+					else if (sourceField.Value != null)
 					{
 						changedFields.Add(new FieldComparisonResult(sourceField, null));
 						if (abortOnChangeFound) return changedFields.ToArray();
