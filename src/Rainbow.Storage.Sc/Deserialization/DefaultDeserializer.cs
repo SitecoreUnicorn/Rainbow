@@ -37,6 +37,10 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 		public bool IgnoreBranchId { get; }
 
+		// Overload constructor, implemented for keeping compatibility with external tools that may not yet have updated their codebase to support the branchId switch (e.g. SideKick)
+		// ReSharper disable once UnusedMember.Global
+		public DefaultDeserializer(IDefaultDeserializerLogger logger, IFieldFilter fieldFilter) : this(true, logger, fieldFilter) { }
+
 		public DefaultDeserializer(bool ignoreBranchId, IDefaultDeserializerLogger logger, IFieldFilter fieldFilter)
 		{
 			Assert.ArgumentNotNull(logger, "logger");
