@@ -254,6 +254,9 @@ namespace Rainbow.Diff
 			IItemFieldValue targetField;
 			if (!targetFields.TryGetValue(fieldId, out targetField)) return true;
 
+			if (sourceField.Value == null && targetField.Value == null) return false;   // 2.0.6-pre3 - added this. It makes no sense to loop through field comparers, asking them to compare two null values.
+																						// Relates to issue https://github.com/SitecoreUnicorn/Unicorn/issues/319
+
 			IFieldComparer comparer;
 			// ReSharper disable once ForCanBeConvertedToForeach
 			for (var index = 0; index < FieldComparers.Count; index++)
