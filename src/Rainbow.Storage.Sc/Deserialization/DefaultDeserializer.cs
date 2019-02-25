@@ -81,13 +81,13 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 					ResetTemplateEngineIfItemIsTemplate(targetItem);
 
-					UpdateFieldSharingIfNeeded(serializedItemData, targetItem);
-
 					PasteSharedFields(serializedItemData, targetItem, newItemWasCreated, softErrors);
 
-					PasteVersions(serializedItemData, targetItem, newItemWasCreated, softErrors);
-
 					PasteUnversionedFields(serializedItemData, targetItem, newItemWasCreated, softErrors);
+
+					UpdateFieldSharingIfNeeded(serializedItemData, targetItem);
+
+					PasteVersions(serializedItemData, targetItem, newItemWasCreated, softErrors);
 
 					if (softErrors.Count > 0) throw TemplateMissingFieldException.Merge(softErrors);
 
@@ -283,6 +283,11 @@ namespace Rainbow.Storage.Sc.Deserialization
 		/// </summary>
 		protected void UpdateFieldSharingIfNeeded(IItemData serializedItemData, Item targetItem)
 		{
+			// This is what Sitecore's internal deserializer does instead. Will investigate if this is a better option. Also depends on which Sitecore version introduced this.
+			//if (EventDisabler.IsActive)
+			//	ReflectionUtil.CallMethod(targetItem.Database.Engines.TemplateEngine, "HandleItemSaved", new object[] {targetItem, (ItemChanges) ReflectionUtil.CallMethod(targetItem, "GetFullChanges"), false});
+			//return;
+
 			Assert.ArgumentNotNull(serializedItemData, nameof(serializedItemData));
 			Assert.ArgumentNotNull(targetItem, nameof(targetItem));
 
