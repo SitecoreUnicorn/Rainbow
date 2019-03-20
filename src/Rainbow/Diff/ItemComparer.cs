@@ -236,7 +236,11 @@ namespace Rainbow.Diff
 				targetOnlyField = targetFieldIndexKeypair.Value;
 
 				if (sourceFieldIndex.ContainsKey(targetOnlyField.FieldId)) continue;
-				if (string.IsNullOrEmpty(targetOnlyField.Value)) continue;
+
+				// Below line of code removed in response to https://github.com/SitecoreUnicorn/Unicorn/issues/319
+				// The checkbox field mentioned in the issue would come back from the YML as "" and therefore never be submitted to the list of fields that need updating.
+				// This is a problem, of course, not just for the checkbox fields but for any field that would require a blank value to get written. This was confirmed by adding another field type to the test scenario.
+				//if (string.IsNullOrEmpty(targetOnlyField.Value)) continue;
 
 				changedFields.Add(new FieldComparisonResult(null, targetOnlyField));
 			}
