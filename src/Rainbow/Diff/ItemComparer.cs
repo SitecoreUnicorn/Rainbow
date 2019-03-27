@@ -221,7 +221,7 @@ namespace Rainbow.Diff
 					}
 					// NOTE: empty values in the source are considered to be 'allowed to not exist in the target'
 					// e.g. a field may exist in Sitecore that may not be serialized.
-					else if (!string.IsNullOrEmpty(sourceField.Value))
+					else if (sourceField.Value != null)
 					{
 						changedFields.Add(new FieldComparisonResult(sourceField, null));
 						if (abortOnChangeFound) return changedFields.ToArray();
@@ -236,7 +236,11 @@ namespace Rainbow.Diff
 				targetOnlyField = targetFieldIndexKeypair.Value;
 
 				if (sourceFieldIndex.ContainsKey(targetOnlyField.FieldId)) continue;
-				if (string.IsNullOrEmpty(targetOnlyField.Value)) continue;
+
+				// Below line of code removed in response to https://github.com/SitecoreUnicorn/Unicorn/issues/319
+				// The checkbox field mentioned in the issue would come back from the YML as "" and therefore never be submitted to the list of fields that need updating.
+				// This is a problem, of course, not just for the checkbox fields but for any field that would require a blank value to get written. This was confirmed by adding another field type to the test scenario.
+				//if (string.IsNullOrEmpty(targetOnlyField.Value)) continue;
 
 				changedFields.Add(new FieldComparisonResult(null, targetOnlyField));
 			}
@@ -253,6 +257,9 @@ namespace Rainbow.Diff
 			// it's a "match" if the target item does not contain the source field
 			IItemFieldValue targetField;
 			if (!targetFields.TryGetValue(fieldId, out targetField)) return true;
+
+			if (sourceField.Value == null && targetField.Value == null) return false;   // 2.0.6-pre3 - added this. It makes no sense to loop through field comparers, asking them to compare two null values.
+																						// Relates to issue https://github.com/SitecoreUnicorn/Unicorn/issues/319
 
 			IFieldComparer comparer;
 			// ReSharper disable once ForCanBeConvertedToForeach

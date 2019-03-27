@@ -9,7 +9,7 @@ namespace Rainbow.Storage
 	{
 		public TreeRoot(string name, string path, string databaseName)
 		{
-			Name = name;
+			Name = name?.Trim();
 			Path = path;
 			DatabaseName = databaseName;
 		}
