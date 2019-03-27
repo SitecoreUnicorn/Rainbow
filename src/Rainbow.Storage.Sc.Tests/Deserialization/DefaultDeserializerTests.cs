@@ -233,6 +233,45 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 			}
 		}
 
+		[Fact]
+		public void Deserialize_IgnoresField_ExcludedWithFieldFilterNotSerialized()
+		{
+			var ignoredFieldId = ID.NewID;
+			var ignoredSharedFieldId = ID.NewID;
+
+			var fieldFilter = Substitute.For<IFieldFilter>();
+			fieldFilter.Includes(Arg.Any<Guid>()).Returns(true);
+			fieldFilter.Includes(ignoredFieldId.Guid).Returns(false);
+			fieldFilter.Includes(ignoredSharedFieldId.Guid).Returns(false);
+
+			var deserializer = new DefaultDeserializer(false, Substitute.For<IDefaultDeserializerLogger>(), fieldFilter);
+			deserializer.ParentDataStore = new SitecoreDataStore(deserializer);
+
+			using (var db = new Db())
+			{
+				var itemId = ID.NewID;
+
+				db.Add(new DbItem("Test Item", itemId)
+				{
+					new DbField(ignoredFieldId) { Value = "Test Value", Shared = false },
+					new DbField(ignoredSharedFieldId) { Value = "Shared Test Value", Shared = true }
+				});
+
+				var itemData = new ProxyItem(new ItemData(db.GetItem(itemId)));
+
+				var fields = new List<IItemFieldValue>();
+				((ProxyItemVersion)itemData.Versions.First()).Fields = fields;
+				itemData.SharedFields = fields;
+
+				deserializer.Deserialize(itemData);
+
+				var fromDb = db.GetItem(itemId);
+
+				Assert.Equal(fromDb[ignoredFieldId], "Test Value");
+				Assert.Equal(fromDb[ignoredSharedFieldId], "Shared Test Value");
+			}
+		}
+
 		protected IDeserializer CreateTestDeserializer(Db db)
 		{
 			var fieldFilter = Substitute.For<IFieldFilter>();
