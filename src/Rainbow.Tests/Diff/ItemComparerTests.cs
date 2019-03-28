@@ -85,8 +85,8 @@ namespace Rainbow.Tests.Diff
 
 			var comparison = comparer.Compare(sourceItem, targetItem);
 
-			comparison.AreEqual.Should().BeTrue();
-			comparison.ChangedSharedFields.Length.Should().Be(0);
+			comparison.AreEqual.Should().BeFalse();
+			comparison.ChangedSharedFields.Length.Should().Be(1);
 		}
 
 		[Fact]
@@ -115,8 +115,8 @@ namespace Rainbow.Tests.Diff
 
 			var comparison = comparer.Compare(sourceItem, targetItem);
 
-			Assert.True(comparison.AreEqual);
-			Assert.Equal(0, comparison.ChangedSharedFields.Length);
+			comparison.AreEqual.Should().BeFalse();
+			comparison.ChangedSharedFields.Length.Should().Be(1);
 		}
 
 		[Fact]
