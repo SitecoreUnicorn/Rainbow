@@ -362,7 +362,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 				foreach (Field field in targetItem.Fields)
 				{
-					if (field.Shared && !allTargetSharedFields.Contains(field.ID.Guid))
+					if (field.Shared && !allTargetSharedFields.Contains(field.ID.Guid) && _fieldFilter.Includes(field.ID.Guid))
 					{
 						_logger.ResetFieldThatDidNotExistInSerialized(field);
 
@@ -481,6 +481,9 @@ namespace Rainbow.Storage.Sc.Deserialization
 				// (we do all these checks so we can back out of the edit context and avoid a DB write if we don't need one)
 				foreach (Field field in languageVersionItem.Fields)
 				{
+					// if the field is excluded by the fieldFilter
+					if (!_fieldFilter.Includes(field.ID.Guid)) continue;
+
 					// shared/unversioned fields = ignore, those are handled in their own paste methods
 					if (field.Shared || field.Unversioned) continue;
 
@@ -596,7 +599,8 @@ namespace Rainbow.Storage.Sc.Deserialization
 				foreach (Field field in targetItem.Fields)
 				{
 					// field was not serialized. Which means the field is either blank or has its standard value, so let's reset it
-					if (field.Unversioned && !field.Shared && !allTargetUnversionedFields.Contains(field.ID.Guid))
+					if (field.Unversioned && !field.Shared && !allTargetUnversionedFields.Contains(field.ID.Guid) &&
+					    _fieldFilter.Includes(field.ID.Guid))
 					{
 						_logger.ResetFieldThatDidNotExistInSerialized(field);
 
