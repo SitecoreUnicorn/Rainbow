@@ -37,6 +37,10 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 		public bool IgnoreBranchId { get; }
 
+		// Overload constructor, implemented for keeping compatibility with external tools that may not yet have updated their codebase to support the branchId switch (e.g. SideKick)
+		// ReSharper disable once UnusedMember.Global
+		public DefaultDeserializer(IDefaultDeserializerLogger logger, IFieldFilter fieldFilter) : this(true, logger, fieldFilter) { }
+
 		public DefaultDeserializer(bool ignoreBranchId, IDefaultDeserializerLogger logger, IFieldFilter fieldFilter)
 		{
 			Assert.ArgumentNotNull(logger, "logger");
@@ -77,13 +81,13 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 					ResetTemplateEngineIfItemIsTemplate(targetItem);
 
-					UpdateFieldSharingIfNeeded(serializedItemData, targetItem);
-
 					PasteSharedFields(serializedItemData, targetItem, newItemWasCreated, softErrors);
 
-					PasteVersions(serializedItemData, targetItem, newItemWasCreated, softErrors);
-
 					PasteUnversionedFields(serializedItemData, targetItem, newItemWasCreated, softErrors);
+
+					UpdateFieldSharingIfNeeded(serializedItemData, targetItem);
+
+					PasteVersions(serializedItemData, targetItem, newItemWasCreated, softErrors);
 
 					if (softErrors.Count > 0) throw TemplateMissingFieldException.Merge(softErrors);
 
@@ -279,6 +283,11 @@ namespace Rainbow.Storage.Sc.Deserialization
 		/// </summary>
 		protected void UpdateFieldSharingIfNeeded(IItemData serializedItemData, Item targetItem)
 		{
+			// This is what Sitecore's internal deserializer does instead. Will investigate if this is a better option. Also depends on which Sitecore version introduced this.
+			//if (EventDisabler.IsActive)
+			//	ReflectionUtil.CallMethod(targetItem.Database.Engines.TemplateEngine, "HandleItemSaved", new object[] {targetItem, (ItemChanges) ReflectionUtil.CallMethod(targetItem, "GetFullChanges"), false});
+			//return;
+
 			Assert.ArgumentNotNull(serializedItemData, nameof(serializedItemData));
 			Assert.ArgumentNotNull(targetItem, nameof(targetItem));
 
@@ -353,7 +362,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 				foreach (Field field in targetItem.Fields)
 				{
-					if (field.Shared && !allTargetSharedFields.Contains(field.ID.Guid))
+					if (field.Shared && !allTargetSharedFields.Contains(field.ID.Guid) && _fieldFilter.Includes(field.ID.Guid))
 					{
 						_logger.ResetFieldThatDidNotExistInSerialized(field);
 
@@ -472,6 +481,9 @@ namespace Rainbow.Storage.Sc.Deserialization
 				// (we do all these checks so we can back out of the edit context and avoid a DB write if we don't need one)
 				foreach (Field field in languageVersionItem.Fields)
 				{
+					// if the field is excluded by the fieldFilter
+					if (!_fieldFilter.Includes(field.ID.Guid)) continue;
+
 					// shared/unversioned fields = ignore, those are handled in their own paste methods
 					if (field.Shared || field.Unversioned) continue;
 
@@ -587,7 +599,8 @@ namespace Rainbow.Storage.Sc.Deserialization
 				foreach (Field field in targetItem.Fields)
 				{
 					// field was not serialized. Which means the field is either blank or has its standard value, so let's reset it
-					if (field.Unversioned && !field.Shared && !allTargetUnversionedFields.Contains(field.ID.Guid))
+					if (field.Unversioned && !field.Shared && !allTargetUnversionedFields.Contains(field.ID.Guid) &&
+					    _fieldFilter.Includes(field.ID.Guid))
 					{
 						_logger.ResetFieldThatDidNotExistInSerialized(field);
 
