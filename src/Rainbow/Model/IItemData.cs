@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using Rainbow.Storage;
 
 namespace Rainbow.Model
 {
 	public interface IItemData : IItemMetadata
 	{
+		IFieldValueManipulator FieldValueManipulator { get; set; }
 		string DatabaseName { get; set; }
 		string Name { get; }
 		Guid BranchId { get; }

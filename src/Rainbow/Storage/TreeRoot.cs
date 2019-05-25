@@ -7,6 +7,8 @@ namespace Rainbow.Storage
 	[DebuggerDisplay("{Name} {DatabaseName}:{Path}")]
 	public class TreeRoot
 	{
+		public IFieldValueManipulator FieldValueManipulator { get; set; }
+
 		public TreeRoot(string name, string path, string databaseName)
 		{
 			Name = name?.Trim();

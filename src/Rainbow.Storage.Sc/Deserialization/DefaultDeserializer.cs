@@ -63,8 +63,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			// Updated to try and bring back Sitecore 7 compatibility for Rainbow moving forward. https://github.com/SitecoreUnicorn/Rainbow/issues/25
 			using (new VersionSafeEnforceVersionPresenceDisabler())
 			{
-				bool newItemWasCreated;
-				var targetItem = GetOrCreateTargetItem(serializedItemData, out newItemWasCreated);
+				var targetItem = GetOrCreateTargetItem(serializedItemData, out var newItemWasCreated);
 
 				var softErrors = new List<TemplateMissingFieldException>();
 
@@ -376,7 +375,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 				{
 					try
 					{
-						if (PasteField(targetItem, field, newItemWasCreated))
+						if (PasteField(targetItem, field, newItemWasCreated, serializedItemData.FieldValueManipulator))
 							commitEdit = true;
 					}
 					catch (TemplateMissingFieldException tex)
@@ -415,7 +414,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 			foreach (var syncVersion in serializedItemData.Versions)
 			{
-				var version = PasteVersion(targetItem, syncVersion, newItemWasCreated, softErrors);
+				var version = PasteVersion(targetItem, syncVersion, newItemWasCreated, softErrors, serializedItemData.FieldValueManipulator);
 				if (versionTable.ContainsKey(version.Uri))
 					versionTable.Remove(version.Uri);
 			}
@@ -430,7 +429,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			}
 		}
 
-		protected virtual Item PasteVersion(Item item, IItemVersion serializedVersion, bool creatingNewItem, List<TemplateMissingFieldException> softErrors)
+		protected virtual Item PasteVersion(Item item, IItemVersion serializedVersion, bool creatingNewItem, List<TemplateMissingFieldException> softErrors, IFieldValueManipulator fieldValueManipulator)
 		{
 			Language language = Language.Parse(serializedVersion.Language.Name);
 			var targetVersion = Version.Parse(serializedVersion.VersionNumber);
@@ -509,7 +508,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 					try
 					{
-						if (PasteField(languageVersionItem, field, creatingNewItem))
+						if (PasteField(languageVersionItem, field, creatingNewItem, fieldValueManipulator))
 							commitEdit = true;
 					}
 					catch (TemplateMissingFieldException tex)
@@ -566,11 +565,11 @@ namespace Rainbow.Storage.Sc.Deserialization
 		{
 			foreach (var language in serializedItemData.UnversionedFields)
 			{
-				PasteUnversionedLanguage(targetItem, language, newItemWasCreated, softErrors);
+				PasteUnversionedLanguage(targetItem, language, newItemWasCreated, softErrors, serializedItemData.FieldValueManipulator);
 			}
 		}
 
-		protected virtual void PasteUnversionedLanguage(Item item, IItemLanguage serializedLanguage, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors)
+		protected virtual void PasteUnversionedLanguage(Item item, IItemLanguage serializedLanguage, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors, IFieldValueManipulator fieldValueManipulator)
 		{
 			Language language = Language.Parse(serializedLanguage.Language.Name);
 
@@ -614,7 +613,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 				{
 					try
 					{
-						if (PasteField(targetItem, field, newItemWasCreated))
+						if (PasteField(targetItem, field, newItemWasCreated, fieldValueManipulator))
 							commitEdit = true;
 					}
 					catch (TemplateMissingFieldException tex)
@@ -634,14 +633,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			}
 		}
 
-		/// <summary>
-		/// Inserts field value into item.
-		/// </summary>
-		/// <param name="item">The item.</param>
-		/// <param name="field">The field.</param>
-		/// <param name="creatingNewItem">Whether the item under update is new or not (controls logging verbosity)</param>
-		/// <exception cref="T:Sitecore.Data.Serialization.Exceptions.FieldIsMissingFromTemplateException"/>
-		protected virtual bool PasteField(Item item, IItemFieldValue field, bool creatingNewItem)
+		protected virtual bool PasteField(Item item, IItemFieldValue field, bool creatingNewItem, IFieldValueManipulator fieldValueManipulator)
 		{
 			if (!_fieldFilter.Includes(field.FieldId))
 			{
@@ -664,8 +656,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			Field itemField = item.Fields[new ID(field.FieldId)];
 			if (itemField.IsBlobField)
 			{
-				Guid existingBlobId;
-				bool hasExistingId = Guid.TryParse(itemField.Value, out existingBlobId);
+				bool hasExistingId = Guid.TryParse(itemField.Value, out var existingBlobId);
 
 				// serialized blob has no value (media item with detached media)
 				if (!field.BlobId.HasValue)
@@ -701,6 +692,27 @@ namespace Rainbow.Storage.Sc.Deserialization
 				return true;
 			}
 
+			var proposedValue = field.Value;
+			var destinationValue = itemField.GetValue(false, false);
+			var fieldTransformer = fieldValueManipulator?.GetFieldValueTransformer(itemField.Name);
+
+			if (fieldTransformer != null)
+			{
+				if (fieldTransformer.ShouldDeployFieldValue(destinationValue, proposedValue))
+				{
+					var oldValue = destinationValue;
+					itemField.SetValue(fieldTransformer.GetFieldValue(oldValue, proposedValue), true);
+
+					if (!creatingNewItem)
+						_logger.UpdatedChangedFieldValue(item, field, oldValue);
+
+					return true;
+				}
+
+				return false;
+			}
+
+			// We don't have a transformer for this field. Proceed with default.  This should not happen, we should at least have the default transformer.
 			if (field.Value != null && !field.Value.Equals(itemField.GetValue(false, false)))
 			{
 				var oldValue = itemField.Value;
