@@ -45,7 +45,7 @@ namespace Rainbow.Storage
 			return Trees.SelectMany(tree => tree.GetSnapshot());
 		}
 
-		public virtual void Save(IItemData item)
+		public virtual void Save(IItemData item, IFieldValueManipulator fieldValueManipulator)
 		{
 			var tree = GetTreeForPath(item.Path, item.DatabaseName);
 

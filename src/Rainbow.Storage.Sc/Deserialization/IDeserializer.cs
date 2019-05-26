@@ -4,7 +4,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 {
 	public interface IDeserializer
 	{
-		IItemData Deserialize(IItemData serializedItemData);
+		IItemData Deserialize(IItemData serializedItemData, IFieldValueManipulator fieldValueManipulator);
 		IDataStore ParentDataStore { set; }
 	}
 }

@@ -53,7 +53,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			_fieldFilter = fieldFilter;
 		}
 
-		public IItemData Deserialize(IItemData serializedItemData)
+		public IItemData Deserialize(IItemData serializedItemData, IFieldValueManipulator fieldValueManipulator)
 		{
 			Assert.ArgumentNotNull(serializedItemData, "serializedItem");
 
@@ -80,13 +80,13 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 					ResetTemplateEngineIfItemIsTemplate(targetItem);
 
-					PasteSharedFields(serializedItemData, targetItem, newItemWasCreated, softErrors);
+					PasteSharedFields(serializedItemData, targetItem, newItemWasCreated, softErrors, fieldValueManipulator);
 
-					PasteUnversionedFields(serializedItemData, targetItem, newItemWasCreated, softErrors);
+					PasteUnversionedFields(serializedItemData, targetItem, newItemWasCreated, softErrors, fieldValueManipulator);
 
 					UpdateFieldSharingIfNeeded(serializedItemData, targetItem);
 
-					PasteVersions(serializedItemData, targetItem, newItemWasCreated, softErrors);
+					PasteVersions(serializedItemData, targetItem, newItemWasCreated, softErrors, fieldValueManipulator);
 
 					if (softErrors.Count > 0) throw TemplateMissingFieldException.Merge(softErrors);
 
@@ -346,7 +346,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			return targetItem;
 		}
 
-		protected virtual void PasteSharedFields(IItemData serializedItemData, Item targetItem, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors)
+		protected virtual void PasteSharedFields(IItemData serializedItemData, Item targetItem, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors, IFieldValueManipulator fieldValueManipulator)
 		{
 			bool commitEdit = false;
 
@@ -375,7 +375,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 				{
 					try
 					{
-						if (PasteField(targetItem, field, newItemWasCreated))
+						if (PasteField(targetItem, field, newItemWasCreated, fieldValueManipulator))
 							commitEdit = true;
 					}
 					catch (TemplateMissingFieldException tex)
@@ -403,7 +403,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			}
 		}
 
-		protected virtual void PasteVersions(IItemData serializedItemData, Item targetItem, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors)
+		protected virtual void PasteVersions(IItemData serializedItemData, Item targetItem, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors, IFieldValueManipulator fieldValueManipulator)
 		{
 			Hashtable versionTable = CommonUtils.CreateCIHashtable();
 
@@ -414,7 +414,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 			foreach (var syncVersion in serializedItemData.Versions)
 			{
-				var version = PasteVersion(targetItem, syncVersion, newItemWasCreated, softErrors);
+				var version = PasteVersion(targetItem, syncVersion, newItemWasCreated, softErrors, fieldValueManipulator);
 				if (versionTable.ContainsKey(version.Uri))
 					versionTable.Remove(version.Uri);
 			}
@@ -429,7 +429,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			}
 		}
 
-		protected virtual Item PasteVersion(Item item, IItemVersion serializedVersion, bool creatingNewItem, List<TemplateMissingFieldException> softErrors)
+		protected virtual Item PasteVersion(Item item, IItemVersion serializedVersion, bool creatingNewItem, List<TemplateMissingFieldException> softErrors, IFieldValueManipulator fieldValueManipulator)
 		{
 			Language language = Language.Parse(serializedVersion.Language.Name);
 			var targetVersion = Version.Parse(serializedVersion.VersionNumber);
@@ -508,7 +508,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 					try
 					{
-						if (PasteField(languageVersionItem, field, creatingNewItem))
+						if (PasteField(languageVersionItem, field, creatingNewItem, fieldValueManipulator))
 							commitEdit = true;
 					}
 					catch (TemplateMissingFieldException tex)
@@ -561,15 +561,15 @@ namespace Rainbow.Storage.Sc.Deserialization
 			return languageVersionItem;
 		}
 
-		protected virtual void PasteUnversionedFields(IItemData serializedItemData, Item targetItem, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors)
+		protected virtual void PasteUnversionedFields(IItemData serializedItemData, Item targetItem, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors, IFieldValueManipulator fieldValueManipulator)
 		{
 			foreach (var language in serializedItemData.UnversionedFields)
 			{
-				PasteUnversionedLanguage(targetItem, language, newItemWasCreated, softErrors);
+				PasteUnversionedLanguage(targetItem, language, newItemWasCreated, softErrors, fieldValueManipulator);
 			}
 		}
 
-		protected virtual void PasteUnversionedLanguage(Item item, IItemLanguage serializedLanguage, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors)
+		protected virtual void PasteUnversionedLanguage(Item item, IItemLanguage serializedLanguage, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors, IFieldValueManipulator fieldValueManipulator)
 		{
 			Language language = Language.Parse(serializedLanguage.Language.Name);
 
@@ -613,7 +613,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 				{
 					try
 					{
-						if (PasteField(targetItem, field, newItemWasCreated))
+						if (PasteField(targetItem, field, newItemWasCreated, fieldValueManipulator))
 							commitEdit = true;
 					}
 					catch (TemplateMissingFieldException tex)
@@ -633,7 +633,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			}
 		}
 
-		protected virtual bool PasteField(Item item, IItemFieldValue field, bool creatingNewItem)
+		protected virtual bool PasteField(Item item, IItemFieldValue field, bool creatingNewItem, IFieldValueManipulator fieldValueManipulator)
 		{
 			if (!_fieldFilter.Includes(field.FieldId))
 			{
@@ -692,25 +692,25 @@ namespace Rainbow.Storage.Sc.Deserialization
 				return true;
 			}
 
-			//var proposedValue = field.Value;
-			//var destinationValue = itemField.GetValue(false, false);
-			//var fieldTransformer = fieldValueManipulator?.GetFieldValueTransformer(itemField.Name);
+			var proposedValue = field.Value;
+			var destinationValue = itemField.GetValue(false, false);
+			var fieldTransformer = fieldValueManipulator?.GetFieldValueTransformer(itemField.Name);
 
-			//if (fieldTransformer != null)
-			//{
-			//	if (fieldTransformer.ShouldDeployFieldValue(destinationValue, proposedValue))
-			//	{
-			//		var oldValue = destinationValue;
-			//		itemField.SetValue(fieldTransformer.GetFieldValue(oldValue, proposedValue), true);
+			if (fieldTransformer != null)
+			{
+				if (fieldTransformer.ShouldDeployFieldValue(destinationValue, proposedValue))
+				{
+					var oldValue = destinationValue;
+					itemField.SetValue(fieldTransformer.GetFieldValue(oldValue, proposedValue), true);
 
-			//		if (!creatingNewItem)
-			//			_logger.UpdatedChangedFieldValue(item, field, oldValue);
+					if (!creatingNewItem)
+						_logger.UpdatedChangedFieldValue(item, field, oldValue);
 
-			//		return true;
-			//	}
+					return true;
+				}
 
-			//	return false;
-			//}
+				return false;
+			}
 
 			// We don't have a transformer for this field. Proceed with default.  This should not happen, we should at least have the default transformer.
 			if (field.Value != null && !field.Value.Equals(itemField.GetValue(false, false)))
