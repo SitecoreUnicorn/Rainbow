@@ -6,7 +6,7 @@
 	{
 		public bool ShouldDeployFieldValue(string existingValue, string proposedValue)
 		{
-			return true;
+			return !existingValue.Equals(proposedValue);
 		}
 
 		public string GetFieldValue(string existingValue, string proposedValue)

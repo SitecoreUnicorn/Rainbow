@@ -87,6 +87,7 @@
     <Compile Include="Settings\RainbowSitecoreSettings.cs" />
     <Compile Include="Storage\DefaultFieldValueManipulator.cs" />
     <Compile Include="Storage\DefaultFieldValueTransformer.cs" />
+    <Compile Include="Storage\FieldManipulationContextSwitcher.cs" />
     <Compile Include="Storage\IFieldValueManipulator.cs" />
     <Compile Include="Storage\IFieldValueTransformer.cs" />
     <Compile Include="Storage\ISnapshotCapableDataStore.cs" />
