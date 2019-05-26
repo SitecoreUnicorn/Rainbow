@@ -34,7 +34,6 @@ namespace Rainbow.Model
 			SerializedItemId = itemToProxy.SerializedItemId;
 			Id = itemToProxy.Id;
 			DatabaseName = itemToProxy.DatabaseName;
-			FieldValueManipulator = itemToProxy.FieldValueManipulator;
 		}
 
 		public ProxyItem(string name, Guid id, Guid parentId, Guid templateId, string path, string databaseName)

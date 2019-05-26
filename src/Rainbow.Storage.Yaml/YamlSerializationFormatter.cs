@@ -115,20 +115,15 @@ namespace Rainbow.Storage.Yaml
 			private readonly IDataStore _sourceDataStore;
 			private string _databaseName;
 
-			public YamlItemData(YamlItem item, string serializedItemId, IFieldFormatter[] formatters, IDataStore sourceDataStore) : this(item, serializedItemId, formatters, sourceDataStore, new DefaultFieldValueTransformer()) { }
-
-			public YamlItemData(YamlItem item, string serializedItemId, IFieldFormatter[] formatters, IDataStore sourceDataStore, IFieldValueTransformer fieldValueTransformer)
+			public YamlItemData(YamlItem item, string serializedItemId, IFieldFormatter[] formatters, IDataStore sourceDataStore)
 			{
 				_item = item;
 				SerializedItemId = serializedItemId;
 				_formatters = formatters;
 				_sourceDataStore = sourceDataStore;
-				FieldValueManipulator = FieldValueManipulator;
 			}
 
 			public Guid Id => _item.Id;
-
-			public IFieldValueManipulator FieldValueManipulator { get; set; }
 
 			/// <remarks>The storage provider should set this automatically.</remarks>
 			[ExcludeFromCodeCoverage]

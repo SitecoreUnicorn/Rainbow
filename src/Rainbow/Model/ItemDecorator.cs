@@ -22,12 +22,6 @@ namespace Rainbow.Model
 		}
 
 		public virtual Guid Id => InnerItem.Id;
-		public IFieldValueManipulator FieldValueManipulator
-		{
-			get => InnerItem.FieldValueManipulator;
-			set => InnerItem.FieldValueManipulator = value;
-		}
-
 		public virtual string DatabaseName { get { return InnerItem.DatabaseName; } set { InnerItem.DatabaseName = value; } }
 		public virtual Guid ParentId => InnerItem.ParentId;
 		public virtual string Path => InnerItem.Path;
