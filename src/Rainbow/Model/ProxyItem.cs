@@ -51,7 +51,6 @@ namespace Rainbow.Model
 			SharedFields = Enumerable.Empty<IItemFieldValue>();
 			Versions = Enumerable.Empty<IItemVersion>();
 			UnversionedFields = Enumerable.Empty<IItemLanguage>();
-			FieldValueManipulator = new DefaultFieldValueManipulator();
 		}
 
 		public ProxyItem(string name, Guid id, Guid parentId, Guid templateId, string path, string databaseName, Func<IEnumerable<IItemData>> childrenFactory) : this(name, id, parentId, templateId, path, databaseName)
@@ -60,7 +59,6 @@ namespace Rainbow.Model
 		}
 
 		public virtual Guid Id { get; set; }
-		public IFieldValueManipulator FieldValueManipulator{ get; set; }
 		public virtual string DatabaseName { get; set; }
 		public virtual Guid ParentId { get; set; }
 		public virtual string Path { get; set; }

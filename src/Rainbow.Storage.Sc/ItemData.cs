@@ -22,7 +22,6 @@ namespace Rainbow.Storage.Sc
 		public ItemData(Item item)
 		{
 			_item = item;
-			FieldValueManipulator = new DefaultFieldValueManipulator();
 		}
 
 		public ItemData(Item item, IDataStore sourceDataStore) : this(item)
@@ -38,8 +37,6 @@ namespace Rainbow.Storage.Sc
 		}
 
 		public virtual Guid Id => _item.ID.Guid;
-
-		public IFieldValueManipulator FieldValueManipulator { get; set; }
 
 		public virtual string DatabaseName
 		{
