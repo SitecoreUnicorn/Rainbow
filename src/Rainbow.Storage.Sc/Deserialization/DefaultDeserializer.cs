@@ -53,6 +53,32 @@ namespace Rainbow.Storage.Sc.Deserialization
 			_fieldFilter = fieldFilter;
 		}
 
+		IItemFieldValue FindItemFieldValue(IItemData inputData, string fieldName)
+		{
+			foreach (var f in inputData.SharedFields)
+			{
+				if (f.NameHint.Equals(fieldName, StringComparison.OrdinalIgnoreCase))
+					return f;
+			}
+
+			foreach (var l in inputData.UnversionedFields)
+			{
+				foreach (var f in l.Fields)
+				{
+					if (f.NameHint.Equals(fieldName, StringComparison.OrdinalIgnoreCase))
+						return f;
+				}
+			}
+
+			foreach (var v in inputData.Versions)
+			{
+				foreach (var f in v.Fields)
+					return f;
+			}
+
+			return null;
+		}
+
 		public IItemData Deserialize(IItemData serializedItemData, IFieldValueManipulator fieldValueManipulator)
 		{
 			Assert.ArgumentNotNull(serializedItemData, "serializedItem");
@@ -64,6 +90,30 @@ namespace Rainbow.Storage.Sc.Deserialization
 			using (new VersionSafeEnforceVersionPresenceDisabler())
 			{
 				var targetItem = GetOrCreateTargetItem(serializedItemData, out var newItemWasCreated);
+
+				// Artificially inject fields missing from the serialized content, so the FieldValueManipulator can consider them
+				//if (fieldValueManipulator != null)
+				//{
+				//	foreach (var fieldName in fieldValueManipulator.GetFieldNamesInManipulator())
+				//	{
+				//		var field = FindItemFieldValue(serializedItemData, fieldName);
+				//		// if the field is there, we move on - it will be picked up later by the PasteField handling
+				//		if (field != null)
+				//			continue;
+
+				//		// If the field is NOT there however, we need to "ninja" it in for consideration
+
+				//		var fieldDefinition = targetItem.Template.GetField(fieldName);
+				//		if (fieldDefinition != null)
+				//		{
+				//			var fieldValue = new ItemFieldValue(targetItem.Fields[fieldDefinition.ID], null);
+				//			if (fieldDefinition.IsShared)
+				//			{
+				//				serializedItemData.SharedFields.a
+				//			}
+				//		}
+				//	}
+				//}
 
 				var softErrors = new List<TemplateMissingFieldException>();
 
@@ -361,7 +411,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 				foreach (Field field in targetItem.Fields)
 				{
-					if (field.Shared && !allTargetSharedFields.Contains(field.ID.Guid) && _fieldFilter.Includes(field.ID.Guid))
+					if (field.Shared && fieldValueManipulator?.GetFieldValueTransformer(field.Name) == null && !allTargetSharedFields.Contains(field.ID.Guid) && _fieldFilter.Includes(field.ID.Guid))
 					{
 						_logger.ResetFieldThatDidNotExistInSerialized(field);
 
@@ -371,16 +421,43 @@ namespace Rainbow.Storage.Sc.Deserialization
 					}
 				}
 
+				var transformersArray = fieldValueManipulator?.GetFieldValueTransformers();
+				List<IFieldValueTransformer> transformersList = new List<IFieldValueTransformer>();
+				if (transformersArray != null)
+					transformersList = new List<IFieldValueTransformer>(transformersArray);
+
 				foreach (var field in serializedItemData.SharedFields)
 				{
 					try
 					{
 						if (PasteField(targetItem, field, newItemWasCreated, fieldValueManipulator))
 							commitEdit = true;
+
+						var t = transformersList.FirstOrDefault(x => x.FieldName.Equals(field.NameHint));
+						if (t != null)
+							transformersList.Remove(t);
 					}
 					catch (TemplateMissingFieldException tex)
 					{
 						softErrors.Add(tex);
+					}
+				}
+
+				// Whatever remains here are field transformers that are NOT represented in the serialized data
+				foreach (var t in transformersList)
+				{
+					var fieldMeta = targetItem.Template.GetField(t.FieldName);
+
+					// If the field doesn't exist on the target template, it's time to just skip
+					if (fieldMeta != null)
+					{
+						var existingField = targetItem.Fields[fieldMeta.ID];
+						if (t.ShouldDeployFieldValue(existingField.Value, null))
+						{
+							var fakeField = new ItemFieldValue(existingField, null);
+							if (PasteField(targetItem, fakeField, newItemWasCreated, fieldValueManipulator))
+								commitEdit = true;
+						}
 					}
 				}
 
@@ -489,6 +566,9 @@ namespace Rainbow.Storage.Sc.Deserialization
 					// if we have a value in the serialized item, we don't need to reset the field
 					if (serializedVersionFieldsLookup.ContainsKey(field.ID.Guid)) continue;
 
+					// If the field manipulator has something to say about the field, we won't reset it (it might not be present in the serialization data, but needs to be forced a value)
+					if (fieldValueManipulator?.GetFieldValueTransformer(field.Name) != null) continue;
+
 					// if the field is one of revision, updated, or updated by we can specially ignore it, because these will get set below if actual field changes occur
 					// so there's no need to reset them as well
 					if (field.ID == FieldIDs.Revision || field.ID == FieldIDs.UpdatedBy || field.ID == FieldIDs.Updated) continue;
@@ -500,6 +580,11 @@ namespace Rainbow.Storage.Sc.Deserialization
 					commitEdit = true;
 				}
 
+				var transformersArray = fieldValueManipulator?.GetFieldValueTransformers();
+				List<IFieldValueTransformer> transformersList = new List<IFieldValueTransformer>();
+				if(transformersArray != null)
+					transformersList = new List<IFieldValueTransformer>(transformersArray);
+
 				bool wasOwnerFieldParsed = false;
 				foreach (IItemFieldValue field in serializedVersion.Fields)
 				{
@@ -510,10 +595,32 @@ namespace Rainbow.Storage.Sc.Deserialization
 					{
 						if (PasteField(languageVersionItem, field, creatingNewItem, fieldValueManipulator))
 							commitEdit = true;
+
+						var t = transformersList.FirstOrDefault(x => x.FieldName.Equals(field.NameHint));
+						if (t != null)
+							transformersList.Remove(t);
 					}
 					catch (TemplateMissingFieldException tex)
 					{
 						softErrors.Add(tex);
+					}
+				}
+
+				// Whatever remains here are field transformers that are NOT represented in the serialized data
+				foreach (var t in transformersList)
+				{
+					var fieldMeta = languageVersionItem.Template.GetField(t.FieldName);
+
+					// If the field doesn't exist on the target template, it's time to just skip
+					if (fieldMeta != null)
+					{
+						var existingField = languageVersionItem.Fields[fieldMeta.ID];
+						if (t.ShouldDeployFieldValue(existingField.Value, null))
+						{
+							var fakeField = new ItemFieldValue(existingField, null);
+							if (PasteField(languageVersionItem, fakeField, creatingNewItem, fieldValueManipulator))
+								commitEdit = true;
+						}
 					}
 				}
 
@@ -598,8 +705,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 				foreach (Field field in targetItem.Fields)
 				{
 					// field was not serialized. Which means the field is either blank or has its standard value, so let's reset it
-					if (field.Unversioned && !field.Shared && !allTargetUnversionedFields.Contains(field.ID.Guid) &&
-					    _fieldFilter.Includes(field.ID.Guid))
+					if (field.Unversioned && fieldValueManipulator?.GetFieldValueTransformer(field.Name) == null && !field.Shared && !allTargetUnversionedFields.Contains(field.ID.Guid) && _fieldFilter.Includes(field.ID.Guid))
 					{
 						_logger.ResetFieldThatDidNotExistInSerialized(field);
 
@@ -609,16 +715,43 @@ namespace Rainbow.Storage.Sc.Deserialization
 					}
 				}
 
+				var transformersArray = fieldValueManipulator?.GetFieldValueTransformers();
+				List<IFieldValueTransformer> transformersList = new List<IFieldValueTransformer>();
+				if (transformersArray != null)
+					transformersList = new List<IFieldValueTransformer>(transformersArray);
+
 				foreach (var field in serializedLanguage.Fields)
 				{
 					try
 					{
 						if (PasteField(targetItem, field, newItemWasCreated, fieldValueManipulator))
 							commitEdit = true;
+
+						var t = transformersList.FirstOrDefault(x => x.FieldName.Equals(field.NameHint));
+						if (t != null)
+							transformersList.Remove(t);
 					}
 					catch (TemplateMissingFieldException tex)
 					{
 						softErrors.Add(tex);
+					}
+				}
+
+				// Whatever remains here are field transformers that are NOT represented in the serialized data
+				foreach (var t in transformersList)
+				{
+					var fieldMeta = targetItem.Template.GetField(t.FieldName);
+
+					// If the field doesn't exist on the target template, it's time to just skip
+					if (fieldMeta != null)
+					{
+						var existingField = targetItem.Fields[fieldMeta.ID];
+						if (t.ShouldDeployFieldValue(existingField.Value, null))
+						{
+							var fakeField = new ItemFieldValue(existingField, null);
+							if (PasteField(targetItem, fakeField, newItemWasCreated, fieldValueManipulator))
+								commitEdit = true;
+						}
 					}
 				}
 
@@ -712,7 +845,6 @@ namespace Rainbow.Storage.Sc.Deserialization
 				return false;
 			}
 
-			// We don't have a transformer for this field. Proceed with default.  This should not happen, we should at least have the default transformer.
 			if (field.Value != null && !field.Value.Equals(itemField.GetValue(false, false)))
 			{
 				var oldValue = itemField.Value;

@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Rainbow.Storage
+﻿namespace Rainbow.Storage
 {
 	public interface IFieldValueManipulator
 	{
 		IFieldValueTransformer GetFieldValueTransformer(string fieldName);
 		IFieldValueTransformer[] GetFieldValueTransformers();
+		string[] GetFieldNamesInManipulator();
 	}
 }
