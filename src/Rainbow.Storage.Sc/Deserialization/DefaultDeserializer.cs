@@ -53,32 +53,6 @@ namespace Rainbow.Storage.Sc.Deserialization
 			_fieldFilter = fieldFilter;
 		}
 
-		IItemFieldValue FindItemFieldValue(IItemData inputData, string fieldName)
-		{
-			foreach (var f in inputData.SharedFields)
-			{
-				if (f.NameHint.Equals(fieldName, StringComparison.OrdinalIgnoreCase))
-					return f;
-			}
-
-			foreach (var l in inputData.UnversionedFields)
-			{
-				foreach (var f in l.Fields)
-				{
-					if (f.NameHint.Equals(fieldName, StringComparison.OrdinalIgnoreCase))
-						return f;
-				}
-			}
-
-			foreach (var v in inputData.Versions)
-			{
-				foreach (var f in v.Fields)
-					return f;
-			}
-
-			return null;
-		}
-
 		public IItemData Deserialize(IItemData serializedItemData, IFieldValueManipulator fieldValueManipulator)
 		{
 			Assert.ArgumentNotNull(serializedItemData, "serializedItem");
@@ -90,31 +64,6 @@ namespace Rainbow.Storage.Sc.Deserialization
 			using (new VersionSafeEnforceVersionPresenceDisabler())
 			{
 				var targetItem = GetOrCreateTargetItem(serializedItemData, out var newItemWasCreated);
-
-				// Artificially inject fields missing from the serialized content, so the FieldValueManipulator can consider them
-				//if (fieldValueManipulator != null)
-				//{
-				//	foreach (var fieldName in fieldValueManipulator.GetFieldNamesInManipulator())
-				//	{
-				//		var field = FindItemFieldValue(serializedItemData, fieldName);
-				//		// if the field is there, we move on - it will be picked up later by the PasteField handling
-				//		if (field != null)
-				//			continue;
-
-				//		// If the field is NOT there however, we need to "ninja" it in for consideration
-
-				//		var fieldDefinition = targetItem.Template.GetField(fieldName);
-				//		if (fieldDefinition != null)
-				//		{
-				//			var fieldValue = new ItemFieldValue(targetItem.Fields[fieldDefinition.ID], null);
-				//			if (fieldDefinition.IsShared)
-				//			{
-				//				serializedItemData.SharedFields.a
-				//			}
-				//		}
-				//	}
-				//}
-
 				var softErrors = new List<TemplateMissingFieldException>();
 
 				try

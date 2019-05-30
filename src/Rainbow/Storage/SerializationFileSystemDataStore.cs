@@ -47,6 +47,8 @@ namespace Rainbow.Storage
 
 		public virtual void Save(IItemData item, IFieldValueManipulator fieldValueManipulator)
 		{
+			// fieldValueManipulator deliberately ignored. We never transform field values going to the file system
+
 			var tree = GetTreeForPath(item.Path, item.DatabaseName);
 
 			if (tree == null) throw new InvalidOperationException("No trees contained the global path " + item.Path);
