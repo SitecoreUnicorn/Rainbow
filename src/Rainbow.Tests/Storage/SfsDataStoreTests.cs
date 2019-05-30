@@ -15,7 +15,7 @@ namespace Rainbow.Tests.Storage
 			{
 				var item = new FakeItem(path: "/sitecore");
 
-				dataStore.Save(item);
+				dataStore.Save(item, null);
 			}
 		}
 
@@ -36,7 +36,7 @@ namespace Rainbow.Tests.Storage
 				var item = new FakeItem(path: "/ektron");
 
 				// ReSharper disable once AccessToDisposedClosure
-				Assert.Throws<InvalidOperationException>(() => dataStore.Save(item));
+				Assert.Throws<InvalidOperationException>(() => dataStore.Save(item, null));
 			}
 		}
 
@@ -50,10 +50,10 @@ namespace Rainbow.Tests.Storage
 				var itemToRename = new FakeItem(path: "/sitecore/test", name: "test", children: new[] { renamingItemChild }, id: Guid.NewGuid());
 				var rootItem = new FakeItem(path: "/sitecore", name: "sitecore", id: Guid.NewGuid(), children: new[] { itemToRename });
 
-				dataStore.Save(rootItem);
-				dataStore.Save(itemToRename);
-				dataStore.Save(renamingItemChild);
-				dataStore.Save(renamingItemGrandchild);
+				dataStore.Save(rootItem, null);
+				dataStore.Save(itemToRename, null);
+				dataStore.Save(renamingItemChild, null);
+				dataStore.Save(renamingItemGrandchild, null);
 
 				// note adding children with old paths; method takes care of rewriting child paths
 				var renamedItem = new FakeItem(id: itemToRename.Id, path: "/sitecore/hexed", name: "hexed", children: new[] { renamingItemChild });
@@ -83,10 +83,10 @@ namespace Rainbow.Tests.Storage
 				var parentItem = new FakeItem(path: "/sitecore/test", name: "test", children: new[] { itemToMove }, id: Guid.NewGuid());
 				var destinationItem = new FakeItem(path: "/sitecore", name: "sitecore", id: Guid.NewGuid(), children: new[] { parentItem });
 
-				dataStore.Save(destinationItem);
-				dataStore.Save(parentItem);
-				dataStore.Save(itemToMove);
-				dataStore.Save(itemToMoveChild);
+				dataStore.Save(destinationItem, null);
+				dataStore.Save(parentItem, null);
+				dataStore.Save(itemToMove, null);
+				dataStore.Save(itemToMoveChild, null);
 
 				// note adding children with old paths; method takes care of rewriting child paths
 				var renamedItem = new FakeItem(id: itemToMove.Id, path: "/sitecore/hexed", name: "hexed", children: new[] { itemToMoveChild });
@@ -117,7 +117,7 @@ namespace Rainbow.Tests.Storage
 
 				var itemToRename = new FakeItem(path: $"/sitecore/{startingItemName}", name: startingItemName, id: Guid.NewGuid());
 
-				dataStore.Save(itemToRename);
+				dataStore.Save(itemToRename, null);
 
 				// note adding children with old paths; method takes care of rewriting child paths
 				var renamedItem = new FakeItem(id: itemToRename.Id, path: $"/sitecore/{renameItemName}", name: renameItemName);
@@ -166,11 +166,11 @@ namespace Rainbow.Tests.Storage
 				var baseSegment = new FakeItem(path: testBaseSegmentPath, name: testBaseSegmentName, id: Guid.NewGuid(), children: new[] { itemToRename });
 				var rootItem = new FakeItem(path: "/sitecore", name: "sitecore", id: Guid.NewGuid(), children: new[] { baseSegment });
 
-				dataStore.Save(rootItem);
-				dataStore.Save(baseSegment);
-				dataStore.Save(itemToRename);
-				dataStore.Save(renamingItemChild);
-				dataStore.Save(renamingItemGrandchild);
+				dataStore.Save(rootItem, null);
+				dataStore.Save(baseSegment, null);
+				dataStore.Save(itemToRename, null);
+				dataStore.Save(renamingItemChild, null);
+				dataStore.Save(renamingItemGrandchild, null);
 
 				// note adding children with old paths; method takes care of rewriting child paths
 				var renamedItem = new FakeItem(id: itemToRename.Id, path: renamedTestRootPath, name: renamedTestRootName, children: new[] { renamingItemChild });
@@ -198,7 +198,7 @@ namespace Rainbow.Tests.Storage
 			{
 				var item = new FakeItem(path: "/sitecore", name: "sitecore");
 
-				dataStore.Save(item);
+				dataStore.Save(item, null);
 
 				var retrieved = dataStore.GetByPath("/sitecore", "master").ToArray();
 
@@ -214,7 +214,7 @@ namespace Rainbow.Tests.Storage
 			{
 				var item = new FakeItem(path: "/sitecore", name: "sitecore", id: Guid.NewGuid());
 
-				dataStore.Save(item);
+				dataStore.Save(item, null);
 
 				var retrieved = dataStore.GetByPathAndId(item.Path, item.Id, "master");
 
@@ -230,7 +230,7 @@ namespace Rainbow.Tests.Storage
 			{
 				var item = new FakeItem(path: "/sitecore", name: "sitecore");
 
-				dataStore.Save(item);
+				dataStore.Save(item, null);
 
 				dataStore.Remove(item);
 
@@ -249,11 +249,11 @@ namespace Rainbow.Tests.Storage
 
 				var item = new FakeItem(path: "/sitecore", name: "sitecore", id: rootId);
 
-				dataStore.Save(item);
+				dataStore.Save(item, null);
 
 				var child = new FakeItem(path: "/sitecore/test", name: "test", parentId: rootId);
 
-				dataStore.Save(child);
+				dataStore.Save(child, null);
 
 				var kids = dataStore.GetChildren(item).ToArray();
 
@@ -271,7 +271,7 @@ namespace Rainbow.Tests.Storage
 
 				var item = new FakeItem(path: "/sitecore", name: "sitecore", templateId: templateId);
 
-				dataStore.Save(item);
+				dataStore.Save(item, null);
 
 				var byTemplate = dataStore.GetMetadataByTemplateId(templateId, "master").ToArray();
 
@@ -291,9 +291,9 @@ namespace Rainbow.Tests.Storage
 				var item2 = new FakeItem(path: "/sitecore/item1", name: "item1", templateId: templateId, id: Guid.NewGuid());
 				var item3 = new FakeItem(path: "/sitecore/item1/item2", name: "item2", templateId: templateId, id: Guid.NewGuid());
 
-				dataStore.Save(item);
-				dataStore.Save(item2);
-				dataStore.Save(item3);
+				dataStore.Save(item, null);
+				dataStore.Save(item2, null);
+				dataStore.Save(item3, null);
 
 				var byTemplate = dataStore.GetMetadataByTemplateId(templateId, "master").ToArray();
 
@@ -309,7 +309,7 @@ namespace Rainbow.Tests.Storage
 			{
 				var item = new FakeItem(path: "/sitecore");
 
-				dataStore.Save(item);
+				dataStore.Save(item, null);
 
 				dataStore.Clear();
 
@@ -325,7 +325,7 @@ namespace Rainbow.Tests.Storage
 				var id = Guid.NewGuid();
 				var item = new FakeItem(path: "/sitecore", id: id);
 
-				dataStore.Save(item);
+				dataStore.Save(item, null);
 
 				Assert.NotNull(dataStore.GetById(id, "master"));
 			}
@@ -339,7 +339,7 @@ namespace Rainbow.Tests.Storage
 				var id = Guid.NewGuid();
 				var item = new FakeItem(path: "/sitecore", id: id);
 
-				dataStore.Save(item);
+				dataStore.Save(item, null);
 
 				Assert.Null(dataStore.GetById(id, "core"));
 			}

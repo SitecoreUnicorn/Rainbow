@@ -39,7 +39,7 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 						new FakeItemVersion(1, "en", new FakeFieldValue("Hello", fieldId: _testVersionedFieldId.Guid))
 					});
 
-				var deserialized = deserializer.Deserialize(item);
+				var deserialized = deserializer.Deserialize(item, null);
 
 				Assert.NotNull(deserialized);
 
@@ -225,7 +225,7 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 				fields.Add(new FakeFieldValue("Changed Ignored Value", fieldId: ignoredFieldId.Guid));
 				((ProxyItemVersion)itemData.Versions.First()).Fields = fields;
 
-				deserializer.Deserialize(itemData);
+				deserializer.Deserialize(itemData, null);
 
 				var fromDb = db.GetItem(itemId);
 
@@ -263,7 +263,7 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 				((ProxyItemVersion)itemData.Versions.First()).Fields = fields;
 				itemData.SharedFields = fields;
 
-				deserializer.Deserialize(itemData);
+				deserializer.Deserialize(itemData, null);
 
 				var fromDb = db.GetItem(itemId);
 
@@ -318,7 +318,7 @@ namespace Rainbow.Storage.Sc.Tests.Deserialization
 
 				setup(itemData);
 
-				deserializer.Deserialize(itemData);
+				deserializer.Deserialize(itemData, null);
 
 				var fromDb = db.GetItem(itemId);
 
