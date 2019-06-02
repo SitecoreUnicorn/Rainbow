@@ -27,9 +27,9 @@ namespace Rainbow.Storage.Sc.Tests
 
 			var item = new FakeItem();
 
-			dataStore.Save(item);
+			dataStore.Save(item, null);
 
-			deserializer.Received().Deserialize(item);
+			deserializer.Received().Deserialize(item, null);
 		}
 
 		[Fact]

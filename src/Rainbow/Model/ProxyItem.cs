@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Rainbow.Storage;
 using Sitecore.Diagnostics;
 
 // ReSharper disable DoNotCallOverridableMethodsInConstructor

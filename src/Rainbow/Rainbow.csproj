@@ -85,6 +85,8 @@
     <Compile Include="RainbowVersion.cs" />
     <Compile Include="Settings\RainbowSettings.cs" />
     <Compile Include="Settings\RainbowSitecoreSettings.cs" />
+    <Compile Include="Storage\IFieldValueManipulator.cs" />
+    <Compile Include="Storage\IFieldValueTransformer.cs" />
     <Compile Include="Storage\ISnapshotCapableDataStore.cs" />
     <Compile Include="Storage\SfsDuplicateIdCheckingDisabler.cs" />
     <Compile Include="Storage\FsCache.cs" />

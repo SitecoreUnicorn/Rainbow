@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Rainbow.Storage;
 using Sitecore.Diagnostics;
 
 namespace Rainbow.Model
