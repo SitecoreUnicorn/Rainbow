@@ -12,7 +12,7 @@ namespace Rainbow.Storage
 		/// <summary>
 		/// Saves an item into the store
 		/// </summary>
-		void Save(IItemData item, IFieldValueManipulator fieldValueManipulator);
+		bool Save(IItemData item, IFieldValueManipulator fieldValueManipulator);
 
 		/// <remarks>
 		/// Note: for moved items, pass in the FINAL path to move to, not the path being moved from (if it's a move within the store, we'll know the old path by ID from current state)
