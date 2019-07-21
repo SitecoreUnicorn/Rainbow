@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using Rainbow.Filtering;
 using Rainbow.Model;
 using Sitecore;
@@ -68,26 +69,34 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 				try
 				{
-					ChangeTemplateIfNeeded(serializedItemData, targetItem);
+					bool changeHappened = false;
 
+					var templateChangeHappened = ChangeTemplateIfNeeded(serializedItemData, targetItem);
+
+					bool brancheChangeHappened = false;
 					if (!IgnoreBranchId)
 					{
-						ChangeBranchIfNeeded(serializedItemData, targetItem, newItemWasCreated);
+						brancheChangeHappened = ChangeBranchIfNeeded(serializedItemData, targetItem, newItemWasCreated);
 					}
 
-					RenameIfNeeded(serializedItemData, targetItem);
+					var renameHappened = RenameIfNeeded(serializedItemData, targetItem);
 
 					ResetTemplateEngineIfItemIsTemplate(targetItem);
 
-					PasteSharedFields(serializedItemData, targetItem, newItemWasCreated, softErrors, fieldValueManipulator);
+					var sharedFieldsWereChanged = PasteSharedFields(serializedItemData, targetItem, newItemWasCreated, softErrors, fieldValueManipulator);
 
-					PasteUnversionedFields(serializedItemData, targetItem, newItemWasCreated, softErrors, fieldValueManipulator);
+					var unversionedFieldsWereChanged = PasteUnversionedFields(serializedItemData, targetItem, newItemWasCreated, softErrors, fieldValueManipulator);
 
-					UpdateFieldSharingIfNeeded(serializedItemData, targetItem);
+					var fieldSharingWasUpdated = UpdateFieldSharingIfNeeded(serializedItemData, targetItem);
 
-					PasteVersions(serializedItemData, targetItem, newItemWasCreated, softErrors, fieldValueManipulator);
+					var versionChangeHappened = PasteVersions(serializedItemData, targetItem, newItemWasCreated, softErrors, fieldValueManipulator);
 
 					if (softErrors.Count > 0) throw TemplateMissingFieldException.Merge(softErrors);
+
+					changeHappened = templateChangeHappened | brancheChangeHappened | renameHappened | sharedFieldsWereChanged | unversionedFieldsWereChanged | fieldSharingWasUpdated | versionChangeHappened;
+
+					if (!changeHappened)
+						return null;
 
 					return new ItemData(targetItem, ParentDataStore);
 				}
@@ -193,9 +202,9 @@ namespace Rainbow.Storage.Sc.Deserialization
 			return targetItem;
 		}
 
-		protected void ChangeBranchIfNeeded(IItemData serializedItemData, Item targetItem, bool newItemWasCreated)
+		protected bool ChangeBranchIfNeeded(IItemData serializedItemData, Item targetItem, bool newItemWasCreated)
 		{
-			if (targetItem.BranchId.Guid.Equals(serializedItemData.BranchId)) return;
+			if (targetItem.BranchId.Guid.Equals(serializedItemData.BranchId)) return false;
 
 			Guid oldBranchId = targetItem.BranchId.Guid;
 
@@ -210,12 +219,15 @@ namespace Rainbow.Storage.Sc.Deserialization
 			if (oldBranchId != serializedItemData.BranchId && !newItemWasCreated)
 			{
 				_logger.ChangedBranchTemplate(targetItem, new ID(oldBranchId).ToString());
+				return true;
 			}
+
+			return false;
 		}
 
-		protected void RenameIfNeeded(IItemData serializedItemData, Item targetItem)
+		protected bool RenameIfNeeded(IItemData serializedItemData, Item targetItem)
 		{
-			if (targetItem.Name.Equals(serializedItemData.Name, StringComparison.Ordinal)) return;
+			if (targetItem.Name.Equals(serializedItemData.Name, StringComparison.Ordinal)) return false;
 
 			string oldName = targetItem.Name;
 
@@ -228,12 +240,17 @@ namespace Rainbow.Storage.Sc.Deserialization
 			targetItem.Reload();
 
 			if (oldName != serializedItemData.Name)
+			{
 				_logger.RenamedItem(targetItem, oldName);
+				return true;
+			}
+
+			return false;
 		}
 
-		protected void ChangeTemplateIfNeeded(IItemData serializedItemData, Item targetItem)
+		protected bool ChangeTemplateIfNeeded(IItemData serializedItemData, Item targetItem)
 		{
-			if (targetItem.TemplateID.Guid == serializedItemData.TemplateId) return;
+			if (targetItem.TemplateID.Guid == serializedItemData.TemplateId) return false;
 
 			var oldTemplate = targetItem.Template;
 			var newTemplate = targetItem.Database.Templates[new ID(serializedItemData.TemplateId)];
@@ -273,13 +290,15 @@ namespace Rainbow.Storage.Sc.Deserialization
 			targetItem.Reload();
 
 			_logger.ChangedTemplate(targetItem, oldTemplate);
+
+			return true;
 		}
 
 		/// <summary>
 		/// When you change a template field from versioned to shared or unversioned (or vice versa), the conversion of the values
 		/// in existing items with that field is NOT automatic. This method causes the requisite field updates (moving the values between db tables)
 		/// </summary>
-		protected void UpdateFieldSharingIfNeeded(IItemData serializedItemData, Item targetItem)
+		protected bool UpdateFieldSharingIfNeeded(IItemData serializedItemData, Item targetItem)
 		{
 			// This is what Sitecore's internal deserializer does instead. Will investigate if this is a better option. Also depends on which Sitecore version introduced this.
 			//if (EventDisabler.IsActive)
@@ -289,7 +308,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			Assert.ArgumentNotNull(serializedItemData, nameof(serializedItemData));
 			Assert.ArgumentNotNull(targetItem, nameof(targetItem));
 
-			if (serializedItemData.TemplateId != TemplateIDs.TemplateField.Guid) return;
+			if (serializedItemData.TemplateId != TemplateIDs.TemplateField.Guid) return false;
 
 			var shared = serializedItemData.SharedFields.FirstOrDefault(field => field.FieldId == TemplateFieldIDs.Shared.Guid);
 			var unversioned = serializedItemData.SharedFields.FirstOrDefault(field => field.FieldId == TemplateFieldIDs.Unversioned.Guid);
@@ -316,9 +335,11 @@ namespace Rainbow.Storage.Sc.Deserialization
 			if (templateField.IsShared) templateSharedness = TemplateFieldSharing.Shared;
 			else if (templateField.IsUnversioned) templateSharedness = TemplateFieldSharing.Unversioned;
 
-			if (templateSharedness == sharedness) return;
+			if (templateSharedness == sharedness) return false;
 
 			TemplateManager.ChangeFieldSharing(templateField, sharedness, targetItem.Database);
+
+			return true;
 		}
 
 		protected Item CreateTargetItem(IItemData serializedItemData, Item destinationParentItem)
@@ -345,7 +366,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 			return targetItem;
 		}
 
-		protected virtual void PasteSharedFields(IItemData serializedItemData, Item targetItem, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors, IFieldValueManipulator fieldValueManipulator)
+		protected virtual bool PasteSharedFields(IItemData serializedItemData, Item targetItem, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors, IFieldValueManipulator fieldValueManipulator)
 		{
 			bool commitEdit = false;
 
@@ -392,7 +413,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 					}
 				}
 
-				// Whatever remains here are field transformers that are NOT represented in the serialized data
+				// Whatever remains here are field transformers that are NOT represented in the serialized data shared fields
 				foreach (var t in transformersList)
 				{
 					var fieldMeta = targetItem.Template.GetField(t.FieldName);
@@ -400,6 +421,10 @@ namespace Rainbow.Storage.Sc.Deserialization
 					// If the field doesn't exist on the target template, it's time to just skip
 					if (fieldMeta != null)
 					{
+						// We're only dealing with Shared Fields in this method
+						if(!fieldMeta.IsShared)
+							continue;
+
 						var existingField = targetItem.Fields[fieldMeta.ID];
 						if (t.ShouldDeployFieldValue(existingField.Value, null))
 						{
@@ -420,6 +445,8 @@ namespace Rainbow.Storage.Sc.Deserialization
 					targetItem.Reload();
 
 					ResetTemplateEngineIfItemIsTemplate(targetItem);
+
+					return true;
 				}
 			}
 			finally
@@ -427,9 +454,11 @@ namespace Rainbow.Storage.Sc.Deserialization
 				if (targetItem.Editing.IsEditing)
 					targetItem.Editing.CancelEdit();
 			}
+
+			return false;
 		}
 
-		protected virtual void PasteVersions(IItemData serializedItemData, Item targetItem, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors, IFieldValueManipulator fieldValueManipulator)
+		protected virtual bool PasteVersions(IItemData serializedItemData, Item targetItem, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors, IFieldValueManipulator fieldValueManipulator)
 		{
 			Hashtable versionTable = CommonUtils.CreateCIHashtable();
 
@@ -438,24 +467,35 @@ namespace Rainbow.Storage.Sc.Deserialization
 			foreach (Item version in targetItem.Versions.GetVersions(true))
 				versionTable[version.Uri] = null;
 
+			bool anythingChanged = false;
+
 			foreach (var syncVersion in serializedItemData.Versions)
 			{
-				var version = PasteVersion(targetItem, syncVersion, newItemWasCreated, softErrors, fieldValueManipulator);
+				var res = PasteVersion(targetItem, syncVersion, newItemWasCreated, softErrors, fieldValueManipulator);
+				var committed = res.Item1;
+				if (committed)
+					anythingChanged = true;
+
+				var version = res.Item2;
 				if (versionTable.ContainsKey(version.Uri))
 					versionTable.Remove(version.Uri);
 			}
 
 			foreach (ItemUri uri in versionTable.Keys)
 			{
+				anythingChanged = true;
+
 				var versionToRemove = Database.GetItem(uri);
 
 				_logger.RemovingOrphanedVersion(versionToRemove);
 
 				versionToRemove.Versions.RemoveVersion();
 			}
+
+			return anythingChanged;
 		}
 
-		protected virtual Item PasteVersion(Item item, IItemVersion serializedVersion, bool creatingNewItem, List<TemplateMissingFieldException> softErrors, IFieldValueManipulator fieldValueManipulator)
+		protected virtual Tuple<bool,Item> PasteVersion(Item item, IItemVersion serializedVersion, bool creatingNewItem, List<TemplateMissingFieldException> softErrors, IFieldValueManipulator fieldValueManipulator)
 		{
 			Language language = Language.Parse(serializedVersion.Language.Name);
 			var targetVersion = Version.Parse(serializedVersion.VersionNumber);
@@ -555,7 +595,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 					}
 				}
 
-				// Whatever remains here are field transformers that are NOT represented in the serialized data
+				// Whatever remains here are field transformers that are NOT represented in the serialized data for Versioned fields
 				foreach (var t in transformersList)
 				{
 					var fieldMeta = languageVersionItem.Template.GetField(t.FieldName);
@@ -563,6 +603,10 @@ namespace Rainbow.Storage.Sc.Deserialization
 					// If the field doesn't exist on the target template, it's time to just skip
 					if (fieldMeta != null)
 					{
+						// We're only dealing with Versioned fields here
+						if (fieldMeta.IsUnversioned || fieldMeta.IsShared)
+							continue;
+
 						var existingField = languageVersionItem.Fields[fieldMeta.ID];
 						if (t.ShouldDeployFieldValue(existingField.Value, null))
 						{
@@ -604,6 +648,8 @@ namespace Rainbow.Storage.Sc.Deserialization
 			}
 			finally
 			{
+				commitEdit = false;
+
 				if (languageVersionItem.Editing.IsEditing)
 					languageVersionItem.Editing.CancelEdit();
 			}
@@ -614,18 +660,24 @@ namespace Rainbow.Storage.Sc.Deserialization
 				ResetTemplateEngineIfItemIsTemplate(languageVersionItem);
 			}
 
-			return languageVersionItem;
+			return new Tuple<bool, Item>(commitEdit, languageVersionItem);
 		}
 
-		protected virtual void PasteUnversionedFields(IItemData serializedItemData, Item targetItem, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors, IFieldValueManipulator fieldValueManipulator)
+		protected virtual bool PasteUnversionedFields(IItemData serializedItemData, Item targetItem, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors, IFieldValueManipulator fieldValueManipulator)
 		{
+			bool changeHappened = false;
+
 			foreach (var language in serializedItemData.UnversionedFields)
 			{
-				PasteUnversionedLanguage(targetItem, language, newItemWasCreated, softErrors, fieldValueManipulator);
+				bool result = PasteUnversionedLanguage(targetItem, language, newItemWasCreated, softErrors, fieldValueManipulator);
+				if (result)
+					changeHappened = true;
 			}
+
+			return changeHappened;
 		}
 
-		protected virtual void PasteUnversionedLanguage(Item item, IItemLanguage serializedLanguage, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors, IFieldValueManipulator fieldValueManipulator)
+		protected virtual bool PasteUnversionedLanguage(Item item, IItemLanguage serializedLanguage, bool newItemWasCreated, List<TemplateMissingFieldException> softErrors, IFieldValueManipulator fieldValueManipulator)
 		{
 			Language language = Language.Parse(serializedLanguage.Language.Name);
 
@@ -694,6 +746,9 @@ namespace Rainbow.Storage.Sc.Deserialization
 					// If the field doesn't exist on the target template, it's time to just skip
 					if (fieldMeta != null)
 					{
+						if (!fieldMeta.IsUnversioned)
+							continue;
+
 						var existingField = targetItem.Fields[fieldMeta.ID];
 						if (t.ShouldDeployFieldValue(existingField.Value, null))
 						{
@@ -706,13 +761,18 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 				// we commit the edit context - and write to the DB - only if we changed something
 				if (commitEdit)
+				{
 					targetItem.Editing.EndEdit();
+					return true;
+				}
 			}
 			finally
 			{
 				if (targetItem.Editing.IsEditing)
 					targetItem.Editing.CancelEdit();
 			}
+
+			return false;
 		}
 
 		protected virtual bool PasteField(Item item, IItemFieldValue field, bool creatingNewItem, IFieldValueManipulator fieldValueManipulator)

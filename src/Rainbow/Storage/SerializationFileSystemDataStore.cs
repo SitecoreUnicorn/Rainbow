@@ -45,7 +45,7 @@ namespace Rainbow.Storage
 			return Trees.SelectMany(tree => tree.GetSnapshot());
 		}
 
-		public virtual void Save(IItemData item, IFieldValueManipulator fieldValueManipulator)
+		public virtual bool Save(IItemData item, IFieldValueManipulator fieldValueManipulator)
 		{
 			// fieldValueManipulator deliberately ignored. We never transform field values going to the file system
 
@@ -54,6 +54,8 @@ namespace Rainbow.Storage
 			if (tree == null) throw new InvalidOperationException("No trees contained the global path " + item.Path);
 
 			tree.Save(item);
+
+			return true;
 		}
 
 		/*

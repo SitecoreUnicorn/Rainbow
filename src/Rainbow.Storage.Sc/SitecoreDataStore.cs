@@ -28,11 +28,12 @@ namespace Rainbow.Storage.Sc
 			return Factory.GetDatabaseNames();
 		}
 
-		public virtual void Save(IItemData item, IFieldValueManipulator fieldValueManipulator)
+		public virtual bool Save(IItemData item, IFieldValueManipulator fieldValueManipulator)
 		{
 			Assert.ArgumentNotNull(item, "item");
 
-			_deserializer.Deserialize(item, fieldValueManipulator);
+			var result = _deserializer.Deserialize(item, fieldValueManipulator);
+			return result != null;
 		}
 
 		public virtual void MoveOrRenameItem(IItemData itemWithFinalPath, string oldPath)
