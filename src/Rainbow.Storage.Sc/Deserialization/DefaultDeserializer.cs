@@ -648,8 +648,6 @@ namespace Rainbow.Storage.Sc.Deserialization
 			}
 			finally
 			{
-				commitEdit = false;
-
 				if (languageVersionItem.Editing.IsEditing)
 					languageVersionItem.Editing.CancelEdit();
 			}
