@@ -257,7 +257,7 @@ namespace Rainbow.Storage
 			}
 
 			// convert root path to canonical form, so subsequent transformations can do string comparison
-			// http://stackoverflow.com/questions/970911/net-remove-dots-from-the-path
+			// https://stackoverflow.com/questions/970911/net-remove-dots-from-the-path
 			if (rootPath.Contains(".."))
 				rootPath = Path.GetFullPath(rootPath);
 

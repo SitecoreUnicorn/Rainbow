@@ -58,7 +58,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 		{
 			Assert.ArgumentNotNull(serializedItemData, "serializedItem");
 
-			// In regards to https://github.com/kamsar/Unicorn/issues/280
+			// In regards to https://github.com/SitecoreUnicorn/Unicorn/issues/280
 			// At no point in these processes, do we expect anything but raw API results - not filtered by version disablers or anything similar
 			// Encapsulating the entire Deserialize call to ensure this
 			// Updated to try and bring back Sitecore 7 compatibility for Rainbow moving forward. https://github.com/SitecoreUnicorn/Rainbow/issues/25
