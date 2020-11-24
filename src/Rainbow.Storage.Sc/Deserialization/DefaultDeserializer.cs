@@ -218,7 +218,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 			if (oldBranchId != serializedItemData.BranchId && !newItemWasCreated)
 			{
-				_logger.ChangedBranchTemplate(targetItem, new ID(oldBranchId).ToString());
+				_logger.ChangedBranchTemplate(targetItem, new ID(oldBranchId).Guid.ToString("P"));
 				return true;
 			}
 
