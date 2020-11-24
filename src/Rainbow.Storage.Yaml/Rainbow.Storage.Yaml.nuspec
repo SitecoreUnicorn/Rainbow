@@ -5,9 +5,9 @@
     <version>$version$</version>
     <authors>Kam Figy, Mark Cassidy</authors>
     <owners>Kam Figy</owners>
-    <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
+    <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
     <projectUrl>https://github.com/SitecoreUnicorn/Rainbow</projectUrl>
-    <iconUrl>http://kamsar.net/nuget/rainbow/yml.png</iconUrl>
+    <iconUrl>https://kamsar.net/nuget/rainbow/yml.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Implements a YAML-based serialization format as a Rainbow data store</description>
     <tags>sitecore</tags>

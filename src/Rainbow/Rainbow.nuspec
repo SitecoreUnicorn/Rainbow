@@ -5,9 +5,9 @@
     <version>$version$</version>
     <authors>Kam Figy, Mark Cassidy</authors>
     <owners>Kam Figy</owners>
-    <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
+    <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
     <projectUrl>https://github.com/SitecoreUnicorn/Rainbow</projectUrl>
-    <iconUrl>http://kamsar.net/nuget/rainbow/logo.png</iconUrl>
+    <iconUrl>https://kamsar.net/nuget/rainbow/logo.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>An advanced serialization library for Sitecore. Install the Rainbow package if you want the config file with the library</description>
     <tags>sitecore serialization</tags>
