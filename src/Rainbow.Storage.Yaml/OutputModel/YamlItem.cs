@@ -32,7 +32,8 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			TemplateId = itemData.TemplateId;
 			Path = itemData.Path;
 
-			BranchId = itemData.BranchId;
+			// Disabling any and all BranchId handling for now
+			// BranchId = itemData.BranchId;
 
 			foreach (var field in itemData.SharedFields)
 			{
@@ -81,7 +82,8 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			writer.WriteMap("Path", Path);
 			writer.WriteMap("DB", DatabaseName);
 
-			if (BranchId != default(Guid)) writer.WriteMap("BranchID", BranchId.ToString());
+			// Disabling any and all BranchId handling for now
+			// if (BranchId != default(Guid)) writer.WriteMap("BranchID", BranchId.ToString());
 
 			if (SharedFields.Any())
 			{
@@ -128,7 +130,8 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			if (branch.HasValue && branch.Value.Key.Equals("BranchID"))
 			{
 				reader.ReadMap();
-				BranchId = Guid.Parse(branch.Value.Value);
+				// Disabling any and all BranchId handling for now
+				// BranchId = Guid.Parse(branch.Value.Value);
 			}
 
 			var sharedFields = reader.PeekMap();

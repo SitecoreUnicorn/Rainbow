@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Rainbow.Model;
+using Sitecore.Data;
 using Sitecore.Data.Items;
 
 namespace Rainbow.Storage.Sc
@@ -58,7 +59,7 @@ namespace Rainbow.Storage.Sc
 
 		public virtual string Name => _item.Name;
 
-		public virtual Guid BranchId => _item.BranchId.Guid;
+		public virtual Guid BranchId => ID.Null.Guid; // Disabling any and all BranchId handling for now _item.BranchId.Guid;
 
 		public virtual Guid TemplateId => _item.TemplateID.Guid;
 
