@@ -36,8 +36,6 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 		public IDataStore ParentDataStore { get; set; }
 
-		public bool IgnoreBranchId { get; }
-
 		// Overload constructor, implemented for keeping compatibility with external tools that may not yet have updated their codebase to support the branchId switch (e.g. SideKick)
 		// ReSharper disable once UnusedMember.Global
 		public DefaultDeserializer(IDefaultDeserializerLogger logger, IFieldFilter fieldFilter) : this(true, logger, fieldFilter) { }
@@ -48,7 +46,8 @@ namespace Rainbow.Storage.Sc.Deserialization
 			Assert.ArgumentNotNull(fieldFilter, "fieldFilter");
 
 			// In reference to issue 283. https://github.com/SitecoreUnicorn/Unicorn/issues/283
-			IgnoreBranchId = ignoreBranchId;
+			// IgnoreBranchId = ignoreBranchId;
+			// IgnoreBranchId is now being dealt with automatically via version checking. Leaving this constructor in place for people who still has the older config.
 
 			_logger = logger;
 			_fieldFilter = fieldFilter;
@@ -74,7 +73,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 					var templateChangeHappened = ChangeTemplateIfNeeded(serializedItemData, targetItem);
 
 					bool brancheChangeHappened = false;
-					if (!IgnoreBranchId)
+					if (SitecoreVersionResolver.IsVersionHigherOrEqual(Sc.SitecoreVersionResolver.SitecoreVersion101))
 					{
 						brancheChangeHappened = ChangeBranchIfNeeded(serializedItemData, targetItem, newItemWasCreated);
 					}
@@ -211,8 +210,9 @@ namespace Rainbow.Storage.Sc.Deserialization
 			targetItem.Editing.BeginEdit();
 			targetItem.RuntimeSettings.ReadOnlyStatistics = true;
 			targetItem.BranchId = ID.Parse(serializedItemData.BranchId);
-			targetItem.Editing.EndEdit();
+			targetItem.Editing.EndEdit();  // try silent
 
+			// try only if (!newItemCreated)
 			ClearCaches(targetItem.Database, targetItem.ID);
 			targetItem.Reload();
 

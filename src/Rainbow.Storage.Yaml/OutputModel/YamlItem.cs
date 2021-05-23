@@ -32,8 +32,11 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			TemplateId = itemData.TemplateId;
 			Path = itemData.Path;
 
-			// Disabling any and all BranchId handling for now
-			// BranchId = itemData.BranchId;
+			// BranchID handling broken prior to 10.1
+			if (Sc.SitecoreVersionResolver.IsVersionHigherOrEqual(Sc.SitecoreVersionResolver.SitecoreVersion101))
+			{
+				BranchId = itemData.BranchId;
+			}
 
 			foreach (var field in itemData.SharedFields)
 			{
@@ -82,8 +85,11 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			writer.WriteMap("Path", Path);
 			writer.WriteMap("DB", DatabaseName);
 
-			// Disabling any and all BranchId handling for now
-			// if (BranchId != default(Guid)) writer.WriteMap("BranchID", BranchId.ToString());
+			// BranchID handling broken prior to 10.1
+			if(Sc.SitecoreVersionResolver.IsVersionHigherOrEqual(Sc.SitecoreVersionResolver.SitecoreVersion101))
+			{
+				if (BranchId != default(Guid)) writer.WriteMap("BranchID", BranchId.ToString());
+			}
 
 			if (SharedFields.Any())
 			{
@@ -130,8 +136,12 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			if (branch.HasValue && branch.Value.Key.Equals("BranchID"))
 			{
 				reader.ReadMap();
-				// Disabling any and all BranchId handling for now
-				// BranchId = Guid.Parse(branch.Value.Value);
+
+				// BranchID handling broken prior to 10.1
+				if (Sc.SitecoreVersionResolver.IsVersionHigherOrEqual(Sc.SitecoreVersionResolver.SitecoreVersion101))
+				{
+					BranchId = Guid.Parse(branch.Value.Value);
+				}
 			}
 
 			var sharedFields = reader.PeekMap();

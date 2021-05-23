@@ -59,7 +59,17 @@ namespace Rainbow.Storage.Sc
 
 		public virtual string Name => _item.Name;
 
-		public virtual Guid BranchId => ID.Null.Guid; // Disabling any and all BranchId handling for now _item.BranchId.Guid;
+		public virtual Guid BranchId
+		{
+			get
+			{
+				if (SitecoreVersionResolver.IsVersionHigherOrEqual(SitecoreVersionResolver.SitecoreVersion101))
+				{
+					return _item.BranchId.Guid;
+				}
+				return Guid.Empty;
+			}
+		} 
 
 		public virtual Guid TemplateId => _item.TemplateID.Guid;
 
