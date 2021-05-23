@@ -59,17 +59,7 @@ namespace Rainbow.Storage.Sc
 
 		public virtual string Name => _item.Name;
 
-		public virtual Guid BranchId
-		{
-			get
-			{
-				if (SitecoreVersionResolver.IsVersionHigherOrEqual(SitecoreVersionResolver.SitecoreVersion101))
-				{
-					return _item.BranchId.Guid;
-				}
-				return Guid.Empty;
-			}
-		} 
+		public virtual Guid BranchId => _item.BranchId.Guid;
 
 		public virtual Guid TemplateId => _item.TemplateID.Guid;
 

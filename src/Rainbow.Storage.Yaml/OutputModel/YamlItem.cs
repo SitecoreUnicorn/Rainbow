@@ -31,12 +31,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			ParentId = itemData.ParentId;
 			TemplateId = itemData.TemplateId;
 			Path = itemData.Path;
-
-			// BranchID handling broken prior to 10.1
-			if (Sc.SitecoreVersionResolver.IsVersionHigherOrEqual(Sc.SitecoreVersionResolver.SitecoreVersion101))
-			{
-				BranchId = itemData.BranchId;
-			}
+			BranchId = itemData.BranchId;
 
 			foreach (var field in itemData.SharedFields)
 			{
@@ -85,11 +80,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			writer.WriteMap("Path", Path);
 			writer.WriteMap("DB", DatabaseName);
 
-			// BranchID handling broken prior to 10.1
-			if(Sc.SitecoreVersionResolver.IsVersionHigherOrEqual(Sc.SitecoreVersionResolver.SitecoreVersion101))
-			{
-				if (BranchId != default(Guid)) writer.WriteMap("BranchID", BranchId.ToString());
-			}
+			if (BranchId != default(Guid)) writer.WriteMap("BranchID", BranchId.ToString());
 
 			if (SharedFields.Any())
 			{
@@ -136,12 +127,7 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			if (branch.HasValue && branch.Value.Key.Equals("BranchID"))
 			{
 				reader.ReadMap();
-
-				// BranchID handling broken prior to 10.1
-				if (Sc.SitecoreVersionResolver.IsVersionHigherOrEqual(Sc.SitecoreVersionResolver.SitecoreVersion101))
-				{
-					BranchId = Guid.Parse(branch.Value.Value);
-				}
+				BranchId = Guid.Parse(branch.Value.Value);
 			}
 
 			var sharedFields = reader.PeekMap();
