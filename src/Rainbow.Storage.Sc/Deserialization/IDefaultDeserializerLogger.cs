@@ -27,5 +27,7 @@ namespace Rainbow.Storage.Sc.Deserialization
 		void ResetFieldThatDidNotExistInSerialized(Field field);
 
 		void SkippedPastingIgnoredField(Item item, IItemFieldValue field);
+
+		void LogSystemMessage(string message);
 	}
 }

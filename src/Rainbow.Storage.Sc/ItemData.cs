@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Rainbow.Model;
+using Sitecore.Data;
 using Sitecore.Data.Items;
 
 namespace Rainbow.Storage.Sc

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Remoting.Messaging;
 using Rainbow.Filtering;
 using Rainbow.Model;
@@ -10,6 +12,7 @@ using Sitecore;
 using Sitecore.Caching;
 using Sitecore.Configuration;
 using Sitecore.Data;
+using Sitecore.Data.Events;
 using Sitecore.Data.Fields;
 using Sitecore.Data.Items;
 using Sitecore.Data.Managers;
@@ -36,8 +39,6 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 		public IDataStore ParentDataStore { get; set; }
 
-		public bool IgnoreBranchId { get; }
-
 		// Overload constructor, implemented for keeping compatibility with external tools that may not yet have updated their codebase to support the branchId switch (e.g. SideKick)
 		// ReSharper disable once UnusedMember.Global
 		public DefaultDeserializer(IDefaultDeserializerLogger logger, IFieldFilter fieldFilter) : this(true, logger, fieldFilter) { }
@@ -48,7 +49,8 @@ namespace Rainbow.Storage.Sc.Deserialization
 			Assert.ArgumentNotNull(fieldFilter, "fieldFilter");
 
 			// In reference to issue 283. https://github.com/SitecoreUnicorn/Unicorn/issues/283
-			IgnoreBranchId = ignoreBranchId;
+			// IgnoreBranchId = ignoreBranchId;
+			// IgnoreBranchId is now being dealt with automatically via version checking. Leaving this constructor in place for people who still has the older config.
 
 			_logger = logger;
 			_fieldFilter = fieldFilter;
@@ -73,17 +75,37 @@ namespace Rainbow.Storage.Sc.Deserialization
 
 					var templateChangeHappened = ChangeTemplateIfNeeded(serializedItemData, targetItem);
 
-					bool brancheChangeHappened = false;
-					if (!IgnoreBranchId)
-					{
-						brancheChangeHappened = ChangeBranchIfNeeded(serializedItemData, targetItem, newItemWasCreated);
-					}
+					bool brancheChangeHappened = ChangeBranchIfNeeded(serializedItemData, targetItem, newItemWasCreated);
 
 					var renameHappened = RenameIfNeeded(serializedItemData, targetItem);
 
-					ResetTemplateEngineIfItemIsTemplate(targetItem);
+					targetItem.Database.Engines.TemplateEngine.Reset();
+					//ResetTemplateEngineIfItemIsTemplate(targetItem);
 
 					var sharedFieldsWereChanged = PasteSharedFields(serializedItemData, targetItem, newItemWasCreated, softErrors, fieldValueManipulator);
+					if (EventDisabler.IsActive)
+					{
+						var bindingFlags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic;
+						var miHandleItemSaved = targetItem.Database.Engines.TemplateEngine.GetType().GetMethod("HandleItemSaved", bindingFlags);
+						var miGetFullChanges = targetItem.GetType().GetMethod("GetFullChanges", bindingFlags);
+						if (miHandleItemSaved != null && miGetFullChanges != null)
+						{
+							// Courtesy of Doctor DotPeek
+							// Reference code in: Sitecore.Data.Serialization.Default.DefaultItemSynchronizer
+
+							var itemChanges = miGetFullChanges.Invoke(targetItem, bindingFlags, null, null, CultureInfo.CurrentCulture);
+							// targetItem.Database.Engines.TemplateEngine.HandleItemSaved(targetItem, targetItem.GetFullChanges(), false);
+							miHandleItemSaved.Invoke(targetItem.Database.Engines.TemplateEngine, bindingFlags, null, new[] { targetItem, itemChanges, false }, CultureInfo.CurrentCulture);
+						}
+						else
+						{
+							_logger.LogSystemMessage($"[E] INTERNAL ERROR. Reflection Target not located. If you get this message, please tell me about it. Sitecore Version: {SitecoreVersionResolver.SitecoreVersionCurrent}. miHandleItemSaved: {miHandleItemSaved != null}, miGetFullChanges: {miGetFullChanges != null}");
+						}
+					}
+
+					ClearCaches(targetItem.Database, targetItem.ID);
+					targetItem.Reload();
+					targetItem.Database.Engines.TemplateEngine.Reset();
 
 					var unversionedFieldsWereChanged = PasteUnversionedFields(serializedItemData, targetItem, newItemWasCreated, softErrors, fieldValueManipulator);
 
@@ -472,6 +494,13 @@ namespace Rainbow.Storage.Sc.Deserialization
 			foreach (var syncVersion in serializedItemData.Versions)
 			{
 				var res = PasteVersion(targetItem, syncVersion, newItemWasCreated, softErrors, fieldValueManipulator);
+				if (targetItem.BranchId.Guid != Guid.Empty)
+				{
+					ClearCaches(targetItem.Database, targetItem.ID);
+					targetItem.Reload();
+					PasteSharedFields(serializedItemData, targetItem, newItemWasCreated, softErrors, fieldValueManipulator);
+				}
+
 				var committed = res.Item1;
 				if (committed)
 					anythingChanged = true;

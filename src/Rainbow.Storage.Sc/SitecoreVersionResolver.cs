@@ -17,6 +17,7 @@ namespace Rainbow.Storage.Sc
 		public static Version SitecoreVersion75 = new Version(7, 5);
 		public static Version SitecoreVersion80 = new Version(8, 0);
 		public static Version SitecoreVersion81 = new Version(8, 1);
+		public static Version SitecoreVersion101 = new Version(10, 1);
 
 		public static Version GetVersionNumber()
 		{

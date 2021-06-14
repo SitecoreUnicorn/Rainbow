@@ -31,7 +31,6 @@ namespace Rainbow.Storage.Yaml.OutputModel
 			ParentId = itemData.ParentId;
 			TemplateId = itemData.TemplateId;
 			Path = itemData.Path;
-
 			BranchId = itemData.BranchId;
 
 			foreach (var field in itemData.SharedFields)
